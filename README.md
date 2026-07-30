@@ -1,5 +1,9 @@
 # 🍽️ Zomato Refund Fraud Detection — Analytics Project
 
+### 🔗 [**Live Dashboard →**](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/)
+
+Explore flagged high-risk customers, filter by city/date/risk tier, and see the risk-score breakdown for any account — no local setup required.
+
 ## 📌 Business Problem
 
 Online food delivery platforms lose significant revenue due to fraudulent refund requests. While genuine customers occasionally request refunds, some users repeatedly exploit refund policies by submitting false complaints. The objective of this project is to identify suspicious customer behavior using data analytics, SQL, Python, and interactive dashboards to help businesses reduce financial losses.
@@ -88,6 +92,9 @@ Business Recommendations
 - PostgreSQL
 - SQL
 
+### Dashboard
+- Streamlit (deployed on Streamlit Community Cloud)
+
 ### Tools
 - Jupyter Notebook
 - VS Code
@@ -98,12 +105,15 @@ Business Recommendations
 
 ## 🚀 How to Run
 
+**Live dashboard:** just open the [link above](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) — nothing to install.
+
+**To run locally:**
+
 1. Clone the repository.
-2. Install the required Python libraries.
-3. Open the Jupyter Notebook.
-4. Run all cells sequentially.
-5. Execute the SQL queries in PostgreSQL.
-6. View the generated visualizations and dashboard outputs.
+2. Install the required Python libraries: `pip install -r requirements.txt`
+3. Launch the dashboard: `streamlit run dashboard/app.py`
+4. (Optional) Open the Jupyter notebooks in `notebooks/` to see the underlying data generation, EDA, and risk-scoring steps.
+5. Execute the SQL queries in PostgreSQL for the raw fraud-detection queries.
 
 ---
 
