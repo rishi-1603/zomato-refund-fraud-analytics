@@ -8,6 +8,7 @@ Tabs: Executive Overview · Refund Analytics · Customer Risk · Operations
 """
 
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -247,8 +248,55 @@ def tab_overview(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     )
 
 
+def concentration_curve(orders: pd.DataFrame):
+    """Pareto cuts + cumulative curve — mirrors scripts/pareto_analysis.py."""
+    total = float(orders["Refund_Amount"].sum())
+    cust = orders.groupby("Customer_ID")["Refund_Amount"].sum().sort_values(ascending=False)
+    n = len(cust)
+    cum = (cust.cumsum() / total * 100).values
+    x = np.arange(1, n + 1) / n * 100
+    k50 = int(np.searchsorted(cum, 50) + 1)
+    k80 = int(np.searchsorted(cum, 80) + 1)
+    k10 = max(1, int(np.ceil(n * 0.10)))
+    return x, cum, n, total, k50, k80, float(cum[k10 - 1])
+
+
 def tab_refunds(orders: pd.DataFrame) -> None:
     refunds = orders[orders["Refund_Requested"] == True].copy()  # noqa: E712
+
+    # ---- Phase 1: refund exposure concentration (Pareto) ----
+    x, cum, n_cust, total_val, k50, k80, top10_share = concentration_curve(orders)
+
+    p1, p2, p3, p4 = st.columns(4)
+    p1.metric("Total refund exposure", f"₹{total_val:,.0f}")
+    p2.metric("Customers", f"{n_cust:,}")
+    p3.metric("Top 10% hold", f"{top10_share:.1f}% of exposure")
+    p4.metric("Half of exposure", f"top {k50:,} customers")
+
+    st.subheader("Refund exposure concentration (Pareto)")
+    st.caption(
+        "How much refund value sits with what share of customers — the review-queue "
+        "sizing question. Concentration is a prioritization signal, never evidence "
+        "that any individual customer is fraudulent. Full analysis: "
+        "reports/pareto_analysis.md"
+    )
+    fig = go.Figure()
+    fig.add_scatter(
+        x=x, y=cum, mode="lines", name="Cumulative share of refund value",
+        line=dict(color=C_PRIMARY, width=3),
+    )
+    fig.add_trace(go.Scatter(
+        x=[0, 100], y=[0, 100], mode="lines", name="Perfect equality (y = x)",
+        line=dict(color=C_NEUTRAL, dash="dash", width=1.5),
+    ))
+    fig.add_hline(y=80, line_dash="dot", line_color=C_WARN, opacity=0.7)
+    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color=C_WARN, opacity=0.7)
+    fig.update_layout(
+        **PLOTLY_LAYOUT,
+        xaxis_title="Customers (% — ranked by refund value, highest first)",
+        yaxis_title="Cumulative share of refund value (%)",
+    )
+    st.plotly_chart(fig, width="stretch")
 
     r1, r2, r3 = st.columns(3)
     r1.metric("Avg refund amount", f"₹{refunds['Refund_Amount'].mean():,.0f}")

@@ -85,8 +85,43 @@ WITH high_risk_customers AS (
     AND SUM(CASE WHEN "Refund_Requested" = TRUE THEN 1 ELSE 0 END) * 100.0 / COUNT(*) > 30
 )
 SELECT
-    COUNT(*) AS high_risk_accounts,
-    ROUND(SUM(total_refund_amount)::numeric, 2) AS fraud_exposure,
-    ROUND(SUM(total_refund_amount) * 0.5, 2) AS potential_recovery,
-    ROUND(AVG(refund_rate_percent)::numeric, 2) AS avg_fraud_rate
+    COUNT(*) AS flagged_accounts,
+    ROUND(SUM(total_refund_amount)::numeric, 2) AS refund_exposure_held_by_flagged,
+    ROUND(AVG(refund_rate_percent)::numeric, 2) AS avg_refund_rate_of_flagged
 FROM high_risk_customers;
+-- Note: no recovery/recovery-rate is computed anywhere. Recovery assumptions
+-- are not supported by this data (see reports/pareto_analysis.md).
+
+-- Query 9: Refund Exposure Concentration (Pareto)
+-- Business Question: How concentrated is refund value among customers?
+-- (Mirrors scripts/pareto_analysis.py; reconciliation in Phase 5.)
+
+WITH customer_refunds AS (
+    SELECT
+        "Customer_ID",
+        SUM("Refund_Amount") AS refund_value
+    FROM public.orders
+    WHERE "Refund_Requested" = TRUE
+    GROUP BY "Customer_ID"
+),
+ranked AS (
+    SELECT
+        "Customer_ID",
+        refund_value,
+        ROW_NUMBER() OVER (ORDER BY refund_value DESC, "Customer_ID") AS value_rank,
+        SUM(refund_value) OVER (ORDER BY refund_value DESC, "Customer_ID") AS cum_value,
+        SUM(refund_value) OVER () AS total_value,
+        (SELECT COUNT(DISTINCT "Customer_ID") FROM public.orders) AS all_customers
+    FROM customer_refunds
+)
+SELECT
+    ROUND(100.0 * MAX(CASE WHEN value_rank <= CEIL(all_customers * 0.01)  THEN cum_value END) / MAX(total_value), 1) AS top_1pct_share,
+    ROUND(100.0 * MAX(CASE WHEN value_rank <= CEIL(all_customers * 0.05)  THEN cum_value END) / MAX(total_value), 1) AS top_5pct_share,
+    ROUND(100.0 * MAX(CASE WHEN value_rank <= CEIL(all_customers * 0.10)  THEN cum_value END) / MAX(total_value), 1) AS top_10pct_share,
+    ROUND(100.0 * MAX(CASE WHEN value_rank <= CEIL(all_customers * 0.20)  THEN cum_value END) / MAX(total_value), 1) AS top_20pct_share,
+    MIN(CASE WHEN cum_value >= 0.5 * total_value THEN value_rank END) AS customers_to_cover_50pct,
+    MIN(CASE WHEN cum_value >= 0.8 * total_value THEN value_rank END) AS customers_to_cover_80pct
+FROM ranked;
+-- Interpretation: a small customer share holds a disproportionate share of
+-- refund VALUE. Concentration is a prioritization signal — never evidence
+-- that any individual customer is fraudulent (see reports/pareto_analysis.md).

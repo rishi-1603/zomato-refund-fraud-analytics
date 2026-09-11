@@ -142,6 +142,9 @@ refund) is in the decision log. Regenerate: `python scripts/validate_risk_score.
 ### Insight 1 — Abuse is concentrated, so review effort should be too
 279 customers (2.8%) exceed 30% refund rates; the High tier is 100% precise
 against planted labels.
+**Pareto analysis quantifies it:** the top 10% of customers hold **75.6%** of
+refund value; just **292 customers (3.0%) cover half** of all exposure —
+see [`reports/pareto_analysis.md`](reports/pareto_analysis.md).
 **Action (on real data):** investigate the High tier top-down. *Owner: Fraud
 team · KPI: confirmed-abuse rate per investigation.*
 
@@ -157,6 +160,14 @@ work, reason-repetition is a classic scripted-claim signal, which is exactly
 why it carries 30% weight here.
 
 ---
+
+
+### Insight 4 — Refund exposure concentration (Pareto)
+Top 1% of customers hold **26.9%** of refund value; top 10% hold **75.6%**;
+80% of value comes from just **11.8%** of customers. This is the
+review-queue-sizing answer — and concentration is a prioritization signal,
+never proof of fraud. Full analysis:
+[`reports/pareto_analysis.md`](reports/pareto_analysis.md).
 
 ## 9. 📸 Dashboard Preview
 
