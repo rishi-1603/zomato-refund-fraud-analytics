@@ -110,14 +110,13 @@ def main() -> None:
         "",
         "## Business interpretation",
         "",
-        f"1. **Refund exposure is heavily concentrated.** The top "
-        f"{c['top10'][1]:.1f}% of customers hold "
-        f"{c['top10'][0] / c['n_customers'] * 100:.0f}% → "
-        "review effort scales sub-linearly: a small, well-chosen review queue "
-        "covers a disproportionate share of exposure.",
+        f"1. **Refund exposure is heavily concentrated.** The top 10% of "
+        f"customers account for {c['top10'][1]:.1f}% of refund value. Review "
+        "effort scales sub-linearly: a small, well-chosen review queue covers "
+        "a disproportionate share of exposure.",
         f"2. **The 50% line sits at {c['cover50'][1]:.1f}% of customers** — "
-        "reviewing fewer than 300 accounts would cover half of all refund value "
-        "in this dataset.",
+        f"in this dataset, the {c['cover50'][0]:,} highest-exposure customers "
+        f"account for 50% of historical refund value.",
         f"3. **Concentration ≠ guilt.** High refund value can have legitimate",
         "   causes (high order volume, genuinely bad delivery experiences). "
         "Phases 2–4 of this program (baseline normalization, sensitivity, "

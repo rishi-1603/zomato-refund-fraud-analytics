@@ -162,7 +162,14 @@ why it carries 30% weight here.
 ---
 
 
-### Insight 4 — Refund exposure concentration (Pareto)
+### Insight 4 — 40% of flagged customers are within normal range for their order volume
+The raw ">30% refund rate" threshold doesn't ask *compared with WHAT*. Volume-band
+baselines show that **113 of 279 flagged customers (40.5%) have refund rates below
+their band's P95** — high in absolute terms, but not unusual for their order volume.
+These are the false-positive candidates Phase 4 investigates. Full analysis:
+[`reports/baseline_normalization.md`](reports/baseline_normalization.md).
+
+### Insight 5 — Refund exposure concentration (Pareto)
 Top 1% of customers hold **26.9%** of refund value; top 10% hold **75.6%**;
 80% of value comes from just **11.8%** of customers. This is the
 review-queue-sizing answer — and concentration is a prioritization signal,

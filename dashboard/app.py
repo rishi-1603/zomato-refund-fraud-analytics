@@ -364,6 +364,60 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     c4.metric("High risk tier", int((filtered["Risk_Tier"] == "High").sum()))
 
     left, right = st.columns([1, 2])
+    # ---- Phase 2: baseline normalization (volume-band comparison) ----
+    st.subheader("Is the refund rate abnormal for the customer's order volume?")
+    st.caption(
+        "The raw 30% threshold doesn't ask 'compared with WHAT?' This section "
+        "compares each flagged customer against their order-volume band's "
+        "distribution. Above-baseline ≠ fraudulent — it means statistically "
+        "unusual for the customer's volume. Full analysis: "
+        "reports/baseline_normalization.md"
+    )
+    try:
+        import sys as _sys
+        from pathlib import Path as _Path
+        _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "scripts"))
+        from baseline_normalization import build_baselines
+        _df = pd.read_csv("data/processed/zomato_with_refunds.csv")
+        _cust, _bands = build_baselines(_df)
+        _sus_ids = set(all_suspects["Customer_ID"])
+        _cust["is_flagged"] = _cust["Customer_ID"].isin(_sus_ids)
+        _flagged = _cust[_cust["is_flagged"]]
+        _above = _flagged[_flagged["above_baseline"]]
+        _below = _flagged[~_flagged["above_baseline"]]
+
+        b1, b2, b3 = st.columns(3)
+        b1.metric("Flagged above band baseline", f"{len(_above):,}",
+                   f"{len(_above)/len(_flagged)*100:.0f}% of flagged")
+        b2.metric("Flagged but within band norms", f"{len(_below):,}",
+                  f"{len(_below)/len(_flagged)*100:.0f}% — false-positive candidates",
+                  delta_color="inverse")
+        b3.metric("Above baseline (all customers)", f"{int(_cust['above_baseline'].sum()):,}")
+
+        # volume-band reference chart
+        fig = go.Figure()
+        for _, b in _bands.iterrows():
+            fig.add_trace(go.Bar(
+                x=[b["band"]], y=[b["p95"]], name=b["band"],
+                marker_color=C_PRIMARY, text=f"P95: {b['p95']:.1f}%",
+                textposition="outside", showlegend=False,
+            ))
+        fig.update_layout(
+            **PLOTLY_LAYOUT,
+            xaxis_title="Order-volume band",
+            yaxis_title="P95 refund rate (%)",
+            height=320,
+        )
+        st.plotly_chart(fig, width="stretch")
+        st.caption(
+            "P95 refund rate by volume band — the 'unusual' threshold varies "
+            "dramatically with order count. A 50% rate on 2 orders is normal; "
+            "a 35% rate on 10 orders is unusual."
+        )
+    except Exception:
+        st.info("Baseline normalization unavailable — run scripts/baseline_normalization.py")
+
+    left, right = st.columns([1, 2])
     with left:
         tier_counts = (
             all_suspects["Risk_Tier"].value_counts().reindex(["Low", "Medium", "High"]).fillna(0)

@@ -29,8 +29,8 @@ The 279 flagged suspects (2.8% of customers) hold **38.78%** of total refund exp
 
 ## Business interpretation
 
-1. **Refund exposure is heavily concentrated.** The top 75.6% of customers hold 10% → review effort scales sub-linearly: a small, well-chosen review queue covers a disproportionate share of exposure.
-2. **The 50% line sits at 3.0% of customers** — reviewing fewer than 300 accounts would cover half of all refund value in this dataset.
+1. **Refund exposure is heavily concentrated.** The top 10% of customers account for 75.6% of refund value. Review effort scales sub-linearly: a small, well-chosen review queue covers a disproportionate share of exposure.
+2. **The 50% line sits at 3.0% of customers** — in this dataset, the 292 highest-exposure customers account for 50% of historical refund value.
 3. **Concentration ≠ guilt.** High refund value can have legitimate
    causes (high order volume, genuinely bad delivery experiences). Phases 2–4 of this program (baseline normalization, sensitivity, false-positive analysis) test exactly that before anyone acts on a flag.
 4. **Method caveat:** the refund layer is synthetic and seeded; these
