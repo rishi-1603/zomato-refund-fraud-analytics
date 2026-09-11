@@ -1,11 +1,12 @@
 # ── Deployment requirements (Streamlit Cloud + CI) ──────────────────────
-# The dashboard (dashboard/app.py) and tests import ONLY these five.
+# The dashboard (dashboard/app.py) and tests import ONLY these six.
 # Wide version bounds resolve correctly on any Python 3.9–3.13.
 streamlit>=1.35,<2
 pandas>=2.0,<3
 numpy>=1.24,<3
 scikit-learn>=1.3,<2
 pytest>=8,<10
+plotly>=5.20,<6
 
 # ── Local-only extras (NOT installed on Streamlit Cloud) ────────────────
 # Only needed if you run the notebooks locally:
