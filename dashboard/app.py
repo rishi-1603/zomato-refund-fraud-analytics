@@ -164,7 +164,7 @@ def main() -> None:
                 "Last_Order_Date",
             ]
         ],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
