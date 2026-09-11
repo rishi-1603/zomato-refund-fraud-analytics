@@ -169,6 +169,28 @@ their band's P95** — high in absolute terms, but not unusual for their order v
 These are the false-positive candidates Phase 4 investigates. Full analysis:
 [`reports/baseline_normalization.md`](reports/baseline_normalization.md).
 
+### Insight 6 — The risk score is robust to weight choices, fragile at tier boundaries
+Sensitivity analysis: dropping the dominant signal (refund rate) changes 26.9% of tier
+assignments; all alternative weight configurations produce Spearman ρ > 0.95 (stable
+ranking). But threshold shifts of ±5 points move 14–16% of customers between tiers —
+the tier boundaries, not the weights, are the fragile element.
+[`reports/sensitivity_analysis.md`](reports/sensitivity_analysis.md)
+
+### Insight 7 — 40.5% of flagged customers are potential false positives
+Against the planted ground truth: 131 of 279 flagged are true positives, 73 are
+false positives (26.2% of flagged), 75 are grey-area. The Phase-2 baseline
+normalization **validates as an FP screening tool**: below-baseline customers have a
+**57.5% false-positive rate** vs only **4.8%** above-baseline. The biggest FP scenario
+is low-volume noise: 102 customers with 5–6 orders and exactly 2 refunds cross the
+30% threshold by small-sample variance.
+[`reports/false_positive_analysis.md`](reports/false_positive_analysis.md)
+
+### Insight 8 — Python and SQL reconcile on every headline KPI
+All 8 key metrics (total orders, refund orders, refund amount, unique customers,
+flagged customers, flagged exposure, flagged % of exposure, overall refund rate)
+compute to **identical values** in independent pandas and SQL implementations —
+zero discrepancies. [`reports/kpi_reconciliation.md`](reports/kpi_reconciliation.md)
+
 ### Insight 5 — Refund exposure concentration (Pareto)
 Top 1% of customers hold **26.9%** of refund value; top 10% hold **75.6%**;
 80% of value comes from just **11.8%** of customers. This is the
