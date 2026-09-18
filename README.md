@@ -7,7 +7,7 @@ behavioural risk scoring → SQL validation → interactive dashboards — with 
 score validated against the planted ground truth.**
 
 [🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
-[🧪 17 Automated Tests](tests/) ·
+[🧪 43 Automated Tests](tests/) ·
 [📊 Score Validation](reports/score_validation.md) ·
 [📄 Reports](reports/)
 
