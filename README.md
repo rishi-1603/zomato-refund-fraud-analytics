@@ -1,10 +1,11 @@
 <div align="center">
 
-# 🍽️ Zomato Refund Fraud Risk Analytics
+# 🛡️ Zomato Refund Fraud Analytics
+### Food-Delivery Refund-Abuse Risk Scoring & Investigation Support
 
-**An end-to-end refund-abuse risk pipeline: seeded refund-layer generation →
-behavioural risk scoring → SQL validation → interactive dashboards — with the
-score validated against the planted ground truth.**
+**How can a food-delivery platform identify suspicious refund behavior, prioritize
+high-risk customers, and support fraud-investigation decisions without incorrectly
+penalizing legitimate customers?**
 
 [🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
 [🧪 43 Automated Tests](tests/) ·
