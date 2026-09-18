@@ -469,6 +469,61 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
             hide_index=True,
         )
 
+    # ---- AI Investigation Assistant (tool calling + evidence grounding) ----
+    st.subheader("AI Investigation Assistant")
+    st.caption(
+        "Tool-calling AI: queries the risk engine, refund history, and baseline "
+        "comparison, then explains the EVIDENCE. The AI never computes numbers "
+        "and never makes fraud determinations. Risk score ≠ proof of fraud."
+    )
+    inv_customer = st.selectbox(
+        "Select customer to investigate",
+        filtered["Customer_ID"].tolist() if len(filtered) else [],
+        key="inv_customer",
+    )
+    if inv_customer and st.button("Run AI Investigation", key="inv_run"):
+        try:
+            from app.dashboard.utils.ai_investigator import investigate_with_llm
+            with st.spinner("Gathering evidence from risk engine, refund history, and baseline..."):
+                result = investigate_with_llm(inv_customer)
+            if not result.get("ok"):
+                st.error(result.get("error", "Investigation failed."))
+            else:
+                ev = result["evidence"]
+                # Display evidence (always shown — deterministic)
+                e1, e2, e3 = st.columns(3)
+                with e1:
+                    st.markdown(f"**Risk Score:** {ev['risk']['risk_score']}")
+                    st.markdown(f"**Tier:** {ev['risk']['risk_tier']}")
+                    st.markdown(f"**Refund Rate:** {ev['risk']['refund_rate_pct']}%")
+                with e2:
+                    st.markdown(f"**Refunds:** {ev['history']['refund_count']}")
+                    st.markdown(f"**Top Reason:** {ev['history'].get('most_repeated_reason', 'N/A')}")
+                    st.markdown(f"**Total Exposure:** ₹{ev['history']['total_refund_amount']:,.0f}")
+                with e3:
+                    st.markdown(f"**Volume Band:** {ev['baseline']['volume_band']}")
+                    st.markdown(f"**Above Baseline:** {'Yes' if ev['baseline']['above_baseline'] else 'No'}")
+                    st.markdown(f"**Band P95:** {ev['baseline']['band_p95_threshold']}%")
+
+                # LLM explanation (if available)
+                explanation = result.get("explanation")
+                if explanation:
+                    st.markdown("#### AI Investigation Summary")
+                    st.markdown(explanation)
+                else:
+                    if result.get("note"):
+                        st.info("No LLM API key configured — showing deterministic tool outputs only. "
+                               "Set OPENAI_API_KEY or GOOGLE_API_KEY to enable AI explanations.")
+                    # Show structured evidence as fallback
+                    st.markdown("#### Evidence Details (deterministic tool outputs)")
+                    st.json(ev["risk"], expanded=False)
+                    st.json(ev["history"], expanded=False)
+                    st.json(ev["baseline"], expanded=False)
+        except ImportError:
+            st.info("AI investigation module not available.")
+        except Exception as e:
+            st.error(f"Investigation error: {str(e)}")
+
     st.subheader("Explain a flag")
     customer_options = filtered["Customer_ID"].tolist()
     if customer_options:
