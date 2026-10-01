@@ -16,6 +16,27 @@ import streamlit as st
 from sklearn.preprocessing import MinMaxScaler
 
 DATA_PATH = "data/processed/zomato_with_refunds.csv"
+TRUTH_PATH = "data/processed/ground_truth_customer_risk.csv"
+METRICS_PATH = "data/metrics.json"
+
+try:  # executed by Streamlit — the script dir is on sys.path
+    from kpi_engine import (  # noqa: E402
+        BAND_LABELS,
+        apply_global_filters,
+        compute_kpis,
+        load_metric_definitions,
+        volume_band,
+        what_changed,
+    )
+except ImportError:  # imported as a module from the repo root (tests)
+    from dashboard.kpi_engine import (  # noqa: E402
+        BAND_LABELS,
+        apply_global_filters,
+        compute_kpis,
+        load_metric_definitions,
+        volume_band,
+        what_changed,
+    )
 
 RISK_WEIGHTS = {
     "Refund_Rate": 0.40,
@@ -47,6 +68,18 @@ def load_orders(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     df["Order_Date"] = pd.to_datetime(df["Order_Date"], dayfirst=True)
     return df
+
+
+@st.cache_data
+def load_truth(path: str):
+    """Seeded ground-truth labels — validation only (disclosed synthetic layer).
+    Returns None when the file is absent so the app degrades gracefully."""
+    from pathlib import Path as _P
+
+    p = _P(path)
+    if not p.exists():
+        return None
+    return pd.read_csv(p)
 
 
 def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
@@ -157,7 +190,12 @@ def rate_by_column(orders: pd.DataFrame, col: str, title: str):
 # TABS
 # ════════════════════════════════════════════════════════════════════════════
 
-def tab_overview(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
+def tab_overview(
+    orders: pd.DataFrame,
+    suspects: pd.DataFrame,
+    truth: pd.DataFrame | None = None,
+    metric_defs: dict | None = None,
+) -> None:
     total_orders = len(orders)
     refund_orders = int(orders["Refund_Requested"].sum())
     refund_rate = refund_orders / total_orders * 100
@@ -165,16 +203,79 @@ def tab_overview(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     flagged_exposure = suspects["Total_Refund_Amount"].sum()
     exposure_share = flagged_exposure / refund_amount * 100 if refund_amount else 0
 
+    kpis = compute_kpis(orders, suspects, truth)
+    mom = kpis["mom"]
+
+    # ── "What changed?" — computed from data. No LLM, no hardcoding. ──
+    insights = what_changed(orders, suspects, truth)
+    if insights:
+        st.subheader("What changed?")
+        cols = st.columns(min(3, len(insights)))
+        _style_for = {"ok": st.success, "info": st.info, "watch": st.warning, "alert": st.warning}
+        for i, ins in enumerate(insights[:3]):
+            with cols[i]:
+                _style_for[ins["level"]](f"**{ins['headline']}**\n\n{ins['detail']}")
+        if len(insights) > 3:
+            with st.expander(f"More signals ({len(insights) - 3})"):
+                for ins in insights[3:]:
+                    st.markdown(f"- **{ins['headline']}** — {ins['detail']} _({ins['evidence']})_")
+
+    # ── Executive KPI cards: value + direction + context ──
     c1, c2, c3, c4, c5, c6 = st.columns(6)
-    c1.metric("Total orders", f"{total_orders:,}")
-    c2.metric("Refund orders", f"{refund_orders:,}")
-    c3.metric("Refund rate", f"{refund_rate:.1f}%")
-    c4.metric("Refund amount", f"₹{refund_amount:,.0f}")
-    c5.metric("Flagged customers", len(suspects))
-    c6.metric(
-        "Flagged share of exposure", f"{exposure_share:.1f}%",
-        delta=f"₹{flagged_exposure:,.0f}", delta_color="inverse",
+    c1.metric(
+        "Delivery orders", f"{kpis['total_orders']:,}",
+        delta=(f"{mom['orders_delta_pct']:+.1f}%" if mom["orders_delta_pct"] is not None else None),
+        help=f"Month-over-month: {mom['prev_label']} → {mom['label']} on the current scope.",
     )
+    c2.metric(
+        "Refund rate", f"{kpis['refund_rate_pct']:.1f}%",
+        delta=(
+            f"{mom['refund_rate_delta_pp']:+.1f} pp"
+            if mom["refund_rate_delta_pp"] is not None else None
+        ),
+        delta_color="inverse",
+        help="Refunds as a share of orders. Delta: percentage points, month-over-month.",
+    )
+    c3.metric(
+        "Refund exposure", f"₹{kpis['refund_exposure']:,.0f}",
+        delta=(
+            f"{mom['exposure_delta_pct']:+.1f}%"
+            if mom["exposure_delta_pct"] is not None else None
+        ),
+        delta_color="inverse",
+        help="Historical refund value — NOT a confirmed loss and NOT future revenue at risk.",
+    )
+    c4.metric(
+        "Flagged customers", f"{kpis['flagged_count']:,}",
+        delta=f"{kpis['flagged_exposure_share_pct']:.1f}% of exposure",
+        delta_color="off",
+        help="Eligibility: ≥5 orders AND refund rate >30%. A flag means investigate — never guilty.",
+    )
+    c5.metric(
+        "High-tier flags", f"{kpis['high_tier_count']}",
+        delta=(
+            f"{kpis['high_tier_precision_pct']:.0f}% precision"
+            if kpis["high_tier_precision_pct"] is not None else "n = 8"
+        ),
+        delta_color="off",
+        help="Precision vs the seeded ground truth (synthetic layer, disclosed). Small n — see docs.",
+    )
+    c6.metric(
+        "Below-baseline flags", f"{kpis['below_baseline_flagged']:,}",
+        delta=f"{kpis['below_baseline_share_pct']:.1f}% of flags",
+        delta_color="off",
+        help="Refund rate normal for their volume band — likely false positives; de-prioritise.",
+    )
+    st.caption(
+        "Deltas are month-over-month on the filtered scope. High-tier precision is validated "
+        "against the seeded ground truth (disclosed). Risk score ≠ proof of fraud."
+    )
+
+    # ── KPI definitions — the semantic layer every number cites ──
+    if metric_defs:
+        with st.expander("📖 KPI definitions (semantic layer)"):
+            for _key, _m in metric_defs["metrics"].items():
+                st.markdown(f"**{_key.replace('_', ' ').title()}** — {_m['definition']}")
 
     # ── Monthly trend: order volume (bars) + refund rate (line, secondary axis)
     m = (
@@ -456,18 +557,47 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
             right.plotly_chart(fig, width="stretch")
 
-        st.subheader("Flagged customers, ranked by risk score")
-        st.dataframe(
-            filtered[
+        st.subheader("Flagged customers — investigation list")
+        if not len(filtered):
+            st.info("No flagged customers match the current filters.")
+        else:
+            tbl = filtered[
                 [
                     "Customer_ID", "City", "Risk_Tier", "Fraud_Risk_Score",
                     "Total_Orders", "Total_Refunds", "Refund_Rate",
                     "Reason_Repetition_Rate", "Total_Refund_Amount", "Last_Order_Date",
                 ]
-            ],
-            width="stretch",
-            hide_index=True,
-        )
+            ].copy()
+            _status_map = {"High": "Investigate first", "Medium": "Watchlist", "Low": "Routine review"}
+            tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
+
+            def _tier_color(val):
+                return f"color: {TIER_COLORS.get(val, C_NEUTRAL)}; font-weight: 600"
+
+            styler = (
+                tbl.style
+                .map(_tier_color, subset=["Risk_Tier"])
+                .map(_tier_color, subset=["Status"])
+                .format(
+                    {
+                        "Fraud_Risk_Score": "{:.1f}",
+                        "Refund_Rate": "{:.1f}%",
+                        "Reason_Repetition_Rate": "{:.0f}%",
+                        "Total_Refund_Amount": "₹{:,.0f}",
+                        "Last_Order_Date": lambda d: d.strftime("%d %b %Y"),
+                    }
+                )
+            )
+            st.dataframe(styler, width="stretch", hide_index=True)
+
+            _csv = tbl.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "⬇ Download investigation list (CSV)",
+                _csv,
+                file_name="zomato_flagged_investigation_list.csv",
+                mime="text/csv",
+                help="The current filtered scope — ready for the review workflow.",
+            )
 
     # ---- AI Investigation Assistant (tool calling + evidence grounding) ----
     st.subheader("AI Investigation Assistant")
@@ -663,25 +793,44 @@ def main() -> None:
 
     orders = load_orders(DATA_PATH)
     suspects = build_customer_risk_table(orders)
+    truth = load_truth(TRUTH_PATH)
+    try:
+        metric_defs = load_metric_definitions(METRICS_PATH)
+    except (OSError, ValueError):
+        metric_defs = None
 
-    # ── Sidebar filters (drive the Customer Risk tab) ──
-    st.sidebar.header("Filters — Customer Risk tab")
-    cities = sorted(suspects["City"].dropna().unique().tolist())
-    selected_cities = st.sidebar.multiselect("City type", cities, default=cities)
+    # ── Global filters (cross-filter every tab) ──
+    st.sidebar.header("Global filters")
+    all_city_types = sorted(orders["City"].dropna().unique().tolist())
+    selected_cities = st.sidebar.multiselect(
+        "City type", all_city_types, default=all_city_types,
+        help="Order-level city type — applies to every tab.",
+    )
+    selected_bands = st.sidebar.multiselect(
+        "Customer volume band", BAND_LABELS, default=BAND_LABELS,
+        help="1-2 / 3-5 / 6-10 / 11-20 / 21+ orders (customer-level) — applies to every tab.",
+    )
+    orders_f = apply_global_filters(orders, selected_cities or None, selected_bands or None)
+    suspects_scope = suspects[
+        suspects["City"].isin(selected_cities if selected_cities else all_city_types)
+    ]
+    if selected_bands:
+        suspects_scope = suspects_scope[
+            suspects_scope["Total_Orders"].apply(volume_band).isin(selected_bands)
+        ]
 
+    # ── Customer Risk tab filters (tier + last-order date) ──
+    st.sidebar.header("Customer Risk tab filters")
     min_date = suspects["Last_Order_Date"].min().date()
     max_date = suspects["Last_Order_Date"].max().date()
     date_range = st.sidebar.date_input(
         "Last order date range", value=(min_date, max_date), min_value=min_date, max_value=max_date
     )
-
     risk_tiers = st.sidebar.multiselect(
         "Risk tier", ["Low", "Medium", "High"], default=["Low", "Medium", "High"]
     )
 
-    filtered = suspects[
-        suspects["City"].isin(selected_cities) & suspects["Risk_Tier"].isin(risk_tiers)
-    ]
+    filtered = suspects_scope[suspects_scope["Risk_Tier"].isin(risk_tiers)]
     if isinstance(date_range, tuple) and len(date_range) == 2:
         start, end = date_range
         filtered = filtered[
@@ -693,13 +842,13 @@ def main() -> None:
         ["📊 Executive Overview", "💰 Refund Analytics", "👥 Customer Risk", "🚚 Operations"]
     )
     with tab1:
-        tab_overview(orders, suspects)
+        tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
     with tab2:
-        tab_refunds(orders)
+        tab_refunds(orders_f)
     with tab3:
         tab_customer_risk(filtered, suspects)
     with tab4:
-        tab_operations(orders)
+        tab_operations(orders_f)
 
     st.divider()
     st.caption(

@@ -1,0 +1,71 @@
+{
+  "meta": {
+    "project": "Zomato Refund Fraud Analytics",
+    "description": "Semantic layer — exact definitions of every KPI. The dashboard and the AI Investigation Assistant must cite these definitions; no other definitions are valid.",
+    "disclosure": "Orders are a real Kaggle food-delivery dataset; the refund layer is synthetic and seeded (disclosed in docs/risk_scoring_methodology.md). Risk score != proof of fraud. Planted labels exist only to validate the ranking.",
+    "source_data": "data/processed/zomato_with_refunds.csv (45,584 orders, 9,895 customers)",
+    "methodology_doc": "docs/risk_scoring_methodology.md"
+  },
+  "metrics": {
+    "total_orders": {
+      "definition": "Count of delivery order records in scope.",
+      "formula": "COUNT(*) over orders in scope",
+      "full_dataset_value": 45584
+    },
+    "customers": {
+      "definition": "Distinct customers with at least one order in scope.",
+      "formula": "COUNT(DISTINCT Customer_ID)",
+      "full_dataset_value": 9895
+    },
+    "refund_exposure": {
+      "definition": "Total historical refund value in scope. Historical spend measure — NOT a confirmed loss and NOT future revenue at risk.",
+      "formula": "SUM(Refund_Amount)",
+      "full_dataset_value": 974344
+    },
+    "refund_rate": {
+      "definition": "Share of orders that requested a refund.",
+      "formula": "SUM(Refund_Requested = TRUE) / COUNT(*) * 100",
+      "denominator": "All orders in scope (completed or not)"
+    },
+    "flagged_customers": {
+      "definition": "Customers in the scored pool — the eligibility funnel (>=5 total orders AND refund rate > 30%) flags them for triage review. A flag means investigate, never guilty.",
+      "formula": "customers WHERE Total_Orders >= 5 AND Refund_Rate > 30",
+      "full_dataset_value": 279
+    },
+    "flagged_exposure_share": {
+      "definition": "Share of total refund exposure held by flagged customers.",
+      "formula": "SUM(flagged customers' Total_Refund_Amount) / SUM(all Refund_Amount) * 100",
+      "full_dataset_value_pct": 38.78
+    },
+    "fraud_risk_score": {
+      "definition": "Weighted triage score over the eligible pool, min-max scaled 0-100. NOT a probability of fraud (uncalibrated composite heuristic).",
+      "formula": "40% refund rate + 30% reason repetition + 20% refund frequency + 10% reason length",
+      "tiers": {"High": "> 70", "Medium": "40-70", "Low": "<= 40"}
+    },
+    "high_tier_precision": {
+      "definition": "Share of High-tier flags that match the seeded (planted) high-risk labels. Validation only — planted labels are synthetic.",
+      "formula": "High-tier flags with Planted_Risk = 'High' / all High-tier flags",
+      "full_dataset_value_pct": 100,
+      "caveat": "n = 8. In-pool AUC 0.942; end-to-end recall 2.7% (coverage gap disclosed)."
+    },
+    "volume_band_baseline": {
+      "definition": "Per-band P95 of customer refund rate. 'Above baseline' = refund rate above the P95 of the customer's order-volume band (1-2, 3-5, 6-10, 11-20, 21+).",
+      "formula": "PERCENTILE_CONT(0.95) of Refund_Rate within band",
+      "caveat": "Above baseline != fraudulent — it means statistically unusual for their activity level."
+    },
+    "below_baseline_flags": {
+      "definition": "Flagged customers whose refund rate is at or below their volume-band P95 — normal for their volume, hence likely false positives.",
+      "formula": "flagged customers WHERE Refund_Rate <= band P95",
+      "full_dataset_value": 113,
+      "full_dataset_share_pct": 40.5
+    },
+    "pareto_concentration": {
+      "definition": "Share of total refund value held by the top X% of customers ranked by refund value.",
+      "verified_points": {"top_1pct": 26.9, "top_5pct": 60.6, "top_10pct": 75.6, "top_20pct": 95.1}
+    },
+    "mom_delta": {
+      "definition": "Month-over-month change of a KPI (latest month vs previous month). Alert threshold: 10% relative change (rate: 2 pp).",
+      "formula": "(current - previous) / previous * 100"
+    }
+  }
+}

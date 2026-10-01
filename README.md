@@ -8,11 +8,58 @@ high-risk customers, and support fraud-investigation decisions without incorrect
 penalizing legitimate customers?**
 
 [🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
-[🧪 43 Automated Tests](tests/) ·
+[🧪 66 Automated Tests](tests/) ·
 [📊 Score Validation](reports/score_validation.md) ·
 [📄 Reports](reports/)
 
 </div>
+
+## 🎯 Executive Decision Layer *(2026 upgrade)*
+
+> A dashboard a fraud-operations manager can open cold and know what to do next:
+> **WHAT changed → WHERE it concentrated → WHO to investigate → WHAT it costs to be wrong.**
+
+![Executive layer — What changed? strip + KPI header with month-over-month deltas](docs/screenshots/day1_executive_layer.png)
+
+| Capability | What it does |
+|---|---|
+| 📌 **"What changed?" strip** | Month-over-month signals computed live from the data — no LLM, no hardcoding |
+| 📊 **Executive KPI header** | 6 cards with deltas + context: 45,584 orders · ₹974,344 exposure · 279 flagged (38.78% of exposure) · 8 high-tier flags at 100% precision · 113 likely false positives |
+| 🧭 **Global filters** | City type × customer volume band cross-filter every tab |
+| 🕵️ **Investigation list** | Status column (Investigate first / Watchlist / Routine review), tier colour-coding, CSV export for the review workflow |
+| 📖 **Semantic layer** | `data/metrics.json` — the exact definition of every KPI, cited by the dashboard and the AI assistant |
+| 🧮 **New SQL** | `sql/cumulative_pareto.sql` (window-function concentration) · `sql/baseline_bands.sql` (volume-band P95 baselines) |
+
+**Honest by design:** risk score ≠ proof of fraud · the refund layer is synthetic and disclosed · false positives are quantified, not hidden (40.5% of flags sit below their volume-band baseline).
+
+✅ **66 automated tests** — every dashboard number reconciled with the Python/SQL pipeline.
+
+![Investigation list — status, formatting, CSV export](docs/screenshots/day1_investigation_list.png)
+
+---
+
+## 🏗️ Architecture — score, validate, challenge, explain
+
+```mermaid
+flowchart LR
+    A["45,584 Kaggle orders<br/>+ seeded refund layer<br/>(disclosed)"] --> B["Eligibility funnel<br/>≥5 orders · rate >30%"]
+    B --> C["4-signal risk score<br/>40/30/20/10 weights"]
+    C --> D["Validation vs ground truth<br/>100% top-tier · AUC 0.94"]
+    D --> E["False-positive analysis<br/>volume-band P95 baselines"]
+    E --> F["AI Investigation Assistant<br/>3 tools · no-accusation guardrails"]
+    F --> G["Streamlit dashboard<br/>66 tests · Power BI kit"]
+```
+
+**Business questions the dashboard answers**
+
+| Question | Where | Verified answer |
+|---|---|---|
+| Where is refund exposure? | Executive KPI header | ₹974,344 total — 279 flagged customers hold 38.78% |
+| Is the flag list reliable? | What changed? + KPI cards | 100% top-tier precision (8/8); 113 of 279 below baseline = likely false positives |
+| Who do we investigate first? | Investigation list | High tier first (8), then above-baseline Medium — CSV export for workflow |
+| Is behaviour abnormal for their volume? | Baselines view | Volume-band P95 comparison — separates heavy users from anomalies |
+
+
 
 > ⚠️ **Honesty note:** the delivery data is real (public Kaggle Zomato dataset),
 > but the **refund layer — and therefore the "fraud" — is synthetic**, planted
