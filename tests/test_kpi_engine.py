@@ -175,3 +175,41 @@ def test_dashboard_app_runs_end_to_end():
         assert not at.exception, f"dashboard raised: {at.exception}"
     finally:
         os.chdir(cwd)
+
+
+def test_default_scope_equals_full_dataset_regression():
+    """Regression (found in the 2026-10-02 KPI reconciliation): with ALL filters at
+    their default selection, the rendered executive KPI header must equal the FULL
+    dataset. 1,200 orders carry a missing City value — selecting every city type
+    must NOT silently drop them (it previously did, showing 44,384 / Rs944,983
+    instead of 45,584 / Rs974,344)."""
+    import os
+
+    from streamlit.testing.v1 import AppTest
+
+    cwd = os.getcwd()
+    os.chdir(ROOT)
+    try:
+        at = AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=240)
+        at.run()
+        assert not at.exception, at.exception
+        labels = [m.label for m in at.metric]
+        orders_m = at.metric[labels.index("Delivery orders")]
+        assert orders_m.value == "45,584", (
+            f"default scope dropped data: rendered {orders_m.value}")
+        exposure_m = at.metric[labels.index("Refund exposure")]
+        assert "974,344" in exposure_m.value, f"exposure mismatch: {exposure_m.value}"
+    finally:
+        os.chdir(cwd)
+
+
+def test_apply_global_filters_full_selection_is_noop():
+    """Full city selection must be a no-op even with NaN City rows present."""
+    orders = pd.read_csv(DATA)
+    full = list(orders["City"].dropna().unique())
+    out = apply_global_filters(orders, city_types=full, bands=BAND_LABELS)
+    assert len(out) == len(orders), "full selection silently dropped rows"
+    assert out["Refund_Amount"].sum() == orders["Refund_Amount"].sum()
+    # a genuine subset still filters (and may exclude NaN-City rows, as intended)
+    subset = apply_global_filters(orders, city_types=[full[0]])
+    assert len(subset) < len(orders)

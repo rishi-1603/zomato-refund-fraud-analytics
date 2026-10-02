@@ -199,10 +199,21 @@ def what_changed(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataFra
 def apply_global_filters(
     orders: pd.DataFrame, city_types: list[str] | None = None, bands: list[str] | None = None
 ) -> pd.DataFrame:
-    """Global cross-filtering: city type (order level) + customer volume band."""
+    """Global cross-filtering: city type (order level) + customer volume band.
+
+    NaN-safe: selecting ALL city types is a no-op, so the 1,200 orders with a
+    missing City value stay in scope (regression-tested — selecting everything
+    must never silently drop data)."""
     out = orders
     if city_types:
+        available = set(pd.unique(orders["City"].dropna()))
+        if set(city_types) >= available:
+            city_types = None  # full selection == no filter
+    if city_types:
         out = out[out["City"].isin(city_types)]
+    if bands:
+        if len(set(bands)) >= len(BAND_LABELS):
+            bands = None  # full selection == no filter
     if bands:
         base = customer_base(orders)
         keep = base[base["Volume_Band"].isin(bands)]["Customer_ID"]

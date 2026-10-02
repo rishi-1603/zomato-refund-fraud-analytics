@@ -800,6 +800,7 @@ def main() -> None:
         metric_defs = None
 
     # ── Global filters (cross-filter every tab) ──
+    # Full selection == no filter (NaN-safe: 1,200 orders have a missing City)
     st.sidebar.header("Global filters")
     all_city_types = sorted(orders["City"].dropna().unique().tolist())
     selected_cities = st.sidebar.multiselect(
@@ -810,13 +811,15 @@ def main() -> None:
         "Customer volume band", BAND_LABELS, default=BAND_LABELS,
         help="1-2 / 3-5 / 6-10 / 11-20 / 21+ orders (customer-level) — applies to every tab.",
     )
-    orders_f = apply_global_filters(orders, selected_cities or None, selected_bands or None)
-    suspects_scope = suspects[
-        suspects["City"].isin(selected_cities if selected_cities else all_city_types)
-    ]
-    if selected_bands:
+    city_subset = selected_cities if len(selected_cities) < len(all_city_types) else None
+    band_subset = selected_bands if len(selected_bands) < len(BAND_LABELS) else None
+    orders_f = apply_global_filters(orders, city_subset, band_subset)
+    suspects_scope = suspects
+    if city_subset:
+        suspects_scope = suspects_scope[suspects_scope["City"].isin(city_subset)]
+    if band_subset:
         suspects_scope = suspects_scope[
-            suspects_scope["Total_Orders"].apply(volume_band).isin(selected_bands)
+            suspects_scope["Total_Orders"].apply(volume_band).isin(band_subset)
         ]
 
     # ── Customer Risk tab filters (tier + last-order date) ──
