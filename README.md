@@ -8,7 +8,7 @@ high-risk customers, and support fraud-investigation decisions without incorrect
 penalizing legitimate customers?**
 
 [🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
-[🧪 66 Automated Tests](tests/) ·
+[🧪 68 Automated Tests](tests/) ·
 [📊 Score Validation](reports/score_validation.md) ·
 [📄 Reports](reports/)
 
@@ -32,7 +32,7 @@ penalizing legitimate customers?**
 
 **Honest by design:** risk score ≠ proof of fraud · the refund layer is synthetic and disclosed · false positives are quantified, not hidden (40.5% of flags sit below their volume-band baseline).
 
-✅ **66 automated tests** — every dashboard number reconciled with the Python/SQL pipeline.
+✅ **68 automated tests** — every dashboard number reconciled with the Python/SQL pipeline.
 
 ![Investigation list — status, formatting, CSV export](docs/screenshots/day1_investigation_list.png)
 
@@ -47,7 +47,7 @@ flowchart LR
     C --> D["Validation vs ground truth<br/>100% top-tier · AUC 0.94"]
     D --> E["False-positive analysis<br/>volume-band P95 baselines"]
     E --> F["AI Investigation Assistant<br/>3 tools · no-accusation guardrails"]
-    F --> G["Streamlit dashboard<br/>66 tests · Power BI kit"]
+    F --> G["Streamlit dashboard<br/>68 tests · Power BI kit"]
 ```
 
 **Business questions the dashboard answers**
