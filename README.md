@@ -19,14 +19,15 @@ penalizing legitimate customers?**
 > A dashboard a fraud-operations manager can open cold and know what to do next:
 > **WHAT changed → WHERE it concentrated → WHO to investigate → WHAT it costs to be wrong.**
 
-![Executive layer — What changed? strip + KPI header with month-over-month deltas](docs/screenshots/day1_executive_layer.png)
+![Refund Risk Intelligence console — header band, What changed? cards, KPI strip](docs/screenshots/v2_console_overview.png)
 
 | Capability | What it does |
 |---|---|
-| 📌 **"What changed?" strip** | Month-over-month signals computed live from the data — no LLM, no hardcoding |
+| 📌 **"What changed?" cards** | Month-over-month signals computed live from the data — headline, detail, cited evidence; no LLM, no hardcoding |
 | 📊 **Executive KPI header** | 6 cards with deltas + context: 45,584 orders · ₹974,344 exposure · 279 flagged (38.78% of exposure) · 8 high-tier flags at 100% precision · 113 likely false positives |
-| 🧭 **Global filters** | City type × customer volume band cross-filter every tab |
+| 🧭 **Global filters + active-scope chips** | City type × customer volume band cross-filter every tab; the sidebar always shows the active scope, one click resets it |
 | 🕵️ **Investigation list** | Status column (Investigate first / Watchlist / Routine review), tier colour-coding, CSV export for the review workflow |
+| 🔑 **Key-insight card** | One data-generated takeaway per scope: what the data says, why it matters, what to investigate next |
 | 📖 **Semantic layer** | `data/metrics.json` — the exact definition of every KPI, cited by the dashboard and the AI assistant |
 | 🧮 **New SQL** | `sql/cumulative_pareto.sql` (window-function concentration) · `sql/baseline_bands.sql` (volume-band P95 baselines) |
 
@@ -34,7 +35,9 @@ penalizing legitimate customers?**
 
 ✅ **68 automated tests** — every dashboard number reconciled with the Python/SQL pipeline.
 
-![Investigation list — status, formatting, CSV export](docs/screenshots/day1_investigation_list.png)
+![Investigation list — tier table, explain-a-flag, AI assistant](docs/screenshots/v2_customer_risk.png)
+
+![Refund Analytics — Pareto concentration and distributions](docs/screenshots/v2_refund_analytics.png)
 
 ---
 

@@ -58,9 +58,239 @@ TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
 PLOTLY_LAYOUT = dict(
     template="plotly_white",
     height=380,
-    margin=dict(l=40, r=30, t=50, b=40),
+    margin=dict(l=40, r=30, t=56, b=40),
     title_font=dict(size=15, color="#1E293B"),
+    font=dict(family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif",
+              size=12.5, color="#334155"),
+    hoverlabel=dict(bgcolor="#0F172A", font_size=12.5, font_color="#F8FAFC",
+                    bordercolor="#0F172A"),
 )
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# DESIGN SYSTEM — light "risk-operations console" identity.
+# Presentation only: every number still comes from the kpi_engine.
+# ════════════════════════════════════════════════════════════════════════════
+
+def inject_css() -> None:
+    st.markdown("""
+<style>
+:root {
+  --z-bg:#F4F6FA; --z-card:#FFFFFF; --z-border:#E2E8F0; --z-border2:#CBD5E1;
+  --z-text:#0F172A; --z-text2:#334155; --z-muted:#64748B;
+  --z-primary:#2563EB; --z-good:#059669; --z-warn:#D97706; --z-bad:#DC2626;
+}
+html, body, [class*="css"], .stApp { font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif; }
+.stApp { background: var(--z-bg); }
+section[data-testid="stSidebar"] {
+  background: #FFFFFF; border-right: 1px solid var(--z-border);
+}
+section[data-testid="stSidebar"] * { font-size: 13px; }
+section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14px 0 10px; }
+
+/* ── Header band ── */
+.app-header {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  background: linear-gradient(90deg, #0F172A 0%, #1E293B 100%);
+  border: 1px solid #1E293B; border-radius: 14px;
+  padding: 16px 22px; margin-bottom: 4px; color: #F8FAFC; flex-wrap: wrap;
+}
+.ah-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.ah-mark {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #fff;
+}
+.ah-title { font-size: 19px; font-weight: 800; letter-spacing: -0.2px; }
+.ah-sub { font-size: 12px; color: #94A3B8; margin-top: 1px; }
+.ah-right { display: flex; gap: 8px; flex-wrap: wrap; }
+.ah-chip {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
+  color: #E2E8F0; background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 5px 11px;
+  white-space: nowrap;
+}
+.ah-chip .live { color: #34D399; }
+
+/* ── Sidebar product mark ── */
+.side-mark { padding: 2px 2px 10px; border-bottom: 1px solid var(--z-border); margin-bottom: 10px; }
+.side-mark .sm-t { font-size: 13px; font-weight: 800; color: var(--z-text); }
+.side-mark .sm-s { font-size: 11px; color: var(--z-muted); margin-top: 1px; }
+
+/* ── Filter status chips ── */
+.fchips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+.fchip {
+  font-size: 11px; font-weight: 600; color: #1D4ED8;
+  background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 999px; padding: 3px 10px;
+}
+.fnone { font-size: 11.5px; color: var(--z-muted); }
+
+/* ── KPI cards (st.metric, restyled — values/deltas untouched) ── */
+[data-testid="stMetric"] {
+  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
+  padding: 14px 16px 12px; box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+}
+[data-testid="stMetric"] label, [data-testid="stMetric"] > div > label {
+  font-size: 10.5px !important; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--z-muted) !important; margin-bottom: 6px;
+}
+[data-testid="stMetric"] [data-testid="stMetricValue"] {
+  font-size: 25px !important; font-weight: 800; color: var(--z-text);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
+}
+[data-testid="stMetric"] [data-testid="stMetricDelta"] {
+  font-size: 12px !important; font-variant-numeric: tabular-nums;
+}
+
+/* ── Section headers (st.subheader) ── */
+.main .stMarkdown h3 {
+  font-size: 15px; font-weight: 800; color: var(--z-text); letter-spacing: -0.1px;
+  border-left: 3px solid var(--z-primary); padding-left: 10px; margin: 10px 0 2px;
+}
+
+/* ── Insight cards (What changed? / Key insight) ── */
+.ins-card {
+  background: var(--z-card); border: 1px solid var(--z-border);
+  border-left: 4px solid var(--z-primary); border-radius: 10px;
+  padding: 12px 14px; height: 100%;
+}
+.ins-head { font-size: 13px; font-weight: 750; color: var(--z-text); display: flex; gap: 8px; align-items: baseline; }
+.ins-detail { font-size: 12.5px; color: var(--z-text2); line-height: 1.5; margin-top: 5px; }
+.ins-ev { font-size: 11px; color: var(--z-muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.key-insight {
+  background: linear-gradient(90deg, #0F172A 0%, #16283F 100%);
+  border: 1px solid #1E293B; border-radius: 12px; padding: 16px 20px; color: #E2E8F0; margin-top: 6px;
+}
+.ki-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; color: #7DD3FC; text-transform: uppercase; }
+.ki-main { font-size: 14px; line-height: 1.55; margin-top: 6px; color: #F1F5F9; }
+.ki-why { font-size: 12.5px; line-height: 1.5; margin-top: 8px; color: #94A3B8; }
+.ki-next { font-size: 12.5px; margin-top: 10px; color: #E2E8F0; }
+.ki-next b { color: #FCD34D; }
+
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"] { gap: 2px; border-bottom: 1px solid var(--z-border); }
+.stTabs [data-baseweb="tab"] {
+  font-size: 13.5px; font-weight: 600; color: var(--z-muted); padding: 9px 16px;
+}
+.stTabs [data-baseweb="tab"]:hover { color: var(--z-text); background: #EEF2F7; }
+.stTabs [aria-selected="true"] { color: var(--z-primary) !important; font-weight: 750; }
+.stTabs [data-baseweb="tab-highlight"] { background-color: var(--z-primary) !important; height: 3px; }
+
+/* ── Tables ── */
+[data-testid="stDataFrame"] { font-size: 12.5px; }
+[data-testid="stDataFrame"] table { font-variant-numeric: tabular-nums; }
+
+/* ── Empty state ── */
+.empty-state {
+  background: var(--z-card); border: 1px dashed var(--z-border2); border-radius: 14px;
+  padding: 48px 24px; text-align: center; margin-top: 14px;
+}
+.es-icon { font-size: 30px; }
+.es-title { font-size: 15.5px; font-weight: 750; color: var(--z-text); margin-top: 8px; }
+.es-sub { font-size: 12.5px; color: var(--z-muted); margin-top: 4px; }
+
+/* ── Footer ── */
+.app-footer {
+  border-top: 1px solid var(--z-border); margin-top: 22px; padding: 12px 2px 4px;
+  font-size: 11.5px; color: var(--z-muted); line-height: 1.6;
+}
+.app-footer b { color: var(--z-text2); }
+
+/* ── Buttons / inputs polish ── */
+.stButton > button {
+  border-radius: 8px; border: 1px solid var(--z-border2); font-weight: 600; font-size: 13px;
+}
+.stButton > button[kind="primary"] { background: var(--z-primary); border-color: var(--z-primary); }
+div[data-testid="stExpander"] {
+  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+def app_header(orders: pd.DataFrame) -> None:
+    """Product header band — every value computed from the live dataset."""
+    n = len(orders)
+    period = (
+        f"{orders['Order_Date'].min():%b %Y} – {orders['Order_Date'].max():%b %Y}"
+        if n else "no data in scope"
+    )
+    st.markdown(
+        f"""
+<div class="app-header">
+  <div class="ah-left">
+    <div class="ah-mark">ZR</div>
+    <div>
+      <div class="ah-title">Refund Risk Intelligence</div>
+      <div class="ah-sub">Zomato delivery operations · refund behaviour, customer risk & operating conditions</div>
+    </div>
+  </div>
+  <div class="ah-right">
+    <span class="ah-chip"><span class="live">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
+    <span class="ah-chip">{n:,} orders in scope · {period}</span>
+    <span class="ah-chip">Risk score ≠ proof of fraud</span>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def insight_card_html(ins: dict) -> str:
+    """One 'What changed?' card — headline/detail/evidence straight from kpi_engine."""
+    color = {"ok": C_GOOD, "info": C_PRIMARY, "watch": C_WARN, "alert": C_BAD}.get(ins["level"], C_PRIMARY)
+    return (
+        f'<div class="ins-card" style="border-left-color:{color};">'
+        f'<div class="ins-head">{ins["headline"]}</div>'
+        f'<div class="ins-detail">{ins["detail"]}</div>'
+        f'<div class="ins-ev">Evidence: {ins["evidence"]}</div>'
+        f"</div>"
+    )
+
+
+def render_filter_status(
+    selected_cities, all_cities, selected_bands, all_bands, risk_tiers, all_tiers,
+) -> None:
+    """Active-filter chips in the sidebar — the analyst always sees the scope."""
+    chips = []
+    if len(selected_cities) < len(all_cities):
+        chips.append(f"City: {', '.join(selected_cities) if selected_cities else 'none'}")
+    if len(selected_bands) < len(all_bands):
+        chips.append(f"Volume band: {', '.join(selected_bands) if selected_bands else 'none'}")
+    if len(risk_tiers) < len(all_tiers):
+        chips.append(f"Tier: {', '.join(risk_tiers) if risk_tiers else 'none'}")
+    html = "".join(f'<span class="fchip">{c}</span>' for c in chips) if chips else \
+        '<span class="fnone">No filters active — full dataset in scope</span>'
+    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;color:#64748B;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div class="fchips">{html}</div></div>', unsafe_allow_html=True)
+
+
+def empty_state_html() -> None:
+    st.markdown(
+        """
+<div class="empty-state">
+  <div class="es-icon">🔎</div>
+  <div class="es-title">No records match the selected filters</div>
+  <div class="es-sub">Reset the filters to bring the full dataset back into scope.</div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def app_footer() -> None:
+    st.markdown(
+        """
+<div class="app-footer">
+  <b>How to read this dashboard:</b> Refund rate = refunded orders ÷ total orders on the current scope.
+  Flag eligibility: ≥5 orders AND refund rate &gt; 30% — a flag means <i>investigate</i>, never guilty.
+  Risk score is a rule-based weighted index (docs/risk_scoring_methodology.md), validated against a
+  disclosed synthetic ground-truth layer. Dataset: seeded/synthetic Zomato-style delivery data —
+  disclosed in the README and data dictionary. Deltas are month-over-month on the filtered scope.
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
 
 @st.cache_data
@@ -210,15 +440,15 @@ def tab_overview(
     insights = what_changed(orders, suspects, truth)
     if insights:
         st.subheader("What changed?")
+        st.caption("Signals computed from the filtered scope — latest month vs the month before. Each card cites its evidence.")
         cols = st.columns(min(3, len(insights)))
-        _style_for = {"ok": st.success, "info": st.info, "watch": st.warning, "alert": st.warning}
         for i, ins in enumerate(insights[:3]):
             with cols[i]:
-                _style_for[ins["level"]](f"**{ins['headline']}**\n\n{ins['detail']}")
+                st.markdown(insight_card_html(ins), unsafe_allow_html=True)
         if len(insights) > 3:
             with st.expander(f"More signals ({len(insights) - 3})"):
                 for ins in insights[3:]:
-                    st.markdown(f"- **{ins['headline']}** — {ins['detail']} _({ins['evidence']})_")
+                    st.markdown(insight_card_html(ins), unsafe_allow_html=True)
 
     # ── Executive KPI cards: value + direction + context ──
     c1, c2, c3, c4, c5, c6 = st.columns(6)
@@ -340,12 +570,21 @@ def tab_overview(
     top_reason = reasons.iloc[0]["Reason"]
     top_reason_share = reasons.iloc[0]["count"] / reasons["count"].sum() * 100
     busiest_month = m.loc[m["orders"].idxmax(), "Order_Date"].strftime("%b %Y")
-    st.info(
-        f"📌 **What the data says:** “{top_reason}” is the most common refund reason "
-        f"({top_reason_share:.1f}% of all refunds). Busiest month on record: "
-        f"**{busiest_month}**. Flagged customers ({len(suspects)} accounts) hold "
-        f"**{exposure_share:.1f}%** of total refund exposure — concentrating review "
-        f"effort there is the highest-leverage action."
+    n_high_tier = int((suspects["Risk_Tier"] == "High").sum()) if len(suspects) else 0
+    st.markdown(
+        f"""
+<div class="key-insight">
+  <div class="ki-eyebrow">Key insight — computed from the current scope</div>
+  <div class="ki-main">“{top_reason}” is the most common refund reason ({top_reason_share:.1f}% of all refunds).
+  Busiest month on record: <b>{busiest_month}</b>. Flagged customers ({len(suspects):,} accounts) hold
+  <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
+  <div class="ki-why">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
+  flagged list covers the most refund value per account reviewed.</div>
+  <div class="ki-next"><b>Investigate next:</b> open the Customer Risk tab and start with the High tier
+  ({n_high_tier} accounts) — each carries the strongest multi-signal evidence.</div>
+</div>
+""",
+        unsafe_allow_html=True,
     )
 
 
@@ -784,12 +1023,7 @@ def main() -> None:
         page_icon="🍽️",
         layout="wide",
     )
-    st.title("🍽️ Zomato Refund Fraud Analytics")
-    st.caption(
-        "End-to-end behavioural analytics over 45,584 delivery orders — refund patterns, "
-        "customer risk scoring, and operating conditions. Every figure is computed live "
-        "from the dataset; risk methodology in docs/risk_scoring_methodology.md."
-    )
+    inject_css()
 
     orders = load_orders(DATA_PATH)
     suspects = build_customer_risk_table(orders)
@@ -799,17 +1033,28 @@ def main() -> None:
     except (OSError, ValueError):
         metric_defs = None
 
+    app_header(orders)
+
+    # ── Sidebar: product mark + filters + scope status + reset + methodology ──
+    st.sidebar.markdown(
+        '<div class="side-mark"><div class="sm-t">ZR · Refund Risk Intelligence</div>'
+        '<div class="sm-s">Filters apply across all tabs</div></div>',
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown("**Filters**")
+
     # ── Global filters (cross-filter every tab) ──
     # Full selection == no filter (NaN-safe: 1,200 orders have a missing City)
-    st.sidebar.header("Global filters")
     all_city_types = sorted(orders["City"].dropna().unique().tolist())
     selected_cities = st.sidebar.multiselect(
         "City type", all_city_types, default=all_city_types,
         help="Order-level city type — applies to every tab.",
+        key="f_city",
     )
     selected_bands = st.sidebar.multiselect(
         "Customer volume band", BAND_LABELS, default=BAND_LABELS,
         help="1-2 / 3-5 / 6-10 / 11-20 / 21+ orders (customer-level) — applies to every tab.",
+        key="f_band",
     )
     city_subset = selected_cities if len(selected_cities) < len(all_city_types) else None
     band_subset = selected_bands if len(selected_bands) < len(BAND_LABELS) else None
@@ -823,14 +1068,16 @@ def main() -> None:
         ]
 
     # ── Customer Risk tab filters (tier + last-order date) ──
-    st.sidebar.header("Customer Risk tab filters")
+    st.sidebar.markdown("**Customer Risk tab filters**")
     min_date = suspects["Last_Order_Date"].min().date()
     max_date = suspects["Last_Order_Date"].max().date()
     date_range = st.sidebar.date_input(
-        "Last order date range", value=(min_date, max_date), min_value=min_date, max_value=max_date
+        "Last order date range", value=(min_date, max_date),
+        min_value=min_date, max_value=max_date, key="f_date",
     )
     risk_tiers = st.sidebar.multiselect(
-        "Risk tier", ["Low", "Medium", "High"], default=["Low", "Medium", "High"]
+        "Risk tier", ["Low", "Medium", "High"], default=["Low", "Medium", "High"],
+        key="f_tier",
     )
 
     filtered = suspects_scope[suspects_scope["Risk_Tier"].isin(risk_tiers)]
@@ -841,8 +1088,43 @@ def main() -> None:
             & (filtered["Last_Order_Date"].dt.date <= end)
         ]
 
+    # ── Active-scope chips + one-click reset ──
+    render_filter_status(
+        selected_cities, all_city_types, selected_bands, list(BAND_LABELS),
+        risk_tiers, ["Low", "Medium", "High"],
+    )
+    if st.sidebar.button("↺ Reset all filters", help="Restore the full dataset into scope."):
+        for _k in ("f_city", "f_band", "f_tier", "f_date"):
+            st.session_state.pop(_k, None)
+        st.rerun()
+
+    with st.sidebar.expander("📖 Methodology & how to read this"):
+        st.markdown(
+            "- **Refund rate** = refunded orders ÷ total orders (current scope)\n"
+            "- **Flag eligibility**: ≥5 orders AND refund rate >30% — "
+            "*a flag means investigate, never guilty*\n"
+            "- **Risk score**: rule-based weighted index — refund rate 40% · "
+            "reason repetition 30% · refunds/day 20% · reason length 10% "
+            "([methodology](https://github.com/rishi-1603/zomato-refund-fraud-analytics/"
+            "blob/main/docs/risk_scoring_methodology.md))\n"
+            "- **Validation**: top-tier precision vs a disclosed synthetic "
+            "ground-truth layer\n"
+            "- **Data**: seeded/synthetic Zomato-style delivery data — disclosed "
+            "in the README"
+        )
+
+    # ── Empty state: filters excluded everything ──
+    if not len(orders_f):
+        empty_state_html()
+        if st.button("Reset filters", key="reset_main"):
+            for _k in ("f_city", "f_band", "f_tier", "f_date"):
+                st.session_state.pop(_k, None)
+            st.rerun()
+        app_footer()
+        return
+
     tab1, tab2, tab3, tab4 = st.tabs(
-        ["📊 Executive Overview", "💰 Refund Analytics", "👥 Customer Risk", "🚚 Operations"]
+        ["Executive Overview", "Refund Analytics", "Customer Risk", "Operations"]
     )
     with tab1:
         tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
@@ -852,6 +1134,8 @@ def main() -> None:
         tab_customer_risk(filtered, suspects)
     with tab4:
         tab_operations(orders_f)
+
+    app_footer()
 
     st.divider()
     st.caption(
