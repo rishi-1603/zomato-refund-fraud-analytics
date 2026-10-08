@@ -4,7 +4,7 @@ A professional multi-tab BI dashboard — every figure is computed live from
 the dataset (45,584 delivery orders). No hardcoded metrics anywhere.
 
 Run with: streamlit run dashboard/app.py
-Tabs: Executive Overview · Refund Analytics · Customer Risk · Operations
+Tabs: Overview · Refund Patterns · Investigation · Delivery Context
 """
 
 import pandas as pd
@@ -206,6 +206,41 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 }
 .app-footer b { color: var(--z-text2); }
 
+/* ── Investigation queue (Overview) ── */
+.queue-card {
+  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
+  padding: 6px 14px; margin-top: 6px;
+}
+.sus-row {
+  display: flex; align-items: center; gap: 12px; padding: 8px 4px;
+  border-bottom: 1px solid rgba(38,55,92,0.5); font-size: 12.5px;
+}
+.sus-row:last-child { border-bottom: none; }
+.sus-row.high { border-left: 3px solid var(--z-bad); padding-left: 10px; }
+.sus-row.medium { border-left: 3px solid var(--z-warn); padding-left: 10px; }
+.sus-row.low { border-left: 3px solid var(--z-good); padding-left: 10px; }
+.tier-pill {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.07em; border-radius: 999px;
+  padding: 2px 9px; flex-shrink: 0;
+}
+.tier-pill.high { color: var(--z-bad); background: rgba(248,113,113,0.13); border: 1px solid rgba(248,113,113,0.4); }
+.tier-pill.medium { color: var(--z-warn); background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4); }
+.tier-pill.low { color: var(--z-good); background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4); }
+.sus-id { color: var(--z-text); font-weight: 700; font-variant-numeric: tabular-nums; width: 92px; }
+.sus-metric { color: var(--z-text2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sus-metric b { color: var(--z-text); }
+.sus-fill { flex: 1; }
+
+/* ── Signal meters (Explain a flag) ── */
+.meter-card { background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px; padding: 14px 16px; }
+.meter-row { margin: 10px 0; }
+.meter-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--z-text2); margin-bottom: 4px; }
+.meter-head b { color: var(--z-text); font-variant-numeric: tabular-nums; }
+.meter-track { height: 8px; border-radius: 999px; background: rgba(38,55,92,0.45); overflow: hidden; }
+.meter-fill { height: 100%; border-radius: 999px; background: var(--z-primary); }
+.meter-fill.over { background: linear-gradient(90deg, #F59E0B, var(--z-bad)); }
+.meter-note { font-size: 10.5px; color: var(--z-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
 /* ── Buttons / expanders polish ── */
 .stButton > button {
   border-radius: 8px; border: 1px solid var(--z-border2); font-weight: 600; font-size: 13px;
@@ -231,8 +266,8 @@ def app_header(orders: pd.DataFrame) -> None:
   <div class="ah-left">
     <div class="ah-mark">ZR</div>
     <div>
-      <div class="ah-title">Refund Risk Intelligence</div>
-      <div class="ah-sub">Zomato delivery operations · refund behaviour, customer risk & operating conditions</div>
+      <div class="ah-title">Refund Fraud Analytics</div>
+      <div class="ah-sub">Refund-abuse risk scoring, behaviour signals & investigation support — every figure computed from the data</div>
     </div>
   </div>
   <div class="ah-right">
@@ -516,6 +551,29 @@ def tab_overview(
             for _key, _m in metric_defs["metrics"].items():
                 st.markdown(f"**{_key.replace('_', ' ').title()}** — {_m['definition']}")
 
+    # ── Top suspects — the investigation queue (fraud-console lead) ──
+    if len(suspects):
+        top_n = min(8, len(suspects))
+        rows = ""
+        for _, r in suspects.head(top_n).iterrows():
+            tier = str(r["Risk_Tier"])
+            rows += (
+                f'<div class="sus-row {tier.lower()}">'
+                f'<span class="tier-pill {tier.lower()}">{tier.upper()}</span>'
+                f'<span class="sus-id">#{r["Customer_ID"]}</span>'
+                f'<span class="sus-metric"><b>{r["Fraud_Risk_Score"]:.1f}</b> risk score</span>'
+                f'<span class="sus-metric">{r["Refund_Rate"]:.0f}% refund rate · {int(r["Total_Refunds"])}/{int(r["Total_Orders"])} orders</span>'
+                f'<span class="sus-fill"></span>'
+                f'<span class="sus-metric"><b>₹{r["Total_Refund_Amount"]:,.0f}</b> exposure</span>'
+                f'</div>'
+            )
+        st.subheader("Top suspects — investigation queue")
+        st.caption(
+            "Highest multi-signal risk scores in the current scope. A flag means investigate — never guilty; "
+            "the full queue, baselines and per-customer evidence live in the Investigation tab."
+        )
+        st.markdown(f'<div class="queue-card">{rows}</div>', unsafe_allow_html=True)
+
     # ── Monthly trend: order volume (bars) + refund rate (line, secondary axis)
     m = (
         orders.groupby(orders["Order_Date"].dt.to_period("M"))
@@ -610,7 +668,7 @@ def concentration_curve(orders: pd.DataFrame):
     return x, cum, n, total, k50, k80, float(cum[k10 - 1])
 
 
-def tab_refunds(orders: pd.DataFrame) -> None:
+def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     refunds = orders[orders["Refund_Requested"] == True].copy()  # noqa: E712
 
     # ---- Phase 1: refund exposure concentration (Pareto) ----
@@ -651,6 +709,35 @@ def tab_refunds(orders: pd.DataFrame) -> None:
     r1.metric("Avg refund amount", f"₹{refunds['Refund_Amount'].mean():,.0f}")
     r2.metric("Largest refund", f"₹{refunds['Refund_Amount'].max():,.0f}")
     r3.metric("Refunds per month", f"{len(refunds) / 36:,.0f}")
+
+    # ── Fraud-behaviour signals: what flagged accounts look like ──
+    if len(suspects):
+        reps = suspects["Reason_Repetition_Rate"].dropna()
+        vel = suspects["Refunds_Per_Day"].dropna()
+        st.subheader("Fraud-behaviour signals among flagged customers")
+        st.caption(
+            "The behavioural fingerprint of the flagged population in the current scope — the two "
+            "signals that separate abuse patterns from bad luck: repeating the same refund reason, "
+            "and refunding faster than normal ordering would explain."
+        )
+        s1, s2, s3 = st.columns(3)
+        s1.metric(
+            "Repeat same reason (≥50%)",
+            f"{(reps >= 50).mean() * 100:.1f}%",
+            delta=f"{int((reps >= 50).sum())} of {len(reps)} flagged",
+            delta_color="off",
+            help="Share of flagged customers whose most common refund reason covers at least half of their refunds.",
+        )
+        s2.metric(
+            "Median reason-repetition",
+            f"{reps.median():.0f}%",
+            help="Median share of refunds going to each flagged customer's top reason.",
+        )
+        s3.metric(
+            "Median refund velocity",
+            f"{vel.median():.2f}/day",
+            help="Median refunds per day across the flagged customers' refund window.",
+        )
 
     left, right = st.columns(2)
     with left:
@@ -819,13 +906,19 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
             _status_map = {"High": "Investigate first", "Medium": "Watchlist", "Low": "Routine review"}
             tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
 
-            def _tier_color(val):
-                return f"color: {TIER_COLORS.get(val, C_NEUTRAL)}; font-weight: 600"
+            def _tier_badge(val):
+                if val in ("High", "Investigate first"):
+                    return f"background: rgba(248,113,113,0.13); color: {C_BAD}; font-weight: 700"
+                if val in ("Medium", "Watchlist"):
+                    return f"background: rgba(251,191,36,0.12); color: {C_WARN}; font-weight: 700"
+                if val in ("Low", "Routine review"):
+                    return f"background: rgba(52,211,153,0.12); color: {C_GOOD}; font-weight: 700"
+                return f"color: {C_NEUTRAL}"
 
             styler = (
                 tbl.style
-                .map(_tier_color, subset=["Risk_Tier"])
-                .map(_tier_color, subset=["Status"])
+                .map(_tier_badge, subset=["Risk_Tier"])
+                .map(_tier_badge, subset=["Status"])
                 .format(
                     {
                         "Fraud_Risk_Score": "{:.1f}",
@@ -910,27 +1003,43 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
         st.write(
             f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})"
         )
-        breakdown = pd.DataFrame(
-            {
-                "Signal": [
-                    "Refund rate (%)",
-                    "Reason repetition rate (%)",
-                    "Refunds per day",
-                    "Avg refund-reason length (chars)",
-                ],
-                "Value": [
-                    row["Refund_Rate"],
-                    row["Reason_Repetition_Rate"],
-                    row["Refunds_Per_Day"],
-                    row["Avg_Reason_Length"],
-                ],
-                "Weight in score": [f"{w:.0%}" for w in RISK_WEIGHTS.values()],
-            }
-        )
-        st.table(breakdown)
+        signals = [
+            ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
+            ("Reason repetition", row["Reason_Repetition_Rate"],
+             f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
+            ("Refund velocity", row["Refunds_Per_Day"],
+             f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
+            ("Reason length", row["Avg_Reason_Length"],
+             f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
+        ]
+        pop = all_suspects  # P95 reference: the flagged population, current scope
+        meters = ""
+        for name, value, text, weight in signals:
+            col_name = {
+                "Refund rate": "Refund_Rate",
+                "Reason repetition": "Reason_Repetition_Rate",
+                "Refund velocity": "Refunds_Per_Day",
+                "Reason length": "Avg_Reason_Length",
+            }[name]
+            p95 = float(pop[col_name].quantile(0.95)) if len(pop) else 0.0
+            pct = min(100.0, (value / p95 * 100)) if p95 > 0 else 0.0
+            over = value >= p95 and p95 > 0
+            fill = "over" if over else ""
+            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over
+                    else f"P95 of flagged: {p95:.1f}")
+            meters += (
+                f'<div class="meter-row">'
+                f'<div class="meter-head"><span>{name} <span style="color:var(--z-muted);">· weight {weight:.0%}</span></span>'
+                f'<b>{text}</b></div>'
+                f'<div class="meter-track"><div class="meter-fill {fill}" style="width:{pct:.0f}%"></div></div>'
+                f'<div class="meter-note">{note}</div>'
+                f'</div>'
+            )
+        st.markdown(f'<div class="meter-card">{meters}</div>', unsafe_allow_html=True)
         st.caption(
-            "Rule-based weighted scoring — full formula and threshold rationale in "
-            "docs/risk_scoring_methodology.md."
+            "Bars show each signal relative to the 95th percentile among all flagged customers "
+            "(current scope) — the 'how extreme is this?' view an analyst needs before acting. "
+            "Rule-based weighted scoring — full formula in docs/risk_scoring_methodology.md."
         )
     else:
         st.info("No customers match the current filters.")
@@ -1046,7 +1155,7 @@ def main() -> None:
 
     # ── Sidebar: product mark + filters + scope status + reset + methodology ──
     st.sidebar.markdown(
-        '<div class="side-mark"><div class="sm-t">ZR · Refund Risk Intelligence</div>'
+        '<div class="side-mark"><div class="sm-t">ZFA · Refund Fraud Analytics</div>'
         '<div class="sm-s">Filters apply across all tabs</div></div>',
         unsafe_allow_html=True,
     )
@@ -1077,7 +1186,7 @@ def main() -> None:
         ]
 
     # ── Customer Risk tab filters (tier + last-order date) ──
-    st.sidebar.markdown("**Customer Risk tab filters**")
+    st.sidebar.markdown("**Investigation filters**")
     min_date = suspects["Last_Order_Date"].min().date()
     max_date = suspects["Last_Order_Date"].max().date()
     date_range = st.sidebar.date_input(
@@ -1133,12 +1242,12 @@ def main() -> None:
         return
 
     tab1, tab2, tab3, tab4 = st.tabs(
-        ["Executive Overview", "Refund Analytics", "Customer Risk", "Operations"]
+        ["Overview", "Refund Patterns", "Investigation", "Delivery Context"]
     )
     with tab1:
         tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
     with tab2:
-        tab_refunds(orders_f)
+        tab_refunds(orders_f, suspects_scope)
     with tab3:
         tab_customer_risk(filtered, suspects)
     with tab4:

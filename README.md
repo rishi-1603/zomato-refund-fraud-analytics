@@ -19,7 +19,7 @@ penalizing legitimate customers?**
 > A dashboard a fraud-operations manager can open cold and know what to do next:
 > **WHAT changed → WHERE it concentrated → WHO to investigate → WHAT it costs to be wrong.**
 
-![Refund Risk Intelligence console — header band, What changed? cards, KPI strip](docs/screenshots/v2_console_overview.png)
+![Refund Fraud Analytics console — header band, What changed? cards, KPI strip](docs/screenshots/v2_console_overview.png)
 
 | Capability | What it does |
 |---|---|
@@ -35,9 +35,24 @@ penalizing legitimate customers?**
 
 ✅ **68 automated tests** — every dashboard number reconciled with the Python/SQL pipeline.
 
-![Investigation list — tier table, explain-a-flag, AI assistant](docs/screenshots/v2_customer_risk.png)
+**Fraud-workflow navigation** — Overview · Refund Patterns · Investigation · Delivery Context:
 
-![Refund Analytics — Pareto concentration and distributions](docs/screenshots/v2_refund_analytics.png)
+| Fraud-analytics capability | What it shows |
+|---|---|
+| 🔎 **Investigation queue (Overview)** | Top suspects the moment the app opens — tier badge, risk score, refund rate, exposure; a flag means investigate, never guilty |
+| 🧬 **Fraud-behaviour signals (Refund Patterns)** | The typology fingerprint of the flagged population: 89.2% repeat the same refund reason in ≥50% of refunds, median reason-repetition 60%, median refund velocity — computed live from the current scope |
+| 📊 **Signal meters (Investigation)** | "Explain a flag" as a visual: each of the 4 risk signals plotted against the 95th percentile of the flagged population — the how-extreme-is-this view before an analyst acts |
+| 🏷️ **Tier badges** | Investigation table renders tier + status as tinted badges, not just colored text |
+
+![Investigation queue — top suspects with tier badges, scores and exposure](docs/screenshots/v2_investigation_queue.png)
+
+![Signal meters — each signal vs the P95 of the flagged population](docs/screenshots/v2_investigation_meters.png)
+
+![Investigation list — tier badges, baseline strip, AI assistant](docs/screenshots/v2_customer_risk.png)
+
+![Refund Patterns — Pareto concentration and fraud-behaviour signals](docs/screenshots/v2_refund_patterns.png)
+
+![Delivery Context — operating conditions behind the refund rates](docs/screenshots/v2_delivery_context.png)
 
 ---
 
