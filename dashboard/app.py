@@ -47,23 +47,28 @@ RISK_WEIGHTS = {
 MIN_ORDERS_THRESHOLD = 5
 MIN_REFUND_RATE_PCT = 30
 
-# ── Consistent professional palette ─────────────────────────────────────────
-C_PRIMARY = "#2563EB"   # blue
-C_ACCENT = "#7C3AED"    # violet
-C_GOOD = "#059669"      # green
-C_WARN = "#D97706"      # amber
-C_BAD = "#DC2626"       # red
-C_NEUTRAL = "#64748B"   # slate
+# ── Consistent professional palette (dark-console variants: brightened for
+#    contrast on the dark background; meaning unchanged) ──────────────────────
+C_PRIMARY = "#3B82F6"   # blue
+C_ACCENT = "#A78BFA"    # violet
+C_GOOD = "#34D399"      # green
+C_WARN = "#FBBF24"      # amber
+C_BAD = "#F87171"       # red
+C_NEUTRAL = "#94A3B8"   # slate
 TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
 PLOTLY_LAYOUT = dict(
-    template="plotly_white",
+    template="plotly_dark",
     height=380,
     margin=dict(l=40, r=30, t=56, b=40),
-    title_font=dict(size=15, color="#1E293B"),
+    title_font=dict(size=15, color="#F1F5F9"),
     font=dict(family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif",
-              size=12.5, color="#334155"),
-    hoverlabel=dict(bgcolor="#0F172A", font_size=12.5, font_color="#F8FAFC",
-                    bordercolor="#0F172A"),
+              size=12.5, color="#CBD5E1"),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    hoverlabel=dict(bgcolor="#141D31", font_size=12.5, font_color="#E8ECF4",
+                    bordercolor="#26375C"),
+    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
+    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
 )
 
 
@@ -76,24 +81,22 @@ def inject_css() -> None:
     st.markdown("""
 <style>
 :root {
-  --z-bg:#F4F6FA; --z-card:#FFFFFF; --z-border:#E2E8F0; --z-border2:#CBD5E1;
-  --z-text:#0F172A; --z-text2:#334155; --z-muted:#64748B;
-  --z-primary:#2563EB; --z-good:#059669; --z-warn:#D97706; --z-bad:#DC2626;
+  --z-bg:#0A0F1E; --z-card:#141D31; --z-card2:#18233C; --z-border:#26375C; --z-border2:#334155;
+  --z-text:#F1F5F9; --z-text2:#CBD5E1; --z-muted:#94A3B8;
+  --z-primary:#3B82F6; --z-good:#34D399; --z-warn:#FBBF24; --z-bad:#F87171;
 }
 html, body, [class*="css"], .stApp { font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif; }
-.stApp { background: var(--z-bg); }
-section[data-testid="stSidebar"] {
-  background: #FFFFFF; border-right: 1px solid var(--z-border);
-}
+section[data-testid="stSidebar"] { border-right: 1px solid var(--z-border); }
 section[data-testid="stSidebar"] * { font-size: 13px; }
 section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14px 0 10px; }
 
 /* ── Header band ── */
 .app-header {
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  background: linear-gradient(90deg, #0F172A 0%, #1E293B 100%);
-  border: 1px solid #1E293B; border-radius: 14px;
+  background: linear-gradient(90deg, #0D1526 0%, #16283F 100%);
+  border: 1px solid var(--z-border); border-radius: 14px;
   padding: 16px 22px; margin-bottom: 4px; color: #F8FAFC; flex-wrap: wrap;
+  box-shadow: 0 0 0 1px rgba(59,130,246,0.08), 0 8px 24px rgba(2,6,23,0.45);
 }
 .ah-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .ah-mark {
@@ -101,17 +104,18 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
   background: linear-gradient(135deg, #2563EB, #7C3AED);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #fff;
+  box-shadow: 0 0 18px rgba(59,130,246,0.35);
 }
 .ah-title { font-size: 19px; font-weight: 800; letter-spacing: -0.2px; }
-.ah-sub { font-size: 12px; color: #94A3B8; margin-top: 1px; }
+.ah-sub { font-size: 12px; color: var(--z-muted); margin-top: 1px; }
 .ah-right { display: flex; gap: 8px; flex-wrap: wrap; }
 .ah-chip {
   font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
-  color: #E2E8F0; background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; padding: 5px 11px;
+  color: var(--z-text2); background: rgba(255,255,255,0.05);
+  border: 1px solid var(--z-border); border-radius: 999px; padding: 5px 11px;
   white-space: nowrap;
 }
-.ah-chip .live { color: #34D399; }
+.ah-chip .live { color: var(--z-good); }
 
 /* ── Sidebar product mark ── */
 .side-mark { padding: 2px 2px 10px; border-bottom: 1px solid var(--z-border); margin-bottom: 10px; }
@@ -121,15 +125,17 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 /* ── Filter status chips ── */
 .fchips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
 .fchip {
-  font-size: 11px; font-weight: 600; color: #1D4ED8;
-  background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 999px; padding: 3px 10px;
+  font-size: 11px; font-weight: 600; color: #93C5FD;
+  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4);
+  border-radius: 999px; padding: 3px 10px;
 }
 .fnone { font-size: 11.5px; color: var(--z-muted); }
 
 /* ── KPI cards (st.metric, restyled — values/deltas untouched) ── */
 [data-testid="stMetric"] {
-  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
-  padding: 14px 16px 12px; box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 130%);
+  border: 1px solid var(--z-border); border-radius: 12px;
+  padding: 14px 16px 12px; box-shadow: 0 2px 10px rgba(2,6,23,0.35);
 }
 [data-testid="stMetric"] label, [data-testid="stMetric"] > div > label {
   font-size: 10.5px !important; font-weight: 700; letter-spacing: 0.07em;
@@ -159,22 +165,25 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 .ins-detail { font-size: 12.5px; color: var(--z-text2); line-height: 1.5; margin-top: 5px; }
 .ins-ev { font-size: 11px; color: var(--z-muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
 .key-insight {
-  background: linear-gradient(90deg, #0F172A 0%, #16283F 100%);
-  border: 1px solid #1E293B; border-radius: 12px; padding: 16px 20px; color: #E2E8F0; margin-top: 6px;
+  background: linear-gradient(90deg, #0D1526 0%, #14213A 100%);
+  border: 1px solid var(--z-border); border-radius: 12px; padding: 16px 20px;
+  color: var(--z-text2); margin-top: 6px;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.4);
 }
 .ki-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; color: #7DD3FC; text-transform: uppercase; }
 .ki-main { font-size: 14px; line-height: 1.55; margin-top: 6px; color: #F1F5F9; }
-.ki-why { font-size: 12.5px; line-height: 1.5; margin-top: 8px; color: #94A3B8; }
-.ki-next { font-size: 12.5px; margin-top: 10px; color: #E2E8F0; }
+.ki-why { font-size: 12.5px; line-height: 1.5; margin-top: 8px; color: var(--z-muted); }
+.ki-next { font-size: 12.5px; margin-top: 10px; color: var(--z-text2); }
 .ki-next b { color: #FCD34D; }
 
-/* ── Tabs ── */
-.stTabs [data-baseweb="tab-list"] { gap: 2px; border-bottom: 1px solid var(--z-border); }
+/* ── Tabs: dark pills ── */
+.stTabs [data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid var(--z-border); }
 .stTabs [data-baseweb="tab"] {
   font-size: 13.5px; font-weight: 600; color: var(--z-muted); padding: 9px 16px;
+  background: transparent; border: 1px solid transparent; border-radius: 10px 10px 0 0;
 }
-.stTabs [data-baseweb="tab"]:hover { color: var(--z-text); background: #EEF2F7; }
-.stTabs [aria-selected="true"] { color: var(--z-primary) !important; font-weight: 750; }
+.stTabs [data-baseweb="tab"]:hover { color: var(--z-text); background: rgba(255,255,255,0.04); }
+.stTabs [aria-selected="true"] { color: #93C5FD !important; font-weight: 750; }
 .stTabs [data-baseweb="tab-highlight"] { background-color: var(--z-primary) !important; height: 3px; }
 
 /* ── Tables ── */
@@ -197,7 +206,7 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 }
 .app-footer b { color: var(--z-text2); }
 
-/* ── Buttons / inputs polish ── */
+/* ── Buttons / expanders polish ── */
 .stButton > button {
   border-radius: 8px; border: 1px solid var(--z-border2); font-weight: 600; font-size: 13px;
 }
@@ -262,7 +271,7 @@ def render_filter_status(
         chips.append(f"Tier: {', '.join(risk_tiers) if risk_tiers else 'none'}")
     html = "".join(f'<span class="fchip">{c}</span>' for c in chips) if chips else \
         '<span class="fnone">No filters active — full dataset in scope</span>'
-    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;color:#64748B;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div class="fchips">{html}</div></div>', unsafe_allow_html=True)
+    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div class="fchips">{html}</div></div>', unsafe_allow_html=True)
 
 
 def empty_state_html() -> None:
@@ -519,7 +528,7 @@ def tab_overview(
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_bar(
         x=m["Order_Date"], y=m["orders"], name="Orders",
-        marker_color="#BFDBFE", opacity=0.85,
+        marker_color="#7FB0F5", opacity=0.9,
     )
     fig.add_scatter(
         x=m["Order_Date"], y=m["refund_rate"], name="Refund rate (%)",
@@ -559,7 +568,7 @@ def tab_overview(
         city = city.sort_values("orders", ascending=False)
         fig = px.bar(
             city, x="City", y="orders", color="refund_rate",
-            color_continuous_scale=["#BFDBFE", C_PRIMARY, "#1E3A8A"],
+            color_continuous_scale=["#1E3A8A", "#3B82F6", "#93C5FD"],
             title="Orders by city type (colour = refund rate)",
             hover_data=["refunds", "refund_rate"],
         )
@@ -956,7 +965,7 @@ def tab_operations(orders: pd.DataFrame) -> None:
             orders, x="Road_traffic_density", y="Time_taken (min)",
             title="Delivery time by traffic density", points=False,
             color="Road_traffic_density",
-            color_discrete_sequence=px.colors.sequential.Blues[-4:],
+            color_discrete_sequence=["#93C5FD", "#60A5FA", "#3B82F6", "#2563EB"],
         )
         fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
         right.plotly_chart(fig, width="stretch")
@@ -967,7 +976,7 @@ def tab_operations(orders: pd.DataFrame) -> None:
             orders, x="Weather_conditions", y="Time_taken (min)",
             title="Delivery time by weather", points=False,
             color="Weather_conditions",
-            color_discrete_sequence=px.colors.sequential.Purples[-7:],
+            color_discrete_sequence=["#DDD6FE", "#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6"],
         )
         fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
         c3_.plotly_chart(fig, width="stretch")

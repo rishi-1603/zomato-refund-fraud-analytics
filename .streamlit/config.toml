@@ -1,0 +1,11 @@
+# Streamlit theme — dark risk-operations console.
+# base=dark makes ALL native widgets (selects, date inputs, buttons, alerts,
+# dataframes, expanders) render dark natively; the app's custom CSS layers the
+# design system (cards, header band, chips) on top.
+[theme]
+base = "dark"
+primaryColor = "#3B82F6"
+backgroundColor = "#0A0F1E"
+secondaryBackgroundColor = "#141D31"
+textColor = "#E8ECF4"
+font = "sans serif"
