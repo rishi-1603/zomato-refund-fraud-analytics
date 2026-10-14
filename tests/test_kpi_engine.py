@@ -21,9 +21,8 @@ sys.path.insert(0, str(ROOT / "dashboard"))
 
 import importlib.util  # noqa: E402
 
-# The repo also has an app/ namespace package (app/dashboard/utils/...), which
-# other tests import first — so `import app` may resolve to that package.
-# Load dashboard/app.py directly by path to avoid the name collision.
+# dashboard/app.py is loaded directly by path (not as `app`): the file name
+# app.py would otherwise shadow any `app` package found on sys.path.
 _spec = importlib.util.spec_from_file_location(
     "zomato_dashboard_app", str(ROOT / "dashboard" / "app.py")
 )

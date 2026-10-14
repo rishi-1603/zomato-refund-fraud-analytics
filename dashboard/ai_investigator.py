@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[1]  # repo root (this file lives in dashboard/)
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
 SUSPECTS = ROOT / "reports" / "fraud_suspects.csv"
 

@@ -267,7 +267,7 @@ def app_header(orders: pd.DataFrame) -> None:
     <div class="ah-mark">ZR</div>
     <div>
       <div class="ah-title">Refund Fraud Analytics</div>
-      <div class="ah-sub">Refund-abuse risk scoring, behaviour signals & investigation support — every figure computed from the data</div>
+      <div class="ah-sub">A tool for finding and reviewing suspicious refunds — every number comes straight from the data</div>
     </div>
   </div>
   <div class="ah-right">
@@ -326,11 +326,11 @@ def app_footer() -> None:
     st.markdown(
         """
 <div class="app-footer">
-  <b>How to read this dashboard:</b> Refund rate = refunded orders ÷ total orders on the current scope.
-  Flag eligibility: ≥5 orders AND refund rate &gt; 30% — a flag means <i>investigate</i>, never guilty.
-  Risk score is a rule-based weighted index (docs/risk_scoring_methodology.md), validated against a
-  disclosed synthetic ground-truth layer. Dataset: seeded/synthetic Zomato-style delivery data —
-  disclosed in the README and data dictionary. Deltas are month-over-month on the filtered scope.
+  <b>How to read this:</b> Refund rate = refunded orders ÷ total orders in the current view.
+  A customer is flagged at ≥5 orders AND refund rate &gt; 30% — a flag means <i>investigate</i>, never guilty.
+  The score is a simple weighted formula (docs/risk_scoring_methodology.md), checked against known
+  test cases in this synthetic dataset. The data is seeded/synthetic — disclosed in the README and
+  data dictionary. Changes are month-over-month on the filtered data.
 </div>
 """,
         unsafe_allow_html=True,
@@ -484,7 +484,7 @@ def tab_overview(
     insights = what_changed(orders, suspects, truth)
     if insights:
         st.subheader("What changed?")
-        st.caption("Signals computed from the filtered scope — latest month vs the month before. Each card cites its evidence.")
+        st.caption("This month vs last, on the data you're viewing. Each card shows where its number comes from.")
         cols = st.columns(min(3, len(insights)))
         for i, ins in enumerate(insights[:3]):
             with cols[i]:
@@ -541,13 +541,13 @@ def tab_overview(
         help="Refund rate normal for their volume band — likely false positives; de-prioritise.",
     )
     st.caption(
-        "Deltas are month-over-month on the filtered scope. High-tier precision is validated "
-        "against the seeded ground truth (disclosed). Risk score ≠ proof of fraud."
+        "Changes are month-over-month on the filtered data. The precision figure is checked "
+        "against known test cases (the data is synthetic — disclosed). A risk score is not proof of fraud."
     )
 
-    # ── KPI definitions — the semantic layer every number cites ──
+    # ── KPI definitions — one file (data/metrics.json) that every number cites ──
     if metric_defs:
-        with st.expander("📖 KPI definitions (semantic layer)"):
+        with st.expander("📖 KPI definitions (what each number means)"):
             for _key, _m in metric_defs["metrics"].items():
                 st.markdown(f"**{_key.replace('_', ' ').title()}** — {_m['definition']}")
 
@@ -569,8 +569,8 @@ def tab_overview(
             )
         st.subheader("Top suspects — investigation queue")
         st.caption(
-            "Highest multi-signal risk scores in the current scope. A flag means investigate — never guilty; "
-            "the full queue, baselines and per-customer evidence live in the Investigation tab."
+            "The highest risk scores in the current view. A flag means look closer — never guilty. "
+            "The full list, baselines and per-customer details are in the Investigation tab."
         )
         st.markdown(f'<div class="queue-card">{rows}</div>', unsafe_allow_html=True)
 
@@ -647,8 +647,8 @@ def tab_overview(
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
   <div class="ki-why">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
-  <div class="ki-next"><b>Investigate next:</b> open the Customer Risk tab and start with the High tier
-  ({n_high_tier} accounts) — each carries the strongest multi-signal evidence.</div>
+  <div class="ki-next"><b>Investigate next:</b> open the Investigation tab and start with the High tier
+  ({n_high_tier} accounts) — each carries the strongest evidence.</div>
 </div>
 """,
         unsafe_allow_html=True,
@@ -680,10 +680,10 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     p3.metric("Top 10% hold", f"{top10_share:.1f}% of exposure")
     p4.metric("Half of exposure", f"top {k50:,} customers")
 
-    st.subheader("Refund exposure concentration (Pareto)")
+    st.subheader("Where the refund money concentrates")
     st.caption(
-        "How much refund value sits with what share of customers — the review-queue "
-        "sizing question. Concentration is a prioritization signal, never evidence "
+        "How refund money is spread across customers — this tells you how big the review "
+        "queue needs to be. Concentration is a reason to prioritize, never evidence "
         "that any individual customer is fraudulent. Full analysis: "
         "reports/pareto_analysis.md"
     )
@@ -714,11 +714,10 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     if len(suspects):
         reps = suspects["Reason_Repetition_Rate"].dropna()
         vel = suspects["Refunds_Per_Day"].dropna()
-        st.subheader("Fraud-behaviour signals among flagged customers")
+        st.subheader("Patterns among flagged customers")
         st.caption(
-            "The behavioural fingerprint of the flagged population in the current scope — the two "
-            "signals that separate abuse patterns from bad luck: repeating the same refund reason, "
-            "and refunding faster than normal ordering would explain."
+            "What flagged customers have in common, in the current view: repeating the same "
+            "refund reason, and refunding faster than normal ordering would explain."
         )
         s1, s2, s3 = st.columns(3)
         s1.metric(
@@ -764,9 +763,9 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
 
     st.subheader("Refund rate by operating conditions")
     st.caption(
-        "Where refunds concentrate across the delivery context — the same cut an "
-        "ops analyst would run first. (On this seeded dataset, expect roughly flat "
-        "rates: refund behaviour is generated independently of conditions.)"
+        "Refund rates across delivery conditions — the first cut an ops analyst would "
+        "run. (On this synthetic dataset rates are roughly flat by design: refunds were "
+        "generated independently of conditions.)"
     )
     c1, c2 = st.columns(2)
     with c1:
@@ -803,10 +802,9 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     # ---- Phase 2: baseline normalization (volume-band comparison) ----
     st.subheader("Is the refund rate abnormal for the customer's order volume?")
     st.caption(
-        "The raw 30% threshold doesn't ask 'compared with WHAT?' This section "
-        "compares each flagged customer against their order-volume band's "
-        "distribution. Above-baseline ≠ fraudulent — it means statistically "
-        "unusual for the customer's volume. Full analysis: "
+        "A flat 30% cutoff doesn't ask 'compared to what?' This section compares each "
+        "flagged customer with others who order similar amounts. Above the normal range "
+        "≠ fraudulent — it means unusual for their volume. Full analysis: "
         "reports/baseline_normalization.md"
     )
     try:
@@ -839,15 +837,14 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
                 textposition="outside", showlegend=False,
             ))
         fig.update_layout(
-            **PLOTLY_LAYOUT,
+            **{**PLOTLY_LAYOUT, "height": 320},
             xaxis_title="Order-volume band",
             yaxis_title="P95 refund rate (%)",
-            height=320,
         )
         st.plotly_chart(fig, width="stretch")
         st.caption(
-            "P95 refund rate by volume band — the 'unusual' threshold varies "
-            "dramatically with order count. A 50% rate on 2 orders is normal; "
+            "Normal refund rate (95th percentile) by order volume — what counts as "
+            "'unusual' changes a lot with order count. A 50% rate on 2 orders is normal; "
             "a 35% rate on 10 orders is unusual."
         )
     except Exception:
@@ -892,7 +889,7 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
             right.plotly_chart(fig, width="stretch")
 
-        st.subheader("Flagged customers — investigation list")
+        st.subheader("Flagged customers — review list")
         if not len(filtered):
             st.info("No flagged customers match the current filters.")
         else:
@@ -943,9 +940,9 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     # ---- AI Investigation Assistant (tool calling + evidence grounding) ----
     st.subheader("AI Investigation Assistant")
     st.caption(
-        "Tool-calling AI: queries the risk engine, refund history, and baseline "
-        "comparison, then explains the EVIDENCE. The AI never computes numbers "
-        "and never makes fraud determinations. Risk score ≠ proof of fraud."
+        "Ask the AI about a customer. It looks up real numbers from the data and explains "
+        "what they mean. It never makes up figures, and it can't accuse anyone — "
+        "a flag only means 'look closer'."
     )
     inv_customer = st.selectbox(
         "Select customer to investigate",
@@ -954,8 +951,11 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     )
     if inv_customer and st.button("Run AI Investigation", key="inv_run"):
         try:
-            from app.dashboard.utils.ai_investigator import investigate_with_llm
-            with st.spinner("Gathering evidence from risk engine, refund history, and baseline..."):
+            try:  # executed by Streamlit — the script dir is on sys.path
+                from ai_investigator import investigate_with_llm
+            except ImportError:  # imported as a module from the repo root
+                from dashboard.ai_investigator import investigate_with_llm
+            with st.spinner("Pulling the customer's numbers..."):
                 result = investigate_with_llm(inv_customer)
             if not result.get("ok"):
                 st.error(result.get("error", "Investigation failed."))
@@ -983,10 +983,10 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
                     st.markdown(explanation)
                 else:
                     if result.get("note"):
-                        st.info("No LLM API key configured — showing deterministic tool outputs only. "
-                               "Set OPENAI_API_KEY or GOOGLE_API_KEY to enable AI explanations.")
+                        st.info("No AI key set — showing the raw numbers only. "
+                               "Set OPENAI_API_KEY or GOOGLE_API_KEY to get the AI-written summary.")
                     # Show structured evidence as fallback
-                    st.markdown("#### Evidence Details (deterministic tool outputs)")
+                    st.markdown("#### The raw numbers behind this")
                     st.json(ev["risk"], expanded=False)
                     st.json(ev["history"], expanded=False)
                     st.json(ev["baseline"], expanded=False)
@@ -1037,9 +1037,9 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
             )
         st.markdown(f'<div class="meter-card">{meters}</div>', unsafe_allow_html=True)
         st.caption(
-            "Bars show each signal relative to the 95th percentile among all flagged customers "
-            "(current scope) — the 'how extreme is this?' view an analyst needs before acting. "
-            "Rule-based weighted scoring — full formula in docs/risk_scoring_methodology.md."
+            "Each bar shows how extreme one score factor is, compared to the 95th percentile "
+            "of flagged customers in the current view. The score is a simple weighted formula — "
+            "full details in docs/risk_scoring_methodology.md."
         )
     else:
         st.info("No customers match the current filters.")
@@ -1221,12 +1221,12 @@ def main() -> None:
             "- **Refund rate** = refunded orders ÷ total orders (current scope)\n"
             "- **Flag eligibility**: ≥5 orders AND refund rate >30% — "
             "*a flag means investigate, never guilty*\n"
-            "- **Risk score**: rule-based weighted index — refund rate 40% · "
+            "- **Risk score**: a simple weighted formula — refund rate 40% · "
             "reason repetition 30% · refunds/day 20% · reason length 10% "
             "([methodology](https://github.com/rishi-1603/zomato-refund-fraud-analytics/"
             "blob/main/docs/risk_scoring_methodology.md))\n"
-            "- **Validation**: top-tier precision vs a disclosed synthetic "
-            "ground-truth layer\n"
+            "- **Validation**: the score is checked against known test cases "
+            "(the data is synthetic, disclosed)\n"
             "- **Data**: seeded/synthetic Zomato-style delivery data — disclosed "
             "in the README"
         )
@@ -1257,9 +1257,9 @@ def main() -> None:
 
     st.divider()
     st.caption(
-        "Synthetic, seeded dataset — methods are the story. Risk score = 40% refund rate + "
+        "Synthetic, seeded dataset — the method is the point. Risk score = 40% refund rate + "
         "30% reason repetition + 20% refund frequency + 10% reason length "
-        "(docs/risk_scoring_methodology.md). Demo analytics — not affiliated with Zomato."
+        "(docs/risk_scoring_methodology.md). Demo project — not affiliated with Zomato."
     )
 
 

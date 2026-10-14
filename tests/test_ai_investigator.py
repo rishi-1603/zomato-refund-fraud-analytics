@@ -13,7 +13,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from app.dashboard.utils.ai_investigator import (
+from dashboard.ai_investigator import (
     get_customer_risk, get_refund_history, get_baseline_comparison,
     investigate, SYSTEM_PROMPT, TOOLS, TOOL_FUNCTIONS
 )
