@@ -92,7 +92,7 @@ FROM high_risk_customers;
 -- Note: no recovery/recovery-rate is computed anywhere. Recovery assumptions
 -- are not supported by this data (see reports/pareto_analysis.md).
 
--- Query 9: Refund Exposure Concentration (Pareto)
+-- Query 6: Refund Exposure Concentration (Pareto)
 -- Business Question: How concentrated is refund value among customers?
 -- (Mirrors scripts/pareto_analysis.py; reconciliation in Phase 5.)
 

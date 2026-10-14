@@ -58,6 +58,28 @@ ORDER BY f.total_refund_amount DESC;
 
 -- Band reference table (for the dashboard's baseline context panel)
 -- Business Question: what does 'normal' refund behaviour look like at each volume?
+-- (Self-contained: repeats the customer_stats/banded CTEs so this query also
+--  runs on its own, after the first query's CTE scope has ended.)
+WITH customer_stats AS (
+    SELECT "Customer_ID",
+           COUNT(*) AS total_orders,
+           SUM(CASE WHEN "Refund_Requested" = TRUE THEN 1 ELSE 0 END) AS total_refunds,
+           ROUND(SUM(CASE WHEN "Refund_Requested" = TRUE THEN 1 ELSE 0 END) * 100.0
+                 / COUNT(*), 2) AS refund_rate_pct,
+           ROUND(SUM("Refund_Amount")::numeric, 2) AS total_refund_amount
+    FROM public.orders
+    GROUP BY "Customer_ID"
+),
+banded AS (
+    SELECT cs.*,
+           CASE WHEN cs.total_orders BETWEEN 1 AND 2  THEN '1-2 orders'
+                WHEN cs.total_orders BETWEEN 3 AND 5  THEN '3-5 orders'
+                WHEN cs.total_orders BETWEEN 6 AND 10 THEN '6-10 orders'
+                WHEN cs.total_orders BETWEEN 11 AND 20 THEN '11-20 orders'
+                ELSE '21+ orders'
+           END AS volume_band
+    FROM customer_stats cs
+)
 SELECT volume_band,
        COUNT(*) AS customers,
        ROUND(AVG(refund_rate_pct), 2) AS mean_refund_rate_pct,

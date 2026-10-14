@@ -65,7 +65,7 @@ flowchart LR
     C --> D["Validation vs ground truth<br/>100% top-tier · AUC 0.94"]
     D --> E["False-positive analysis<br/>volume-band P95 baselines"]
     E --> F["AI Investigation Assistant<br/>3 tools · no-accusation guardrails"]
-    F --> G["Streamlit dashboard<br/>68 tests · Power BI kit"]
+    F --> G["Streamlit dashboard<br/>68 tests"]
 ```
 
 **Business questions the dashboard answers**
@@ -97,8 +97,6 @@ flowchart LR
 
 > ### 👉 https://github.com/rishi-1603/zomato-refund-fraud-analytics
 
-A Power BI version (`dashboard/zomato_fraud_dashboard.pbix`) is also included.
-
 ---
 
 ## 2. 💼 Business Problem
@@ -127,7 +125,7 @@ Synthetic refund layer + 10,000 customers (risk categories planted)
         ↓  notebook 02 — EDA        notebook 03 — risk scoring
         ↓  scripts/validate_risk_score.py — score vs planted truth
         ↓  sql/fraud_queries.sql — PostgreSQL business queries
-        ↓  dashboard/app.py (Streamlit, live) + Power BI
+        ↓  dashboard/app.py (Streamlit, live)
         ↓
 Ranked watchlist + honest performance metrics + business recommendations
 ```
@@ -152,26 +150,24 @@ Column-by-column documentation: [`data/DATA_DICTIONARY.md`](data/DATA_DICTIONARY
 |---|---|
 | **Analysis** | Python · pandas · NumPy · Matplotlib/Seaborn |
 | **Scoring** | scikit-learn (MinMax scaling) — composite weighted heuristic |
-| **Database** | PostgreSQL · SQL (8 documented business queries) |
-| **Dashboards** | Streamlit (live) · Power BI (.pbix) |
-| **Quality** | pytest (17 tests) · GitHub Actions CI |
+| **Database** | PostgreSQL · SQL (6 documented business queries) |
+| **Dashboards** | Streamlit (live) |
+| **Quality** | pytest (68 tests) · GitHub Actions CI |
 | **Workflow** | Jupyter notebooks (seeded, portable paths) |
 
 ---
 
 ## 6. 🗄️ SQL Layer
 
-[`sql/fraud_queries.sql`](sql/fraud_queries.sql) — 8 PostgreSQL queries, each
+[`sql/fraud_queries.sql`](sql/fraud_queries.sql) — 6 PostgreSQL queries, each
 labelled with its business question:
 
 1. Overall refund summary (KPIs)
 2. Top fraud suspects by refund rate
-3. Repeated refund reasons per customer (fraud signal #2)
-4. Refund reason distribution
-5. Refund amount analysis
-6. City-wise refund comparison
-7. High-risk customer identification
-8. Business KPI report
+3. Repeated refund reasons per customer (fraud signal)
+4. Refund impact by city
+5. Executive fraud summary (flagged exposure & share)
+6. Refund exposure concentration (Pareto)
 
 Techniques: conditional aggregation (`CASE WHEN` inside `SUM`), `HAVING`
 thresholds, window-style ranking, subqueries, KPI rollups.
@@ -272,7 +268,7 @@ never proof of fraud. Full analysis:
 ![Refund by Reason](dashboard/screenshots/refund_by_reason.png)
 
 *Filter by city/date/risk tier, drill into any account's score breakdown, and
-export the watchlist — plus a Power BI version in `dashboard/`.*
+export the watchlist.*
 
 ---
 
@@ -287,12 +283,11 @@ zomato-refund-fraud-analytics/
 │   └── DATA_DICTIONARY.md
 ├── notebooks/                           # 01 generation → 02 EDA → 03 scoring → 04 postgres
 ├── scripts/validate_risk_score.py       # score vs planted truth (the honesty layer)
-├── sql/fraud_queries.sql                # 8 documented business queries
+├── sql/fraud_queries.sql                # 6 documented business queries
 ├── dashboard/
 │   ├── app.py                           # Streamlit (live)
-│   ├── zomato_fraud_dashboard.pbix      # Power BI
 │   └── screenshots/
-├── tests/                               # 17 checks: data quality + pipeline reproducibility
+├── tests/                               # 68 checks: data quality + pipeline reproducibility
 ├── reports/                             # exec summary, methodology, limitations,
 │                                        # decision log, score validation, suspects list
 ├── docs/risk_scoring_methodology.md     # the exact formula + threshold rationale
@@ -311,7 +306,7 @@ pip install -r requirements.txt
 streamlit run dashboard/app.py          # the dashboard (data is committed — no setup)
 
 python scripts/validate_risk_score.py   # regenerate the validation report
-python -m pytest tests/ -v              # 17 checks
+python -m pytest tests/ -v              # 68 checks
 
 # notebooks run end-to-end with relative paths (01 → 04)
 # SQL: load to PostgreSQL via notebooks/04, then run sql/fraud_queries.sql
@@ -356,3 +351,4 @@ python -m pytest tests/ -v              # 17 checks
 [🚀 Open the Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ⭐**
 
 </div>
+div>
