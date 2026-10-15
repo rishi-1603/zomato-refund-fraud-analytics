@@ -10,7 +10,9 @@ punishing genuine customers?
 [🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
 [🧪 70 Automated Tests](tests/) ·
 [📊 Score Validation](reports/score_validation.md) ·
-[📄 Reports](reports/)
+[📄 Reports](reports/) ·
+[🎤 Interview Prep](reports/interview_prep.md) ·
+[🧮 Scoring Methodology](docs/risk_scoring_methodology.md)
 
 </div>
 
