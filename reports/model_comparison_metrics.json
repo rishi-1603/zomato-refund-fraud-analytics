@@ -1,0 +1,277 @@
+{
+  "protocol": "5-fold stratified OOF predictions; rule score fitted-free; labels = planted High",
+  "generator_caveat": "synthetic refund layer draws behaviour FROM the planted label; metric gaps measure method and coverage, not real-world superiority",
+  "in_pool": {
+    "rule_score": {
+      "precision_at_5": 1.0,
+      "recall_at_5": 0.0382,
+      "precision_at_10": 1.0,
+      "recall_at_10": 0.0763,
+      "precision_at_20": 1.0,
+      "recall_at_20": 0.1527,
+      "precision_at_40": 1.0,
+      "recall_at_40": 0.3053,
+      "precision_at_8": 1.0,
+      "recall_at_8": 0.0611,
+      "roc_auc": 0.9422,
+      "pr_auc": 0.9403,
+      "n_positives": 131,
+      "prevalence": 0.4695
+    },
+    "logistic_regression": {
+      "precision_at_5": 1.0,
+      "recall_at_5": 0.0382,
+      "precision_at_10": 1.0,
+      "recall_at_10": 0.0763,
+      "precision_at_20": 1.0,
+      "recall_at_20": 0.1527,
+      "precision_at_40": 1.0,
+      "recall_at_40": 0.3053,
+      "precision_at_8": 1.0,
+      "recall_at_8": 0.0611,
+      "roc_auc": 0.9611,
+      "pr_auc": 0.9663,
+      "n_positives": 131,
+      "prevalence": 0.4695
+    },
+    "gradient_boosting": {
+      "precision_at_5": 1.0,
+      "recall_at_5": 0.0382,
+      "precision_at_10": 1.0,
+      "recall_at_10": 0.0763,
+      "precision_at_20": 1.0,
+      "recall_at_20": 0.1527,
+      "precision_at_40": 1.0,
+      "recall_at_40": 0.3053,
+      "precision_at_8": 1.0,
+      "recall_at_8": 0.0611,
+      "roc_auc": 0.9782,
+      "pr_auc": 0.9813,
+      "n_positives": 131,
+      "prevalence": 0.4695
+    }
+  },
+  "rule_tier_event_rates": [
+    {
+      "tier": "Low",
+      "n": 164,
+      "planted_high_rate": 0.1829
+    },
+    {
+      "tier": "Medium",
+      "n": 107,
+      "planted_high_rate": 0.8692
+    },
+    {
+      "tier": "High",
+      "n": 8,
+      "planted_high_rate": 1.0
+    }
+  ],
+  "full_base": {
+    "n_customers": 9895,
+    "n_planted_high": 298,
+    "funnel_visible_planted_high": 131,
+    "funnel_coverage_of_planted_high": 0.4396,
+    "logistic_regression": {
+      "precision_at_5": 1.0,
+      "recall_at_5": 0.0168,
+      "precision_at_10": 1.0,
+      "recall_at_10": 0.0336,
+      "precision_at_20": 1.0,
+      "recall_at_20": 0.0671,
+      "precision_at_40": 1.0,
+      "recall_at_40": 0.1342,
+      "roc_auc": 0.9939,
+      "pr_auc": 0.9541,
+      "n_positives": 298,
+      "prevalence": 0.0301
+    },
+    "gradient_boosting": {
+      "precision_at_5": 1.0,
+      "recall_at_5": 0.0168,
+      "precision_at_10": 1.0,
+      "recall_at_10": 0.0336,
+      "precision_at_20": 1.0,
+      "recall_at_20": 0.0671,
+      "precision_at_40": 1.0,
+      "recall_at_40": 0.1342,
+      "roc_auc": 0.9872,
+      "pr_auc": 0.9357,
+      "n_positives": 298,
+      "prevalence": 0.0301
+    },
+    "gmb_calibration": [
+      {
+        "bin": 1,
+        "n": 1591,
+        "mean_score": 0.0001,
+        "event_rate": 0.0
+      },
+      {
+        "bin": 2,
+        "n": 1642,
+        "mean_score": 0.0001,
+        "event_rate": 0.0
+      },
+      {
+        "bin": 3,
+        "n": 1086,
+        "mean_score": 0.0001,
+        "event_rate": 0.0009
+      },
+      {
+        "bin": 4,
+        "n": 721,
+        "mean_score": 0.0001,
+        "event_rate": 0.0
+      },
+      {
+        "bin": 5,
+        "n": 1146,
+        "mean_score": 0.0002,
+        "event_rate": 0.0009
+      },
+      {
+        "bin": 6,
+        "n": 1257,
+        "mean_score": 0.0007,
+        "event_rate": 0.0016
+      },
+      {
+        "bin": 7,
+        "n": 1222,
+        "mean_score": 0.0034,
+        "event_rate": 0.009
+      },
+      {
+        "bin": 8,
+        "n": 1230,
+        "mean_score": 0.2313,
+        "event_rate": 0.2301
+      }
+    ]
+  },
+  "capacity": [
+    {
+      "system": "rule_score (in-pool only)",
+      "reviews": 5,
+      "planted_high_found": 5,
+      "precision": 1.0
+    },
+    {
+      "system": "rule_score (in-pool only)",
+      "reviews": 10,
+      "planted_high_found": 10,
+      "precision": 1.0
+    },
+    {
+      "system": "rule_score (in-pool only)",
+      "reviews": 20,
+      "planted_high_found": 20,
+      "precision": 1.0
+    },
+    {
+      "system": "rule_score (in-pool only)",
+      "reviews": 40,
+      "planted_high_found": 40,
+      "precision": 1.0
+    },
+    {
+      "system": "logistic (in-pool only)",
+      "reviews": 5,
+      "planted_high_found": 5,
+      "precision": 1.0
+    },
+    {
+      "system": "logistic (in-pool only)",
+      "reviews": 10,
+      "planted_high_found": 10,
+      "precision": 1.0
+    },
+    {
+      "system": "logistic (in-pool only)",
+      "reviews": 20,
+      "planted_high_found": 20,
+      "precision": 1.0
+    },
+    {
+      "system": "logistic (in-pool only)",
+      "reviews": 40,
+      "planted_high_found": 40,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (in-pool only)",
+      "reviews": 5,
+      "planted_high_found": 5,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (in-pool only)",
+      "reviews": 10,
+      "planted_high_found": 10,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (in-pool only)",
+      "reviews": 20,
+      "planted_high_found": 20,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (in-pool only)",
+      "reviews": 40,
+      "planted_high_found": 40,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (full base)",
+      "reviews": 5,
+      "planted_high_found": 5,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (full base)",
+      "reviews": 10,
+      "planted_high_found": 10,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (full base)",
+      "reviews": 20,
+      "planted_high_found": 20,
+      "precision": 1.0
+    },
+    {
+      "system": "gbm (full base)",
+      "reviews": 40,
+      "planted_high_found": 40,
+      "precision": 1.0
+    }
+  ],
+  "error_catalog": {
+    "top20_false_positives_by_volume": {
+      "1-2": 0,
+      "3-5": 0,
+      "6-10": 0,
+      "11+": 0
+    },
+    "missed_high_by_volume": {
+      "3-5": 154,
+      "6-10": 82,
+      "1-2": 40,
+      "11+": 1
+    },
+    "missed_high_in_funnel": 117,
+    "missed_high_outside_funnel": 160
+  },
+  "verdict": {
+    "in_pool_rule_auc": 0.9422,
+    "in_pool_gbm_auc": 0.9782,
+    "head_parity_at_top20": true,
+    "full_base_gbm_recall_at_40": 0.1342,
+    "missed_high_outside_funnel": 160,
+    "recommendation": "Do NOT swap the rule score for a model. At investigation-sized cut sizes the transparent rule score matches both models exactly (precision@8 and @20 = 100% for all three systems) \u2014 the AUC gap (0.942 rules vs 0.978 GBM) lives in the tail of the ranking, not the head a fraud team actually reviews. ML's real edge is coverage: 160 of the planted abusers missed at the top-20 cut sit OUTSIDE the eligibility funnel and are invisible to the rule pipeline. Ship the hybrid: keep rule-based triage for investigation (transparent, auditable), and fix the funnel \u2014 score the full customer base so low-volume abusers are visible at all. Note also that logistic regression \u2248 GBM here: the simpler model pays."
+  }
+}

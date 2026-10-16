@@ -10,6 +10,7 @@ punishing genuine customers?
 [🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
 [🧪 70 Automated Tests](tests/) ·
 [📊 Score Validation](reports/score_validation.md) ·
+[🤖 Rules vs ML](reports/model_comparison.md) ·
 [📄 Reports](reports/) ·
 [🎤 Interview Prep](reports/interview_prep.md) ·
 [🧮 Scoring Methodology](docs/risk_scoring_methodology.md)
@@ -198,6 +199,15 @@ measure the score instead of just trusting it:
 problem — because the eligibility rule trades coverage for confidence. That
 tradeoff is now measured, and the recommended fix (score everyone with ≥1
 refund) is in the decision log. Regenerate: `python scripts/validate_risk_score.py`.
+
+**Would a trained model do better? (2026-10-18)** — I ran the comparison
+([`reports/model_comparison.md`](reports/model_comparison.md)): logistic/GBM
+on the same signals with out-of-fold predictions. At the cut sizes investigators
+actually review (top 8–20), the rule score **matches both models exactly**
+(100% planted-High precision) — the AUC gap lives in the ranking tail. ML's
+real edge is *coverage*: a model scored on all 10,000 customers can see the 160
+planted abusers the eligibility funnel structurally excludes. Verdict: **keep
+rule-based triage, fix the funnel — ship the hybrid, not a replacement.**
 
 ---
 
