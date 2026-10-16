@@ -39,9 +39,14 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+
+try:
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    HAS_MPL = True
+except ImportError:          # Streamlit Cloud / slim envs: figure is optional
+    HAS_MPL = False
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
@@ -307,7 +312,10 @@ def main():
 
     REPORT_PATH.write_text(write_report(metrics))
     METRICS_PATH.write_text(json.dumps(metrics, indent=2))
-    make_figure(metrics, in_pool, full_y, full_gbm, pool_y, pool_rule)
+    if HAS_MPL:
+        make_figure(metrics, in_pool, full_y, full_gbm, pool_y, pool_rule)
+    else:
+        print("matplotlib not installed - skipping figure (report + metrics unaffected)")
     print(f"in-pool AUC: rule {rule_auc:.3f} | LR {in_pool['logistic_regression']['roc_auc']:.3f} | "
           f"GBM {gbm_auc:.3f}")
     print(f"full-base GBM recall@40: {full_recall40:.1%} | funnel coverage: "

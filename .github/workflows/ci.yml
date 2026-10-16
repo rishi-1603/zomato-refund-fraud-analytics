@@ -26,5 +26,8 @@ jobs:
       - name: Validate risk score against planted ground truth
         run: python scripts/validate_risk_score.py
 
+      - name: Run rules-vs-ML comparison
+        run: python scripts/model_comparison.py
+
       - name: Run all tests
         run: pytest -q
