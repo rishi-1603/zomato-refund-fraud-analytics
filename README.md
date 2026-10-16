@@ -70,7 +70,7 @@ flowchart LR
     C --> D["Checked against known test cases<br/>100% top-tier · AUC 0.94"]
     D --> E["Catching our own mistakes<br/>what's normal at each order volume"]
     E --> F["AI helper<br/>looks up real numbers, can't accuse anyone"]
-    F --> G["Streamlit dashboard<br/>70 tests"]
+    F --> G["Streamlit dashboard<br/>80 tests"]
 ```
 
 **Questions the dashboard answers**
@@ -154,7 +154,7 @@ Column-by-column documentation: [`data/DATA_DICTIONARY.md`](data/DATA_DICTIONARY
 | **Scoring** | scikit-learn (min-max scaling) — a weighted score combining 4 signals |
 | **Database** | PostgreSQL · SQL (6 documented business queries) |
 | **Dashboards** | Streamlit (live) |
-| **Quality** | pytest (70 tests) · GitHub Actions CI |
+| **Quality** | pytest (80 tests) · GitHub Actions CI |
 | **Workflow** | Jupyter notebooks (seeded, portable paths) |
 
 ---
