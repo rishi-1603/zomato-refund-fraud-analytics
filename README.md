@@ -1,361 +1,154 @@
-<div align="center">
+# Food-Delivery Refund Risk Triage & Operations Analytics
 
-# 🛡️ Zomato Refund Fraud Analytics
-### Finding suspicious refund patterns in food-delivery orders — and reviewing them fairly
+**An analytics-first case study** using a public food-delivery order dataset to build a reconciled KPI layer, investigate refund patterns, quantify review-queue coverage and false-positive risk, and compare transparent rules with supervised models.
 
-**The question I set out to answer:** how can a food-delivery platform spot
-suspicious refund behaviour, decide who to review first, and do it without
-punishing genuine customers?
+[Live investigation dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Executive summary](reports/executive_summary.md) · [KPI reconciliation](reports/kpi_reconciliation.md) · [Score validation](reports/score_validation.md) · [Rules vs. ML](reports/model_comparison.md) · [Data dictionary](data/DATA_DICTIONARY.md) · [Tests](tests/) · [Release gates](docs/RELEASE_GATES.md)
 
-[🚀 Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ·
-[🧪 70 Automated Tests](tests/) ·
-[📊 Score Validation](reports/score_validation.md) ·
-[🤖 Rules vs ML](reports/model_comparison.md) ·
-[📄 Reports](reports/) ·
-[🎤 Interview Prep](reports/interview_prep.md) ·
-[🧮 Scoring Methodology](docs/risk_scoring_methodology.md)
+[![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
-</div>
+> **Critical data notice:** The order/logistics rows come from a public Kaggle dataset. Refund events, refund amounts, and risk labels are generated synthetically and seeded. **No real fraud was detected; no real customer is implicated.** The score is an uncalibrated review-prioritization heuristic—not a fraud probability, verdict, or basis for automated customer action. This is an independent portfolio project, not an official Zomato product.
 
-## What you get when you open it
+## Executive summary
 
-> Open the dashboard cold and you know what to do next: **what changed → where
-> the money is concentrated → who to review first → what it costs to get it wrong.**
+The central operational question is not simply “Which model has the highest AUC?” It is: **Can an investigation team find unusual cases at a fixed review capacity, understand why they were flagged, and see who the eligibility funnel excludes?**
 
-![Refund Fraud Analytics console — header band, What changed? cards, KPI strip](docs/screenshots/v2_console_overview.png)
+The project builds a four-signal review score, a customer-level dashboard, a Python/SQL KPI audit, volume-band baselines, false-positive and error analyses, and a rules-versus-ML evaluation. On the seeded labels, all three systems tie at 100% precision in the top 8 and top 20. The more important limitation is coverage: the current eligibility filter exposes only about 44% of planted high-risk labels, and the current High tier captures 8 of 299 (2.7%) at its chosen cut. **The evidence supports improving the funnel and keeping a human in the loop before replacing the interpretable score with a more complex model.**
 
-| What | What it does |
-|---|---|
-| 📌 **Month-over-month changes** | What moved this month vs last, computed from the data you're viewing — each card shows where its number comes from |
-| 📊 **The headline numbers** | 6 cards: 45,584 orders · ₹974,344 in refunds · 279 customers flagged (38.78% of refund value) · 8 high-priority flags, all confirmed against known test cases · 113 likely false positives |
-| 🧭 **Filters that apply everywhere** | Filter by city type, customer volume, or risk tier — the sidebar always shows what's included, one click resets |
-| 🕵️ **Review list** | Who to look at first (Investigate first / Watchlist / Routine review), colour-coded by tier, exportable to CSV |
-| 🔑 **One takeaway per view** | What the data says, why it matters, and what to check next |
-| 📖 **Every KPI defined in one file** | `data/metrics.json` — the dashboard and the AI assistant both read their definitions from it |
-| 🧮 **The same analysis in SQL** | `sql/cumulative_pareto.sql` (money concentration) · `sql/baseline_bands.sql` (what's "normal" at each order volume) |
+**Role emphasis:** Data Analyst first (KPI definition, SQL, reconciliation, segmentation, funnel and concentration analysis, dashboard, operational recommendations); applied Data Science second (ranking evaluation, model comparison, capacity metrics, error analysis, and an optional evidence-grounded LLM layer).
 
-**The honest bits:** a risk score is not proof of fraud · the refund data is
-synthetic and disclosed as such · we show our own false positives (40.5% of
-flags are within the normal range for their order volume).
+## At a glance
 
-✅ **70 automated tests** — every number on the dashboard is reconciled with the Python/SQL pipeline.
+| Measure | Result | Interpretation |
+|---|---:|---|
+| Delivery-order rows | **45,584** | Public order dataset with synthetic refund attributes added |
+| Customer IDs observed in orders | **9,895** | Customer-level analysis population |
+| Total refund amount | **₹974,344** | Synthetic historical amount; not a verified loss |
+| Customers in current score pool | **279** | Eligibility: at least 5 orders and refund rate above 30% |
+| Refund exposure held by score pool | **38.78%** | A queue-sizing statistic, not proof of abuse |
+| High tier | **8 customers; 100% precision against planted labels** | Small validation slice (n=8), synthetic-label result only |
+| End-to-end High-tier recall | **2.7% (8/299 planted High labels)** | The funnel and conservative final cut miss most planted labels |
+| Volume-adjusted screening | **113/279 (40.5%)** at or below their order-volume band’s P95 | A baseline review signal, not a measured real-world false-positive rate |
 
-**Four tabs** — Overview · Refund Patterns · Investigation · Delivery Context:
+The metric definitions and population boundaries are recorded in [`data/metrics.json`](data/metrics.json). The validation reports use slightly different denominators where one generated customer has no observed order; see the report protocol before comparing counts.
 
-| Tab | What you'll find |
-|---|---|
-| 🔎 **Overview — top suspects** | Opens straight onto the highest-risk customers: tier, score, refund rate, money at stake. A flag means look closer — never guilty |
-| 🧬 **Refund Patterns — patterns among flagged customers** | 89.2% of flagged customers repeat the same refund reason in at least half their refunds; median reason-repetition 60% — computed from the data you're viewing |
-| 📊 **Investigation — how unusual is this customer?** | Each of the 4 score factors shown against the 95th percentile of flagged customers, so you can see how extreme each one is before acting |
-| 🏷️ **Investigation — review list** | Tier + status shown as badges, not just coloured text |
+## 1. Analyst workflow and decision questions
 
-![Investigation queue — top suspects with tier badges, scores and exposure](docs/screenshots/v2_investigation_queue.png)
+### Business questions answered
 
-![Signal meters — each signal vs the P95 of the flagged population](docs/screenshots/v2_investigation_meters.png)
-
-![Investigation list — tier badges, baseline strip, AI assistant](docs/screenshots/v2_customer_risk.png)
-
-![Refund Patterns — Pareto concentration and fraud-behaviour signals](docs/screenshots/v2_refund_patterns.png)
-
-![Delivery Context — operating conditions behind the refund rates](docs/screenshots/v2_delivery_context.png)
-
----
-
-## 🏗️ How it works
-
-```mermaid
-flowchart LR
-    A["45,584 real Kaggle orders<br/>+ synthetic refund layer<br/>(disclosed)"] --> B["Who gets scored<br/>≥5 orders · refund rate >30%"]
-    B --> C["Risk score from 4 signals<br/>(40/30/20/10 weights)"]
-    C --> D["Checked against known test cases<br/>100% top-tier · AUC 0.94"]
-    D --> E["Catching our own mistakes<br/>what's normal at each order volume"]
-    E --> F["AI helper<br/>looks up real numbers, can't accuse anyone"]
-    F --> G["Streamlit dashboard<br/>80 tests"]
-```
-
-**Questions the dashboard answers**
-
-| Question | Where | Verified answer |
+| Question | Analysis and artifact | Operational use |
 |---|---|---|
-| Where is the refund money? | Headline numbers | ₹974,344 total — 279 flagged customers hold 38.78% |
-| Is the flag list any good? | Headline numbers + month-over-month cards | 100% precision on the top tier (8/8); 113 of 279 are likely false positives |
-| Who do we review first? | Review list | High tier first (8), then above-average Medium — CSV export for the team |
-| Is this customer unusual for their volume? | Baselines section | Compared with customers who order similar amounts — separates heavy users from real anomalies |
+| How large is refund exposure, and how is it distributed? | KPI layer, Pareto concentration, monthly summaries | Size the review queue and monitor concentration; concentration alone is not evidence of wrongdoing. |
+| Which customer records meet the current review rule? | Eligibility filter, score tiers, evidence breakdown, CSV export | Prioritize human investigation; never auto-deny a refund from a score. |
+| Is a high refund rate unusual for that customer's activity level? | P95 baselines by order-volume band | Avoid treating one refund in one order as equivalent to repeated behaviour across many orders. |
+| Do Python and SQL tell the same story? | Independent KPI calculations and reconciliation | Detect definition drift before dashboard numbers are shared. |
+| What does the system miss? | Funnel coverage, capacity curves, false-positive and error catalogs | Fix eligibility, tier cutoffs, and queue tie-breaking before tuning model complexity. |
 
-> ⚠️ **Honesty note:** the delivery data is real (public Kaggle Zomato dataset),
-> but the **refund layer — and therefore the "fraud" — is synthetic**, planted
-> by a seeded generator. No real customers are implicated. This project
-> demonstrates the *method*; full caveat in
-> [`reports/assumptions_and_limitations.md`](reports/assumptions_and_limitations.md).
+### Selected analytical findings
 
----
+- **Headline KPI consistency:** eight KPIs—including order count, refund amount, flagged customers, flagged exposure, and refund rate—match between independent pandas and SQL calculations. The monetary tolerance is ₹0.01. See [`reports/kpi_reconciliation.md`](reports/kpi_reconciliation.md).
+- **Exposure concentration:** the top 10% of customers by synthetic refund value account for **75.6%** of that value. This can inform capacity planning; it does not establish intent or loss.
+- **Volume matters:** 113 of the 279 currently flagged customers (40.5%) are at or below their order-volume band's P95 refund-rate baseline. This is a candidate-review signal, not a real-world false-positive rate or an automatic reason to clear an account. See [`reports/baseline_normalization.md`](reports/baseline_normalization.md).
+- **The funnel is the main product issue:** the ≥5-order and >30%-refund-rate eligibility rule keeps many low-volume customers out of scoring. Among the 299 generated High labels, 131 enter the score pool and only 8 reach the High tier at the current cut. A proposed next analysis is to score every customer with at least one refund, then report end-to-end recall at a fixed investigation capacity.
+- **Human review is a requirement:** MinMax scores are pool-relative and uncalibrated. A score of 70 is not a stable probability threshold across periods, and a flag means “review this evidence,” never “guilty.”
 
-## 1. 🚀 Live Project
+## 2. Data and metric design
 
-**Dashboard (Streamlit Community Cloud):**
+### Data provenance
 
-> ### 👉 https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/
-
-**GitHub Repository:**
-
-> ### 👉 https://github.com/rishi-1603/zomato-refund-fraud-analytics
-
----
-
-## 2. 💼 Business Problem
-
-Refund abuse costs platforms twice — the refund paid and the margin lost — and
-reviewing every request manually doesn't scale. The fraud team needs a **ranked
-list of who to review, with the reasons shown** — while genuine customers keep
-getting their refunds approved.
-
-| Question | Where it's answered |
-|---|---|
-| Which customers have unusual refund behaviour? | Risk score + tiers |
-| How concentrated is the abuse? | SQL + EDA: 279 customers above a 30% refund rate |
-| Does the flag list actually work? | **Checked against known test cases** — not assumed |
-| Where does the process miss abusers? | The ≥5-order rule drops 56% of known abusers before scoring |
-
----
-
-## 3. 🔄 Project Overview
-
-```
-Real delivery dataset (45,584 orders, public Kaggle)
-        ↓  notebook 01 (seed 42 — reproducible)
-Synthetic refund layer + 10,000 customers (known "abuser" labels planted)
-        ↓  notebook 02 — EDA        notebook 03 — risk scoring
-        ↓  scripts/validate_risk_score.py — score vs known labels
-        ↓  sql/fraud_queries.sql — PostgreSQL business queries
-        ↓  dashboard/app.py (Streamlit, live)
-        ↓
-A ranked review list + honest numbers + what to do next
-```
-
----
-
-## 4. 📦 Dataset
-
-| Component | Source | Rows |
+| Component | Provenance | Size / grain |
 |---|---|---|
-| Delivery/logistics columns | **Real** — public Kaggle Zomato dataset | 45,584 orders |
-| Customer_ID + refund columns | **Synthetic** — seeded generator (notebook 01) | 10,000 customers |
-| Known test labels | Recovered by replaying the seed | High 299 · Medium 711 · Low 8,990 |
+| Delivery and logistics fields | Public Kaggle food-delivery dataset | 45,584 order rows |
+| Refund events and amounts | Seeded synthetic generator | Added to the order-level data |
+| Risk labels | Seeded planted categories, recovered for validation | Labels are a test oracle for this simulation—not independent investigation outcomes |
+| Processed customer base | Aggregated from observed orders | 9,895 customer IDs |
 
-Column-by-column documentation: [`data/DATA_DICTIONARY.md`](data/DATA_DICTIONARY.md)
+Column-level definitions and generation notes: [`data/DATA_DICTIONARY.md`](data/DATA_DICTIONARY.md) · [`docs/risk_scoring_methodology.md`](docs/risk_scoring_methodology.md).
 
----
+### KPI and SQL layer
 
-## 5. 🛠 Tech Stack
+The dashboard reads a single metric registry, [`data/metrics.json`](data/metrics.json), so definitions and caveats are visible alongside the numbers. SQL files document business questions including refund summary, customer ranking, repeated reasons, city patterns, Pareto concentration, and volume-band baselines. The reconciliation script uses an SQLite adaptation of the SQL logic for automated parity checks; PostgreSQL-oriented query files are provided for review and use in a database environment.
 
-| Layer | Tools |
-|---|---|
-| **Analysis** | Python · pandas · NumPy · Matplotlib/Seaborn |
-| **Scoring** | scikit-learn (min-max scaling) — a weighted score combining 4 signals |
-| **Database** | PostgreSQL · SQL (6 documented business queries) |
-| **Dashboards** | Streamlit (live) |
-| **Quality** | pytest (80 tests) · GitHub Actions CI |
-| **Workflow** | Jupyter notebooks (seeded, portable paths) |
+## 3. Dashboard and investigation experience
 
----
+[Open the live dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/)
 
-## 6. 🗄️ SQL Layer
+![Refund analytics console overview](docs/screenshots/v2_console_overview.png)
 
-[`sql/fraud_queries.sql`](sql/fraud_queries.sql) — 6 PostgreSQL queries, each
-labelled with its business question:
+The Streamlit console provides an overview, refund-pattern summaries, a customer investigation view, and delivery context. Filters support customer-volume and risk-tier exploration; the review queue exposes score components and baseline comparisons. The assistant can retrieve customer risk, refund history, and volume-band context through deterministic tools. An optional LLM can narrate tool-returned evidence; without an API key, the dashboard can display the evidence directly.
 
-1. Overall refund summary (KPIs)
-2. Top fraud suspects by refund rate
-3. Repeated refund reasons per customer (fraud signal)
-4. Refund impact by city
-5. Executive fraud summary (flagged exposure & share)
-6. Refund exposure concentration (Pareto)
+## 4. Applied Data Science (supporting layer)
 
-Techniques: conditional aggregation (`CASE WHEN` inside `SUM`), `HAVING`
-thresholds, window-style ranking, subqueries, KPI rollups.
+### Transparent score
 
----
+The current score is a weighted, MinMax-scaled composite over the eligible pool:
 
-## 7. 🧩 The Risk Score (and its honest evaluation)
+| Signal | Weight |
+|---|---:|
+| Refund rate | 40% |
+| Repetition of the most common refund reason | 30% |
+| Refund frequency | 20% |
+| Average reason length | 10% |
 
-**How it works** (full formula: [`docs/risk_scoring_methodology.md`](docs/risk_scoring_methodology.md)):
-who gets scored = customers with ≥5 orders and a refund rate above 30% (279
-customers). The score combines 4 signals — refund rate (40%), repeating the same
-reason (30%), refunds per day (20%), reason length (10%) — scaled to 0–100.
-Tiers: Low ≤40 < Medium ≤70 < High.
+Eligibility is **at least 5 total orders and refund rate above 30%**. Because refund rate is both part of eligibility and the largest score component, the score is best understood as triage within a pre-filtered pool—not an independent fraud detector. Full definition and thresholds: [`docs/risk_scoring_methodology.md`](docs/risk_scoring_methodology.md).
 
-**I checked the score against known answers** — the step most fraud projects
-skip. The synthetic data was generated with known "abuser" labels, so I could
-measure the score instead of just trusting it:
+### Rules-versus-model evaluation
 
-| What I measured | Value | What it means |
-|---|---|---|
-| Top-tier precision | **100%** | Every customer in the top tier is a known planted abuser |
-| Ranking quality (AUC) | **0.942** | Within the flagged pool, the ranking is excellent |
-| True catch rate (recall) | **2.7%** | **The ≥5-order rule catches only 8 of 299 known abusers** |
-| Pool coverage | 43.8% | The ≥5-order filter drops 56% of abusers before scoring |
+Logistic Regression and Gradient Boosting were compared with the rule score using 5-fold stratified out-of-fold predictions on the same eligible pool (279 customers; 131 planted High labels). Results are pinned in [`reports/model_comparison.md`](reports/model_comparison.md) and [`reports/model_comparison_metrics.json`](reports/model_comparison_metrics.json).
 
-**The honest headline:** a perfectly precise watchlist that misses most of the
-problem — because the eligibility rule trades coverage for confidence. That
-tradeoff is now measured, and the recommended fix (score everyone with ≥1
-refund) is in the decision log. Regenerate: `python scripts/validate_risk_score.py`.
+| System | ROC-AUC | PR-AUC | Precision@8 | Precision@20 |
+|---|---:|---:|---:|---:|
+| Rule score | 0.9422 | 0.9403 | 100% | 100% |
+| Logistic Regression | 0.9611 | 0.9663 | 100% | 100% |
+| Gradient Boosting | 0.9782 | 0.9813 | 100% | 100% |
 
-**Would a trained model do better? (2026-10-18)** — I ran the comparison
-([`reports/model_comparison.md`](reports/model_comparison.md)): logistic/GBM
-on the same signals with out-of-fold predictions. At the cut sizes investigators
-actually review (top 8–20), the rule score **matches both models exactly**
-(100% planted-High precision) — the AUC gap lives in the ranking tail. ML's
-real edge is *coverage*: a model scored on all 10,000 customers can see the 160
-planted abusers the eligibility funnel structurally excludes. Verdict: **keep
-rule-based triage, fix the funnel — ship the hybrid, not a replacement.**
+**Decision:** the higher AUC of Gradient Boosting does not improve precision at the review capacities tested. Keep the transparent rule score for the current in-pool queue; address coverage and volume normalization first. The comparison uses synthetic labels whose behaviour was generated from the planted risk category, so the score differences do **not** establish real-world model superiority.
 
----
+### Error analysis and safeguards
 
-## 8. 💡 Key Insights
+The error catalog separates customers excluded before scoring, cases ranked below the review cut, and high-rate records with small denominators. It recommends making low-volume cases visible, using order-volume context, and adding a secondary exposure sort for tied scores. It does **not** recommend automated bans, blocks, or refund denials. See [`reports/error_analysis.md`](reports/error_analysis.md) and [`reports/false_positive_analysis.md`](reports/false_positive_analysis.md).
 
-### Insight 1 — The refund money is concentrated, so review effort should be too
-279 customers (2.8%) have refund rates above 30%; the top tier is 100% precise
-against the known labels.
-**How concentrated:** the top 10% of customers hold **75.6%** of refund value;
-just **292 customers (3.0%) cover half** of all exposure —
-see [`reports/pareto_analysis.md`](reports/pareto_analysis.md).
-**What to do with this:** review the top tier first, top-down. *If this were live: owner = fraud team; success = confirmed abuse found per review.*
+## 5. Reproduce locally
 
-### Insight 2 — The process misses abusers before scoring even starts
-The ≥5-order rule excludes 56% of known abusers (avg 4.6 orders/customer).
-**What to do with this:** score everyone with at least one refund and report the
-true catch rate. *If this were live: owner = analytics; success = recall at the same review capacity.*
-
-### Insight 3 — Repetition is the behavioural tell
-Known abusers reuse the same reason ("Item Not Received") — in real fraud work,
-repeating the same claim is a classic scripted-claim signal, which is exactly
-why it carries 30% weight here.
-
-### Insight 4 — 40% of flagged customers are within the normal range for their order volume
-A flat ">30% refund rate" cutoff doesn't ask *compared with what*. Comparing
-each flagged customer with others who order similar amounts shows that
-**113 of 279 flagged customers (40.5%) are below the normal range for their
-order volume** — high in absolute terms, but not unusual for how much they order.
-These are the likely false positives. Full analysis:
-[`reports/baseline_normalization.md`](reports/baseline_normalization.md).
-
-### Insight 5 — The score is stable to weight changes, fragile at tier boundaries
-I stress-tested it: removing the strongest signal (refund rate) changes 26.9% of
-tier assignments; every alternative weighting keeps the ranking stable (Spearman
-ρ > 0.95). But moving the tier cutoffs by ±5 points shifts 14–16% of customers
-between tiers — the cutoffs, not the weights, are the fragile part.
-[`reports/sensitivity_analysis.md`](reports/sensitivity_analysis.md)
-
-### Insight 6 — 40.5% of flagged customers are likely false positives
-Against the known labels: 131 of 279 flagged are true positives, 73 are false
-positives (26.2% of flagged), 75 are grey-area. The baseline check **works as a
-false-positive filter**: below-normal customers have a **57.5% false-positive
-rate** vs only **4.8%** above-normal. Most false positives are small accounts:
-102 customers with 5–6 orders and exactly 2 refunds cross 30% just by chance.
-[`reports/false_positive_analysis.md`](reports/false_positive_analysis.md)
-
-### Insight 7 — Python and SQL agree on every headline number
-All 8 headline numbers (total orders, refund orders, refund value, unique
-customers, flagged customers, flagged exposure, flagged share of exposure,
-overall refund rate) come out **identical** whether computed in pandas or in
-SQL — zero discrepancies. [`reports/kpi_reconciliation.md`](reports/kpi_reconciliation.md)
-
-### Insight 8 — Refund value concentration (Pareto)
-Top 1% of customers hold **26.9%** of refund value; top 10% hold **75.6%**;
-80% of value comes from just **11.8%** of customers. This is the
-review-queue-sizing answer — and concentration is a reason to prioritize,
-never proof of fraud. Full analysis:
-[`reports/pareto_analysis.md`](reports/pareto_analysis.md).
-
-## 9. 📸 Dashboard Preview
-
-**[➡ Open the live dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/)**
-
-![Fraud Suspects Ranking](dashboard/screenshots/fraud_suspects_ranking.png)
-![Refund by Reason](dashboard/screenshots/refund_by_reason.png)
-
-*Filter by city/date/risk tier, drill into any account's score breakdown, and
-export the watchlist.*
-
----
-
-## 10. 🏗 Project Architecture
-
-```
-zomato-refund-fraud-analytics/
-├── data/
-│   ├── raw/Zomato Dataset.csv           # real public dataset (immutable, CI-checked)
-│   ├── processed/zomato_with_refunds.csv# + synthetic refund layer
-│   ├── processed/ground_truth_customer_risk.csv  # recovered planted labels
-│   └── DATA_DICTIONARY.md
-├── notebooks/                           # 01 generation → 02 EDA → 03 scoring → 04 postgres
-├── scripts/validate_risk_score.py       # score checked against known labels
-├── sql/fraud_queries.sql                # 6 documented business queries
-├── dashboard/
-│   ├── app.py                           # Streamlit (live)
-│   ├── ai_investigator.py               # the AI assistant's data tools
-│   └── screenshots/
-├── tests/                               # 70 checks: data quality + pipeline reproducibility
-├── reports/                             # exec summary, methodology, limitations,
-│                                        # decision log, score validation, suspects list
-├── docs/risk_scoring_methodology.md     # the exact formula + threshold rationale
-└── .github/workflows/ci.yml             # CI: tests on every push
-```
-
----
-
-## 11. ▶️ How to Run
+The CI workflow uses Python 3.11. From the repository root:
 
 ```bash
-git clone https://github.com/rishi-1603/zomato-refund-fraud-analytics.git
-cd zomato-refund-fraud-analytics
-pip install -r requirements.txt
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m pip install -r requirements.txt
 
-streamlit run dashboard/app.py          # the dashboard (data is committed — no setup)
+# Regenerate validation outputs
+python scripts/validate_risk_score.py
+python scripts/model_comparison.py
+python scripts/kpi_reconciliation.py
 
-python scripts/validate_risk_score.py   # regenerate the validation report
-python -m pytest tests/ -v              # 70 checks
+# Launch the dashboard
+streamlit run dashboard/app.py
 
-# notebooks run end-to-end with relative paths (01 → 04)
-# SQL: load to PostgreSQL via notebooks/04, then run sql/fraud_queries.sql
+# Run all automated checks
+python -m pytest -q
 ```
 
----
+Notebook-only dependencies (Jupyter, plotting, and PostgreSQL drivers) are listed in comments in [`requirements.txt`](requirements.txt); they are not required for the deployed dashboard or CI test suite.
 
-## 12. 🎓 Key Learnings
+## Repository map
 
-- **Scoring fraud without labels still needs validation** — recovering the
-  generator's known labels turned "I built a score" into "I measured
-  it: 100% precision, 2.7% recall, here's the coverage gap"
-- **Thresholds are business decisions** — every cutoff (orders, rate, score)
-  trades coverage for confidence and must be reported with both sides
-- **Relative scores need absolute anchors** — min-max-normalized tiers drift
-  as the pool changes; ops thresholds should be frozen separately
-- **Reproducibility is a habit** — seeding the generator is what made the
-  known labels recoverable and the whole pipeline testable
+```text
+├── data/                 # raw public orders, synthetic refund layer, labels, metric registry
+├── notebooks/            # generation, EDA, scoring, and SQL walkthroughs
+├── scripts/              # validation, KPI parity, model comparison, baseline and error analyses
+├── sql/                  # business queries, Pareto and volume-band analysis
+├── dashboard/            # Streamlit console, evidence tools, screenshots
+├── reports/              # executive, KPI, score, model, error, and limitation reports
+├── docs/                 # scoring methodology, governance, model evaluation, release checks
+└── tests/                # 80 automated tests across data, analysis, dashboard, and assistant
+```
 
----
+## Limitations and responsible-use boundary
 
-## 13. 🔮 Future Improvements
+- Refund events, refund amounts, and risk labels are synthetic. Performance against planted labels is not validation against actual fraud cases.
+- The High-tier result is based on only eight records in a clean synthetic setup; it should not be generalized.
+- The current eligibility rule and score are partly circular; MinMax scaling changes with the scored population.
+- A high refund rate can reflect service or restaurant problems, a small denominator, or a genuine customer issue. These analyses do not identify cause or intent.
+- No monetary loss prevented, customer savings, or business impact is measured. Any policy should be evaluated with human investigation outcomes, customer-protection metrics, and a fixed-capacity design.
 
-- Score **all** customers with ≥1 refund (fix the coverage gap) and report
-  the true catch rate at fixed review capacity
-- Turn the score into a real abuse probability (logistic model on investigator
-  outcomes, once real labels exist)
-- Precision@k curves for the review list instead of a single tier cutoff
-- Drift monitoring: refund-rate distribution per week, tier-size stability
-- Cost-sensitive thresholding (a false positive and a false negative don't cost the same)
-
----
-
-## 👨‍💻 Author
-
-**Rishi Dappu** — B.Tech CSE (Data Science)
-📧 rishidappu16@gmail.com · 🔗 [LinkedIn](https://www.linkedin.com/in/rishidappu1603/) · 💻 [GitHub](https://github.com/rishi-1603)
-
-<div align="center">
-
-**⭐ Star this repo if it helped you ·
-[🚀 Open the Live Dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) ⭐**
-
-</div>
+The release decision and evidence are in [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md); latest audited suite: **80 tests passed** (2026-10-17).
