@@ -1,0 +1,277 @@
+{
+  "generated_by": "scripts/network_analysis.py",
+  "data": {
+    "orders": 45584,
+    "customers": 9895,
+    "delivery_persons": 1320,
+    "refund_requests": 3596,
+    "refund_amount_total": 974343.55
+  },
+  "parameters": {
+    "geo_round_decimals": 2,
+    "min_orders_for_edge": 2,
+    "n_permutations": 200,
+    "random_seed": 42
+  },
+  "layers": {
+    "shared_delivery_person": {
+      "n_customers": 9895,
+      "n_components": 9892,
+      "n_rings_3plus": 0,
+      "largest_ring": 2,
+      "ring_refund_exposure": 0.0,
+      "total_refund_exposure": 974343.5499999999,
+      "exposure_share_in_rings": 0.0,
+      "density_screen": {
+        "layer": "shared_delivery_person",
+        "n_components_screened": 0
+      }
+    },
+    "shared_restaurant_cell": {
+      "n_customers": 9895,
+      "n_components": 8959,
+      "n_rings_3plus": 27,
+      "largest_ring": 788,
+      "ring_refund_exposure": 113156.26999999997,
+      "total_refund_exposure": 974343.5499999999,
+      "exposure_share_in_rings": 0.1161,
+      "density_screen": {
+        "layer": "shared_restaurant_cell",
+        "n_components_screened": 27,
+        "n_above_baseline": 12,
+        "n_10pp_above_baseline": 2,
+        "max_excess_pp": 12.8,
+        "exposure_in_10pp_components": 3710.03,
+        "top_components": [
+          {
+            "ring_id": "C0058",
+            "customers": 5,
+            "orders": 29,
+            "refunds": 6,
+            "refund_rate_pct": 20.69,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 12.8,
+            "refund_amount": 3067.07,
+            "high_risk_members": 1,
+            "high_risk_lift": 6.64
+          },
+          {
+            "ring_id": "C0178",
+            "customers": 3,
+            "orders": 16,
+            "refunds": 3,
+            "refund_rate_pct": 18.75,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 10.86,
+            "refund_amount": 642.96,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C5090",
+            "customers": 3,
+            "orders": 12,
+            "refunds": 2,
+            "refund_rate_pct": 16.67,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 8.78,
+            "refund_amount": 383.69,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C1092",
+            "customers": 11,
+            "orders": 73,
+            "refunds": 11,
+            "refund_rate_pct": 15.07,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 7.18,
+            "refund_amount": 2658.77,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0411",
+            "customers": 4,
+            "orders": 23,
+            "refunds": 3,
+            "refund_rate_pct": 13.04,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 5.15,
+            "refund_amount": 483.22,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C1241",
+            "customers": 3,
+            "orders": 16,
+            "refunds": 2,
+            "refund_rate_pct": 12.5,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 4.61,
+            "refund_amount": 273.05,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C1077",
+            "customers": 6,
+            "orders": 43,
+            "refunds": 5,
+            "refund_rate_pct": 11.63,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 3.74,
+            "refund_amount": 695.72,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C1527",
+            "customers": 3,
+            "orders": 27,
+            "refunds": 3,
+            "refund_rate_pct": 11.11,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 3.22,
+            "refund_amount": 367.37,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          }
+        ]
+      }
+    },
+    "shared_drop_cell": {
+      "n_customers": 9895,
+      "n_components": 9836,
+      "n_rings_3plus": 12,
+      "largest_ring": 9,
+      "ring_refund_exposure": 6626.48,
+      "total_refund_exposure": 974343.5499999999,
+      "exposure_share_in_rings": 0.0068,
+      "density_screen": {
+        "layer": "shared_drop_cell",
+        "n_components_screened": 12,
+        "n_above_baseline": 5,
+        "n_10pp_above_baseline": 1,
+        "max_excess_pp": 14.33,
+        "exposure_in_10pp_components": 814.17,
+        "top_components": [
+          {
+            "ring_id": "C0663",
+            "customers": 3,
+            "orders": 18,
+            "refunds": 4,
+            "refund_rate_pct": 22.22,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 14.33,
+            "refund_amount": 814.17,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0739",
+            "customers": 5,
+            "orders": 24,
+            "refunds": 4,
+            "refund_rate_pct": 16.67,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 8.78,
+            "refund_amount": 703.8,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0321",
+            "customers": 7,
+            "orders": 51,
+            "refunds": 6,
+            "refund_rate_pct": 11.76,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 3.88,
+            "refund_amount": 1511.51,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0473",
+            "customers": 8,
+            "orders": 57,
+            "refunds": 6,
+            "refund_rate_pct": 10.53,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 2.64,
+            "refund_amount": 1534.15,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0425",
+            "customers": 4,
+            "orders": 22,
+            "refunds": 2,
+            "refund_rate_pct": 9.09,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": 1.2,
+            "refund_amount": 480.96,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0599",
+            "customers": 6,
+            "orders": 36,
+            "refunds": 2,
+            "refund_rate_pct": 5.56,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": -2.33,
+            "refund_amount": 403.73,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0513",
+            "customers": 9,
+            "orders": 57,
+            "refunds": 3,
+            "refund_rate_pct": 5.26,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": -2.63,
+            "refund_amount": 529.13,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          },
+          {
+            "ring_id": "C0465",
+            "customers": 5,
+            "orders": 39,
+            "refunds": 2,
+            "refund_rate_pct": 5.13,
+            "baseline_rate_pct": 7.89,
+            "excess_pp": -2.76,
+            "refund_amount": 429.78,
+            "high_risk_members": 0,
+            "high_risk_lift": 0.0
+          }
+        ]
+      }
+    }
+  },
+  "clustering_test": {
+    "available": true,
+    "n_high_risk": 298,
+    "n_linked_pairs_total": 1047010,
+    "observed_clustering": 0.020699,
+    "null_mean": 0.021484,
+    "null_p95": 0.023754,
+    "p_value": 0.76,
+    "n_permutations": 200,
+    "interpretation": "No evidence that High-risk customers cluster on shared delivery people beyond what chance produces \u2014 the refund signal is individual-level on this dataset, not network-level"
+  },
+  "honesty": [
+    "Edges are shared-attribute associations, not evidence of collusion. Sharing a busy delivery person is normal behaviour.",
+    "Delivery attributes are real (public Kaggle dataset); the refund layer is synthetic and labelled as such in the README.",
+    "Connected components are a screening device for human review, never an accusation. A ring is a group worth looking at, not a group that is guilty."
+  ]
+}
