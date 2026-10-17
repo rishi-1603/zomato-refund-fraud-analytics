@@ -1,5 +1,5 @@
 # TEST REPORT — Zomato
-### Last full run: 2026-10-17 — 80/80 passed
+### Last full run: 2026-10-18 — 136/136 passed
 
 | Suite | Pins |
 |---|---|

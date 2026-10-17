@@ -2,7 +2,7 @@
 
 **An analytics-first case study** using a public food-delivery order dataset to build a reconciled KPI layer, investigate refund patterns, quantify review-queue coverage and false-positive risk, and compare transparent rules with supervised models.
 
-[Live investigation dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Executive summary](reports/executive_summary.md) · [KPI reconciliation](reports/kpi_reconciliation.md) · [Score validation](reports/score_validation.md) · [Rules vs. ML](reports/model_comparison.md) · [Data dictionary](data/DATA_DICTIONARY.md) · [Tests](tests/) · [Release gates](docs/RELEASE_GATES.md)
+[Live investigation dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Executive summary](reports/executive_summary.md) · [KPI reconciliation](reports/kpi_reconciliation.md) · [Score validation](reports/score_validation.md) · [Rules vs. ML](reports/model_comparison.md) · [Alert economics](reports/alert_economics.md) · [Drift monitor](reports/drift_monitor.md) · [Data dictionary](data/DATA_DICTIONARY.md) · [Tests](tests/) · [Release gates](docs/RELEASE_GATES.md)
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
@@ -12,9 +12,9 @@
 
 The central operational question is not simply “Which model has the highest AUC?” It is: **Can an investigation team find unusual cases at a fixed review capacity, understand why they were flagged, and see who the eligibility funnel excludes?**
 
-The project builds a four-signal review score, a customer-level dashboard, a Python/SQL KPI audit, volume-band baselines, false-positive and error analyses, and a rules-versus-ML evaluation. On the seeded labels, all three systems tie at 100% precision in the top 8 and top 20. The more important limitation is coverage: the current eligibility filter exposes only about 44% of planted high-risk labels, and the current High tier captures 8 of 299 (2.7%) at its chosen cut. **The evidence supports improving the funnel and keeping a human in the loop before replacing the interpretable score with a more complex model.**
+The project builds a four-signal review score, a customer-level dashboard, a Python/SQL KPI audit, volume-band baselines, false-positive and error analyses, a rules-versus-ML evaluation, priced alert economics, and a weekly drift-monitoring console. On the seeded labels, all three systems tie at 100% precision in the top 8 and top 20. The more important limitation is coverage: the current eligibility filter exposes only about 44% of planted high-risk labels, and the current High tier captures 8 of 299 (2.7%) at its chosen cut. **The evidence supports improving the funnel and keeping a human in the loop before replacing the interpretable score with a more complex model.**
 
-**Role emphasis:** Data Analyst first (KPI definition, SQL, reconciliation, segmentation, funnel and concentration analysis, dashboard, operational recommendations); applied Data Science second (ranking evaluation, model comparison, capacity metrics, error analysis, and an optional evidence-grounded LLM layer).
+**Role emphasis:** Data Analyst first (KPI definition, SQL, reconciliation, segmentation, funnel and concentration analysis, dashboard, operational recommendations); applied Data Science second (ranking evaluation, model comparison, capacity metrics, error analysis, alert economics, drift monitoring, guardrail audits, and an optional evidence-grounded LLM layer).
 
 ## At a glance
 
@@ -107,6 +107,16 @@ Logistic Regression and Gradient Boosting were compared with the rule score usin
 
 The error catalog separates customers excluded before scoring, cases ranked below the review cut, and high-rate records with small denominators. It recommends making low-volume cases visible, using order-volume context, and adding a secondary exposure sort for tied scores. It does **not** recommend automated bans, blocks, or refund denials. See [`reports/error_analysis.md`](reports/error_analysis.md) and [`reports/false_positive_analysis.md`](reports/false_positive_analysis.md).
 
+### Alert economics, drift monitoring, and guardrail audits
+
+The score is paired with the analyses an operations team needs before acting on it:
+
+- **Alert economics** ([`reports/alert_economics.md`](reports/alert_economics.md)): the investigation alert is priced as a decision. **Break-even precision is 28.2%** — below that hit rate the alert program loses money at the base cost assumptions, so queue capacity is sized against a measured threshold rather than a fixed top-N.
+- **Drift monitoring** ([`reports/drift_monitor.md`](reports/drift_monitor.md)): a weekly console computes per-feature PSI (conventions: <0.10 stable · 0.10–0.25 moderate · >0.25 significant) alongside the refund-rate business metric. An injected-drift proof run reaches **PSI 11.88 and fires the tripwire**; the retrain rule is explicit — any feature PSI > 0.25 for two consecutive weeks.
+- **Account-network check** ([`reports/network_analysis.md`](reports/network_analysis.md)): a fraud-ring layer over real delivery attributes (shared delivery people; 200-shuffle null) returns an **honest null** — observed clustering 2.07% versus a 2.15% chance mean. The refund signal is individual-level on this dataset, not network-level; the null is reported, not hidden.
+- **Assistant guardrail audit** ([`reports/investigator_eval.md`](reports/investigator_eval.md)): the LLM investigator is benchmarked on answerable and unanswerable prompts — **6/6 grounded in tool-returned data, 6/6 refused, 0 fabricated answers**. Every number is recomputed from the raw CSV; a mismatch is scored as a fabrication.
+- **External validation** ([`reports/external_validation.md`](reports/external_validation.md)): the pipeline is checked against a real public schema — **20 columns (83% of the schema) are real** — and the drift tripwire is proven on real external data (airline passengers 1949–1960), so the analytics degrade loudly rather than silently.
+
 ## 5. Reproduce locally
 
 The CI workflow uses Python 3.11. From the repository root:
@@ -135,12 +145,12 @@ Notebook-only dependencies (Jupyter, plotting, and PostgreSQL drivers) are liste
 ```text
 ├── data/                 # raw public orders, synthetic refund layer, labels, metric registry
 ├── notebooks/            # generation, EDA, scoring, and SQL walkthroughs
-├── scripts/              # validation, KPI parity, model comparison, baseline and error analyses
+├── scripts/              # validation, KPI parity, model comparison, alert economics, drift, network, baseline and error analyses
 ├── sql/                  # business queries, Pareto and volume-band analysis
 ├── dashboard/            # Streamlit console, evidence tools, screenshots
 ├── reports/              # executive, KPI, score, model, error, and limitation reports
 ├── docs/                 # scoring methodology, governance, model evaluation, release checks
-└── tests/                # 80 automated tests across data, analysis, dashboard, and assistant
+└── tests/                # 136 automated tests across data, analysis, dashboard, and assistant
 ```
 
 ## Limitations and responsible-use boundary
@@ -151,4 +161,4 @@ Notebook-only dependencies (Jupyter, plotting, and PostgreSQL drivers) are liste
 - A high refund rate can reflect service or restaurant problems, a small denominator, or a genuine customer issue. These analyses do not identify cause or intent.
 - No monetary loss prevented, customer savings, or business impact is measured. Any policy should be evaluated with human investigation outcomes, customer-protection metrics, and a fixed-capacity design.
 
-The release decision and evidence are in [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md); latest audited suite: **80 tests passed** (2026-10-17).
+The release decision and evidence are in [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md); latest audited suite: **136 tests passed** (2026-10-18).

@@ -71,7 +71,7 @@ End-to-end refund-fraud risk analytics: behavioral scoring over 45,584 real deli
 6. **What's the difference between the risk score and the baseline?** The score is a weighted heuristic on four signals; the baseline is a population-norm comparison (are you abnormal for your volume?). They answer different questions.
 7. **How did you test for false positives?** Cross-tab: flagged vs planted ground truth. 131 TP, 73 FP, 75 grey of 279.
 8. **Why not use ML for fraud detection?** With seeded ground truth, a rule-based score + validation is more transparent and defensible than a black-box model. The coverage-gap finding shows the issue is funnel design, not model complexity.
-9. **How did you ensure reproducibility?** Fixed seeds everywhere (42), all scripts deterministic, 37 CI tests, data committed to the repo.
+9. **How did you ensure reproducibility?** Fixed seeds everywhere (42), all scripts deterministic, 136 CI tests, data committed to the repo.
 10. **What would you do differently with real data?** Ground truth from investigation outcomes, temporal features (time between refunds), device/payment fingerprints, and a proper train/test split respecting time.
 
 ## 10 Fraud/Risk Questions

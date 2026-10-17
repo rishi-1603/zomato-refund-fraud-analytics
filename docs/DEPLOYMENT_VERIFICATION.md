@@ -1,5 +1,5 @@
 # DEPLOYMENT VERIFICATION — Zomato
-### Verified 2026-10-17
+### Verified 2026-10-18
 
 ## Targets
 | Component | Where | URL |
@@ -7,9 +7,9 @@
 | Investigation console | Streamlit Community Cloud | https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/ |
 | Repository + CI | GitHub Actions | rishi-1603/zomato-refund-fraud-analytics |
 
-## Machine-verified (2026-10-17)
+## Machine-verified (2026-10-18)
 - HTTP check on the console URL: **303 (app reachable, Streamlit redirect)**.
-- CI latest run: **success** (validate -> compare -> pytest, 80 tests).
+- CI latest run: **success** (validate -> compare -> pytest, 136 tests).
 
 ## Manual click-through checklist (owner)
 1. Open KPI page; compare 2 numbers to reports/kpi_reconciliation.md.

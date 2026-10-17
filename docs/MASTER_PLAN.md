@@ -24,7 +24,7 @@ console.
 ## Success criteria — all met
 - Defensible "ship X because Y" verdict: reports/model_comparison.md
 - PR-AUC reported alongside ROC-AUC on imbalanced labels: yes (3% base rate)
-- Tests pin the comparison numbers: tests/test_model_comparison.py (80/80 green)
+- Tests pin the comparison numbers: tests/test_model_comparison.py (136/136 green)
 
 ## Key links
 - Live console: https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/
