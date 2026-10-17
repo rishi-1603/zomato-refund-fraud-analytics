@@ -1,0 +1,105 @@
+{
+  "generated_by": "scripts/investigator_eval.py",
+  "honesty": "Refund layer is synthetic; this audit verifies the investigator never fabricates relative to the dataset it is given \u2014 a property that holds for any dataset. The optional LLM narrative layer is gated behind API keys and must be grounded in these same tools.",
+  "answerable": {
+    "n": 6,
+    "passed": 6,
+    "accuracy": 1.0,
+    "cases": [
+      {
+        "customer_id": "CUST07704",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST05625",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST04308",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST03483",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST08584",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST07091",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      }
+    ]
+  },
+  "unanswerable": {
+    "n": 6,
+    "refused_correctly": 6,
+    "refusal_accuracy": 1.0,
+    "cases": [
+      {
+        "case": "unknown:CUST99999",
+        "refused": true,
+        "fabricated_score": false,
+        "pass": true
+      },
+      {
+        "case": "unknown:CUST00000",
+        "refused": true,
+        "fabricated_score": false,
+        "pass": true
+      },
+      {
+        "case": "unknown:NOT_A_CUSTOMER",
+        "refused": true,
+        "fabricated_score": false,
+        "pass": true
+      },
+      {
+        "case": "unflagged:CUST00001",
+        "refused": true,
+        "fabricated_score": false,
+        "pass": true
+      },
+      {
+        "case": "unflagged:CUST00002",
+        "refused": true,
+        "fabricated_score": false,
+        "pass": true
+      },
+      {
+        "case": "unflagged:CUST00003",
+        "refused": true,
+        "fabricated_score": false,
+        "pass": true
+      }
+    ]
+  },
+  "fabrications_total": 0,
+  "mismatch_details": [],
+  "verdict": "PASS"
+}

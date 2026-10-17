@@ -113,3 +113,38 @@ that assumption?
 
 ### Regression check
 `pytest tests/` → **123 passed**. All previous tests untouched and green.
+
+---
+
+## U4 — Investigator Eval + External Real-Data Validation (Day 2 final)
+
+### What was built
+| File | Purpose |
+|---|---|
+| `evals/investigator_benchmark.json` | 6 answerable + 6 unanswerable cases (real suspect IDs verified against fraud_suspects.csv) |
+| `scripts/investigator_eval.py` | Hallucination audit: every returned number RECOMPUTED from raw CSV; refusal correctness; schema guardrail (no verdict fields) |
+| `scripts/external_validation.py` | Provenance audit (real vs synthetic columns), real-column findings re-check, real external drift validation |
+| `data/external/flights.csv` | Committed real dataset (seaborn-data, BSD-3): 144 months of airline passengers |
+| tests | 13 pins across both engines |
+
+### Verified findings (pinned by tests)
+- **Investigator: 6/6 grounded · 6/6 refused · 0 fabrications · schema clean → PASS**
+  (unknown IDs and unflagged customers refuse with errors — never a score from thin air)
+- **Provenance: 20/24 columns (83%) are the REAL public dataset**; only the 4
+  refund-layer columns are synthetic — the "how much is real?" question gets a table
+- Real-column findings hold without the synthetic layer: traffic→time monotonic
+  (20/27/27/31 min), worst weather Cloudy (28 min), ratings mean 4.634
+- **Real external drift validation: PSI 11.88 on airline passengers 1949–60 →
+  tripwire FIRES on real drift** — the monitoring method validated where the
+  stationary synthetic stream could not
+
+### Bugs caught during this work (disclosed)
+1. The eval's first draft guessed suspect IDs (CUST00170 etc.) — 0/6 "failures"
+   were the benchmark's fault, not the investigator's. Fixed by using real rows
+   of fraud_suspects.csv. Lesson: an eval that guesses its fixtures tests nothing.
+2. `psi_categorical` crashed on NaN/mixed types (fixed in U3, re-confirmed here).
+3. External dataset fetch #1 (plotly heart.csv) 404'd — the mirror moved. Switched
+   to stable sources and committed copies so tests never depend on the network.
+
+### Regression check
+`pytest tests/` → **136 passed**.

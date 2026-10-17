@@ -1,0 +1,99 @@
+{
+  "generated_by": "scripts/external_validation.py",
+  "provenance": {
+    "real_columns": [
+      "ID",
+      "Delivery_person_ID",
+      "Delivery_person_Age",
+      "Delivery_person_Ratings",
+      "Restaurant_latitude",
+      "Restaurant_longitude",
+      "Delivery_location_latitude",
+      "Delivery_location_longitude",
+      "Order_Date",
+      "Time_Orderd",
+      "Time_Order_picked",
+      "Weather_conditions",
+      "Road_traffic_density",
+      "Vehicle_condition",
+      "Type_of_order",
+      "Type_of_vehicle",
+      "multiple_deliveries",
+      "Festival",
+      "City",
+      "Time_taken (min)"
+    ],
+    "synthetic_columns": [
+      "Customer_ID",
+      "Refund_Requested",
+      "Refund_Reason",
+      "Refund_Amount"
+    ],
+    "provenance_complete": true,
+    "real_share_of_columns": 0.8333
+  },
+  "real_findings": {
+    "median_time_by_traffic_min": {
+      "Low": 20.0,
+      "High": 27.0,
+      "Medium": 27.0,
+      "Jam": 31.0
+    },
+    "traffic_time_monotonic": true,
+    "median_time_by_weather_min": {
+      "Cloudy": 28.0,
+      "Fog": 28.0,
+      "Sandstorms": 26.0,
+      "Stormy": 26.0,
+      "Windy": 26.0,
+      "Sunny": 20.0
+    },
+    "worst_weather": "Cloudy",
+    "ratings_mean": 4.634,
+    "ratings_below_3_share": 0.0031,
+    "orders": 45584
+  },
+  "external_drift_validation": {
+    "dataset": "seaborn-data/flights (1949-1960 monthly airline passengers)",
+    "committed_copy": "data/external/flights.csv",
+    "reference_years": "1949-1952",
+    "current_years": "1957-1960",
+    "reference_mean": 158.4,
+    "current_mean": 413.5,
+    "psi": 11.8773,
+    "grade": "significant",
+    "tripwire_fired": true
+  },
+  "scope_of_validity": [
+    {
+      "claim": "Traffic density drives delivery time",
+      "world": "real-backed",
+      "evidence": "median time monotonic across traffic levels: {'Low': 20.0, 'High': 27.0, 'Medium': 27.0, 'Jam': 31.0}"
+    },
+    {
+      "claim": "Weather condition drives delivery time",
+      "world": "real-backed",
+      "evidence": "worst weather = Cloudy: {'Cloudy': 28.0, 'Fog': 28.0, 'Sandstorms': 26.0, 'Stormy': 26.0, 'Windy': 26.0, 'Sunny': 20.0}"
+    },
+    {
+      "claim": "Delivery ratings distribution",
+      "world": "real-backed",
+      "evidence": "mean 4.634, 0.3% below 3.0"
+    },
+    {
+      "claim": "Fraud-ring network null result (U1)",
+      "world": "real-backed",
+      "evidence": "built on shared delivery-person / restaurant / drop-cell attributes \u2014 real columns"
+    },
+    {
+      "claim": "Risk score, alert economics, break-even precision",
+      "world": "synthetic-layer",
+      "evidence": "refund behaviour is planted; the economics demonstrate the decision METHOD"
+    },
+    {
+      "claim": "Drift tripwire detects real drift",
+      "world": "real-backed",
+      "evidence": "PSI 11.8773 on real airline data \u2192 grade significant"
+    }
+  ]
+}
