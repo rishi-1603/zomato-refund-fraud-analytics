@@ -77,3 +77,39 @@ alerts to make is an economics question.**
 
 ### Regression check
 `pytest tests/` → **113 passed**. All 100 original tests untouched and green.
+
+---
+
+## U3 — Drift / Monitoring Console (Day 2)
+
+### The question
+The alert policy's economics assume the score's inputs hold still. What watches
+that assumption?
+
+### What was built
+| File | Purpose |
+|---|---|
+| `scripts/drift_monitor.py` | Weekly PSI (numeric + categorical) vs a reference window, refund-rate deltas, per-week verdicts, explicit retrain trigger |
+| `tests/test_drift_monitor.py` | 10 tests: real-stream pins + **injected-drift tripwire tests** |
+| `reports/drift_monitor.json/.md` | The monitoring artifact |
+
+### Verified findings (pinned by tests)
+- Reference window: 7,242 orders (2022-02-07→02-20), refund rate 7.29%
+- 6 monitoring weeks: **all STABLE**, max PSI 0.0129 (thresholds: <0.10 stable, >0.25 significant)
+- Refund rate moves <2pp in every week
+- **Honest result: the seeded generator is stationary.** A console that prints
+  STABLE on stable data proves nothing by itself — so the test suite injects a
+  1-SD distribution shift and a category replacement and **requires the PSI
+  grade to go significant**. The tripwire is proven, not assumed.
+- Explicit retrain rule printed in the report: 2 consecutive weeks of any
+  feature PSI > 0.25 → rebuild the score before trusting precision again.
+
+### Bugs caught during this work (disclosed)
+1. `psi_categorical` crashed on NaN + mixed str/float categories
+   (`TypeError: '<' not supported between str and float`). Fixed by coercing
+   NaN to a `"missing"` bucket — which is also the correct drift semantics.
+2. `psi` now drops NaNs before binning (the `multiple_deliveries` column has
+   missing values); histogram edges on NaN input are undefined.
+
+### Regression check
+`pytest tests/` → **123 passed**. All previous tests untouched and green.

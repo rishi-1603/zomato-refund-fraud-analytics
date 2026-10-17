@@ -1,0 +1,267 @@
+{
+  "generated_by": "scripts/drift_monitor.py",
+  "honesty": "Synthetic seeded order stream. Demonstrates the monitoring method, not evidence about a real production system. PSI thresholds 0.10/0.25 are the standard conventions.",
+  "reference_window": {
+    "weeks": [
+      "2022-02-07/2022-02-13",
+      "2022-02-14/2022-02-20"
+    ],
+    "orders": 7242,
+    "refund_rate": 0.0729
+  },
+  "monitoring_weeks": [
+    {
+      "week": "2022-02-28/2022-03-06",
+      "orders": 6422,
+      "refund_rate": 0.0846,
+      "refund_rate_delta_pp": 1.16,
+      "features": {
+        "Delivery_person_Age": {
+          "psi": 0.0024,
+          "grade": "stable"
+        },
+        "Delivery_person_Ratings": {
+          "psi": 0.0023,
+          "grade": "stable"
+        },
+        "Time_taken (min)": {
+          "psi": 0.0055,
+          "grade": "stable"
+        },
+        "multiple_deliveries": {
+          "psi": 0.0001,
+          "grade": "stable"
+        },
+        "Weather_conditions": {
+          "psi": 0.0011,
+          "grade": "stable"
+        },
+        "Road_traffic_density": {
+          "psi": 0.0018,
+          "grade": "stable"
+        },
+        "City": {
+          "psi": 0.0004,
+          "grade": "stable"
+        }
+      },
+      "worst_feature": "Time_taken (min)",
+      "worst_psi": 0.0055,
+      "n_significant": 0,
+      "n_moderate": 0,
+      "verdict": "STABLE"
+    },
+    {
+      "week": "2022-03-07/2022-03-13",
+      "orders": 7553,
+      "refund_rate": 0.0824,
+      "refund_rate_delta_pp": 0.94,
+      "features": {
+        "Delivery_person_Age": {
+          "psi": 0.0027,
+          "grade": "stable"
+        },
+        "Delivery_person_Ratings": {
+          "psi": 0.0019,
+          "grade": "stable"
+        },
+        "Time_taken (min)": {
+          "psi": 0.0102,
+          "grade": "stable"
+        },
+        "multiple_deliveries": {
+          "psi": 0.0019,
+          "grade": "stable"
+        },
+        "Weather_conditions": {
+          "psi": 0.0025,
+          "grade": "stable"
+        },
+        "Road_traffic_density": {
+          "psi": 0.0069,
+          "grade": "stable"
+        },
+        "City": {
+          "psi": 0.0017,
+          "grade": "stable"
+        }
+      },
+      "worst_feature": "Time_taken (min)",
+      "worst_psi": 0.0102,
+      "n_significant": 0,
+      "n_moderate": 0,
+      "verdict": "STABLE"
+    },
+    {
+      "week": "2022-03-14/2022-03-20",
+      "orders": 7403,
+      "refund_rate": 0.0742,
+      "refund_rate_delta_pp": 0.13,
+      "features": {
+        "Delivery_person_Age": {
+          "psi": 0.0044,
+          "grade": "stable"
+        },
+        "Delivery_person_Ratings": {
+          "psi": 0.0042,
+          "grade": "stable"
+        },
+        "Time_taken (min)": {
+          "psi": 0.0057,
+          "grade": "stable"
+        },
+        "multiple_deliveries": {
+          "psi": 0.0,
+          "grade": "stable"
+        },
+        "Weather_conditions": {
+          "psi": 0.0017,
+          "grade": "stable"
+        },
+        "Road_traffic_density": {
+          "psi": 0.0055,
+          "grade": "stable"
+        },
+        "City": {
+          "psi": 0.0006,
+          "grade": "stable"
+        }
+      },
+      "worst_feature": "Time_taken (min)",
+      "worst_psi": 0.0057,
+      "n_significant": 0,
+      "n_moderate": 0,
+      "verdict": "STABLE"
+    },
+    {
+      "week": "2022-03-21/2022-03-27",
+      "orders": 6379,
+      "refund_rate": 0.0806,
+      "refund_rate_delta_pp": 0.77,
+      "features": {
+        "Delivery_person_Age": {
+          "psi": 0.0014,
+          "grade": "stable"
+        },
+        "Delivery_person_Ratings": {
+          "psi": 0.0004,
+          "grade": "stable"
+        },
+        "Time_taken (min)": {
+          "psi": 0.0076,
+          "grade": "stable"
+        },
+        "multiple_deliveries": {
+          "psi": 0.0,
+          "grade": "stable"
+        },
+        "Weather_conditions": {
+          "psi": 0.0005,
+          "grade": "stable"
+        },
+        "Road_traffic_density": {
+          "psi": 0.0016,
+          "grade": "stable"
+        },
+        "City": {
+          "psi": 0.001,
+          "grade": "stable"
+        }
+      },
+      "worst_feature": "Time_taken (min)",
+      "worst_psi": 0.0076,
+      "n_significant": 0,
+      "n_moderate": 0,
+      "verdict": "STABLE"
+    },
+    {
+      "week": "2022-03-28/2022-04-03",
+      "orders": 7527,
+      "refund_rate": 0.0802,
+      "refund_rate_delta_pp": 0.73,
+      "features": {
+        "Delivery_person_Age": {
+          "psi": 0.0014,
+          "grade": "stable"
+        },
+        "Delivery_person_Ratings": {
+          "psi": 0.003,
+          "grade": "stable"
+        },
+        "Time_taken (min)": {
+          "psi": 0.0115,
+          "grade": "stable"
+        },
+        "multiple_deliveries": {
+          "psi": 0.0013,
+          "grade": "stable"
+        },
+        "Weather_conditions": {
+          "psi": 0.0014,
+          "grade": "stable"
+        },
+        "Road_traffic_density": {
+          "psi": 0.0067,
+          "grade": "stable"
+        },
+        "City": {
+          "psi": 0.0002,
+          "grade": "stable"
+        }
+      },
+      "worst_feature": "Time_taken (min)",
+      "worst_psi": 0.0115,
+      "n_significant": 0,
+      "n_moderate": 0,
+      "verdict": "STABLE"
+    },
+    {
+      "week": "2022-04-04/2022-04-10",
+      "orders": 3058,
+      "refund_rate": 0.0772,
+      "refund_rate_delta_pp": 0.43,
+      "features": {
+        "Delivery_person_Age": {
+          "psi": 0.0045,
+          "grade": "stable"
+        },
+        "Delivery_person_Ratings": {
+          "psi": 0.0071,
+          "grade": "stable"
+        },
+        "Time_taken (min)": {
+          "psi": 0.0129,
+          "grade": "stable"
+        },
+        "multiple_deliveries": {
+          "psi": 0.0001,
+          "grade": "stable"
+        },
+        "Weather_conditions": {
+          "psi": 0.0004,
+          "grade": "stable"
+        },
+        "Road_traffic_density": {
+          "psi": 0.0062,
+          "grade": "stable"
+        },
+        "City": {
+          "psi": 0.0022,
+          "grade": "stable"
+        }
+      },
+      "worst_feature": "Time_taken (min)",
+      "worst_psi": 0.0129,
+      "n_significant": 0,
+      "n_moderate": 0,
+      "verdict": "STABLE"
+    }
+  ],
+  "thresholds": {
+    "stable": 0.1,
+    "significant": 0.25
+  },
+  "first_watch_week": null,
+  "first_drift_week": null,
+  "overall_verdict": "STABLE"
+}
