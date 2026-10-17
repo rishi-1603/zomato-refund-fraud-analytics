@@ -44,3 +44,36 @@ size. The 788-customer blob correctly drops out; the top candidate is **C0058**
 The permutation test first took **160 s** in the test suite. Rewrote the statistic to
 use adjacency sets (O(k²) per shuffle instead of O(all pairs)) and cached the pair
 set — **8 s**, identical output.
+
+---
+
+## U2 — Alert Economics Engine (Day 2)
+
+### The question
+A fraud alert is not free. Every alert costs analyst review time; every false
+positive costs customer goodwill. Finding fraud is a model question — **which
+alerts to make is an economics question.**
+
+### What was built
+| File | Purpose |
+|---|---|
+| `scripts/alert_economics.py` | Prices every alert policy (tier thresholds + top-k% budgets) with an explicit cost model; computes break-even precision and a sensitivity grid |
+| `tests/test_alert_economics.py` | 13 tests pinning every published number + economic identities |
+| `reports/alert_economics.json/.md` | The decision artifact |
+
+### Verified findings (pinned by tests)
+- **Recommended policy: alert High + Medium tiers (115 alerts)** — net **₹92,125**, ROI 3.06
+- Alerting everyone (279) nets less (**₹65,006**) — the extra 164 alerts destroy ₹27k of value
+- High tier alone: 8 alerts, **100% precision**, net ₹8,274
+- **Break-even precision = 28.2%** — the single number an ops team needs: below
+  this hit rate the alert program loses money at base assumptions
+- The engine reuses the dashboard's `build_risk_table`, so economics cannot
+  drift from the product score
+
+### Bugs caught during this work (disclosed)
+1. A dead helper (`alert_budget_curve`) had an index bug (`reset_index` breaking
+   mask alignment) — caught in self-review, deleted before first run. The
+   inlined version in `run()` is covered by tests.
+
+### Regression check
+`pytest tests/` → **113 passed**. All 100 original tests untouched and green.

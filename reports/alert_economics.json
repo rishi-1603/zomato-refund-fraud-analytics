@@ -1,0 +1,249 @@
+{
+  "generated_by": "scripts/alert_economics.py",
+  "honesty": "Synthetic refund layer with planted risk labels. Economics of the policy ON THIS DATASET, not a real P&L forecast. Cost constants are documented assumptions, sensitivity-tested.",
+  "pool": {
+    "flagged_customers": 279,
+    "planted_high_in_pool": 131,
+    "exposure_in_pool": 377891.92
+  },
+  "cost_model": {
+    "review_cost": 250.0,
+    "friction_cost": 100.0,
+    "recovery_rate": 0.5,
+    "mean_recovery_per_true_high": 1141.65
+  },
+  "policies": [
+    {
+      "policy": "tier_high",
+      "alerts": 8,
+      "true_high": 8,
+      "false_positives": 0,
+      "precision": 1.0,
+      "recall": 0.0611,
+      "recovered_exposure": 10273.51,
+      "review_cost": 2000.0,
+      "friction_cost": 0.0,
+      "total_cost": 2000.0,
+      "net_value": 8273.51,
+      "roi": 4.1368
+    },
+    {
+      "policy": "tier_high_plus_medium",
+      "alerts": 115,
+      "true_high": 101,
+      "false_positives": 14,
+      "precision": 0.8783,
+      "recall": 0.771,
+      "recovered_exposure": 122275.11,
+      "review_cost": 28750.0,
+      "friction_cost": 1400.0,
+      "total_cost": 30150.0,
+      "net_value": 92125.11,
+      "roi": 3.0556
+    },
+    {
+      "policy": "all_flagged",
+      "alerts": 279,
+      "true_high": 131,
+      "false_positives": 148,
+      "precision": 0.4695,
+      "recall": 1.0,
+      "recovered_exposure": 149555.58,
+      "review_cost": 69750.0,
+      "friction_cost": 14800.0,
+      "total_cost": 84550.0,
+      "net_value": 65005.58,
+      "roi": 0.7688
+    }
+  ],
+  "alert_budget_curve": [
+    {
+      "policy": "top_10pct",
+      "alerts": 28,
+      "true_high": 28,
+      "false_positives": 0,
+      "precision": 1.0,
+      "recall": 0.2137,
+      "recovered_exposure": 38978.68,
+      "review_cost": 7000.0,
+      "friction_cost": 0.0,
+      "total_cost": 7000.0,
+      "net_value": 31978.68,
+      "roi": 4.5684,
+      "budget_share": 0.1
+    },
+    {
+      "policy": "top_25pct",
+      "alerts": 70,
+      "true_high": 69,
+      "false_positives": 1,
+      "precision": 0.9857,
+      "recall": 0.5267,
+      "recovered_exposure": 88630.95,
+      "review_cost": 17500.0,
+      "friction_cost": 100.0,
+      "total_cost": 17600.0,
+      "net_value": 71030.95,
+      "roi": 4.0358,
+      "budget_share": 0.25
+    },
+    {
+      "policy": "top_50pct",
+      "alerts": 140,
+      "true_high": 116,
+      "false_positives": 24,
+      "precision": 0.8286,
+      "recall": 0.8855,
+      "recovered_exposure": 137185.08,
+      "review_cost": 35000.0,
+      "friction_cost": 2400.0,
+      "total_cost": 37400.0,
+      "net_value": 99785.08,
+      "roi": 2.6681,
+      "budget_share": 0.5
+    },
+    {
+      "policy": "top_75pct",
+      "alerts": 209,
+      "true_high": 129,
+      "false_positives": 80,
+      "precision": 0.6172,
+      "recall": 0.9847,
+      "recovered_exposure": 148168.98,
+      "review_cost": 52250.0,
+      "friction_cost": 8000.0,
+      "total_cost": 60250.0,
+      "net_value": 87918.98,
+      "roi": 1.4592,
+      "budget_share": 0.75
+    },
+    {
+      "policy": "top_100pct",
+      "alerts": 279,
+      "true_high": 131,
+      "false_positives": 148,
+      "precision": 0.4695,
+      "recall": 1.0,
+      "recovered_exposure": 149555.58,
+      "review_cost": 69750.0,
+      "friction_cost": 14800.0,
+      "total_cost": 84550.0,
+      "net_value": 65005.58,
+      "roi": 0.7688,
+      "budget_share": 1.0
+    }
+  ],
+  "break_even_precision": 0.2819,
+  "sensitivity_grid": [
+    {
+      "recovery_rate": 0.25,
+      "review_cost": 150.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 42487.55,
+      "best_roi": 2.2782,
+      "all_policies_net": {
+        "tier_high": 3936.75,
+        "tier_high_plus_medium": 42487.55,
+        "all_flagged": 18127.79
+      }
+    },
+    {
+      "recovery_rate": 0.25,
+      "review_cost": 250.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 30987.55,
+      "best_roi": 1.0278,
+      "all_policies_net": {
+        "tier_high": 3136.75,
+        "tier_high_plus_medium": 30987.55,
+        "all_flagged": -9772.21
+      }
+    },
+    {
+      "recovery_rate": 0.25,
+      "review_cost": 400.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 13737.55,
+      "best_roi": 0.2898,
+      "all_policies_net": {
+        "tier_high": 1936.75,
+        "tier_high_plus_medium": 13737.55,
+        "all_flagged": -51622.21
+      }
+    },
+    {
+      "recovery_rate": 0.5,
+      "review_cost": 150.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 103625.11,
+      "best_roi": 5.5563,
+      "all_policies_net": {
+        "tier_high": 9073.51,
+        "tier_high_plus_medium": 103625.11,
+        "all_flagged": 92905.58
+      }
+    },
+    {
+      "recovery_rate": 0.5,
+      "review_cost": 250.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 92125.11,
+      "best_roi": 3.0556,
+      "all_policies_net": {
+        "tier_high": 8273.51,
+        "tier_high_plus_medium": 92125.11,
+        "all_flagged": 65005.58
+      }
+    },
+    {
+      "recovery_rate": 0.5,
+      "review_cost": 400.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 74875.11,
+      "best_roi": 1.5796,
+      "all_policies_net": {
+        "tier_high": 7073.51,
+        "tier_high_plus_medium": 74875.11,
+        "all_flagged": 23155.58
+      }
+    },
+    {
+      "recovery_rate": 0.75,
+      "review_cost": 150.0,
+      "best_policy": "all_flagged",
+      "best_net_value": 167683.37,
+      "best_roi": 2.96,
+      "all_policies_net": {
+        "tier_high": 14210.26,
+        "tier_high_plus_medium": 164762.66,
+        "all_flagged": 167683.37
+      }
+    },
+    {
+      "recovery_rate": 0.75,
+      "review_cost": 250.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 153262.66,
+      "best_roi": 5.0833,
+      "all_policies_net": {
+        "tier_high": 13410.26,
+        "tier_high_plus_medium": 153262.66,
+        "all_flagged": 139783.37
+      }
+    },
+    {
+      "recovery_rate": 0.75,
+      "review_cost": 400.0,
+      "best_policy": "tier_high_plus_medium",
+      "best_net_value": 136012.66,
+      "best_roi": 2.8695,
+      "all_policies_net": {
+        "tier_high": 12210.26,
+        "tier_high_plus_medium": 136012.66,
+        "all_flagged": 97933.37
+      }
+    }
+  ],
+  "recommended_policy": "tier_high_plus_medium",
+  "recommended_net_value": 92125.11
+}
