@@ -148,3 +148,32 @@ that assumption?
 
 ### Regression check
 `pytest tests/` → **136 passed**.
+
+---
+
+## U5 — README & Presentation Polish (top-5% pass)
+
+### The question
+The repo's engineering was top-tier; its FIRST IMPRESSION was not. A recruiter
+decides in 3 seconds. What does the page show in those 3 seconds?
+
+### What was built/changed
+| Item | Purpose |
+|---|---|
+| README rebuilt to the 10-section target architecture | Hero strip → 5 numbers → questions → decision-layer results → provenance → dashboard → DS layer → verification → reproduce → evidence → limitations |
+| `docs/screenshots/alert_policy_net_value.png` | Chart generated from reports/alert_economics.json: alerting more is worth less |
+| `docs/screenshots/weekly_psi_strip.png` | Chart generated from reports/drift_monitor.json: weekly PSI vs thresholds |
+| Evidence section | 8 flagship reports pinned, each with the question it answers |
+| Verification section | 136 tests, tripwire proofs, split scoring, bugs-found pointer (DECISIONS.md) |
+| Test count corrected | README claimed 80 tests (stale) → 136 |
+
+### Design decisions
+1. The 5-numbers block goes ABOVE the fold: ₹92,125 · 28.2% · p=0.76 · 0 fabrications · 83% real.
+2. The scope-of-validity table moved from a report into the README itself —
+   the trust differentiator should not require a click.
+3. Charts are generated FROM the committed JSON artifacts, so they can never
+   drift from the tested numbers.
+4. The critical data notice (synthetic layer disclaimer) stays prominent.
+
+### Regression check
+Docs + assets only; `pytest tests/` → 136 passed unchanged.

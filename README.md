@@ -4,7 +4,9 @@
 
 [Dashboard URL (authentication may be required)](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Executive summary](reports/executive_summary.md) · [KPI reconciliation](reports/kpi_reconciliation.md) · [SQL queries](sql/fraud_queries.sql) · [Score validation](reports/score_validation.md) · [Model comparison](reports/model_comparison.md) · [Data dictionary](data/DATA_DICTIONARY.md) · [Tests](tests/) · [Release gates](docs/RELEASE_GATES.md)
 
-[![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
+[![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml) ![Tests](https://img.shields.io/badge/tests-136%20passed-brightgreen)
+
+![Alert economics: alerting more is worth less — the optimum is High+Medium tiers](docs/screenshots/alert_policy_net_value.png)
 
 > **Data and claims notice:** The base order dataset is public; **refund events, refund amounts, and risk labels are synthetic and seeded**. No real fraud was detected and no real customer is implicated. The score is an uncalibrated review-prioritization heuristic—not a fraud probability, verdict, or basis for automated customer action. This is an independent portfolio project, not an official Zomato product.
 
@@ -117,6 +119,8 @@ Raw connected-component size also over-merges busy locations: a 788-customer res
 
 ### Drift monitoring and external validation
 
+![Weekly drift monitor: all weeks STABLE — tripwire proven on injected + real drift](docs/screenshots/weekly_psi_strip.png)
+
 The weekly monitor reports the seeded order stream as **STABLE** across six weeks (maximum PSI 0.0129); that stationary synthetic stream alone cannot prove the tripwire works. Tests inject distribution and category shifts and require the PSI grade to move to significant. Separately, the committed 1949–1960 airline-passenger series shifts from a 1949–1952 reference mean of 158.4 to 413.5 in 1957–1960; **PSI = 11.8773** and the tripwire fires. This validates the PSI implementation on a public real-drift example—not fraud-model drift in a live production system. Reports: [`reports/drift_monitor.md`](reports/drift_monitor.md) · [`reports/external_validation.md`](reports/external_validation.md).
 
 ### Evidence-tool evaluation
@@ -175,4 +179,4 @@ Notebook-only extras (Jupyter, plotting, and PostgreSQL drivers) are listed in c
 - The drift monitor is tested on seeded data plus a separate public drift sample; it is not monitoring a live fraud system.
 - The investigator eval covers a small authored benchmark of deterministic tools; optional generative narration is not scored by that benchmark.
 
-For the governance checklist and evidence trail, see [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md) and [`reports/FINAL_RELEASE_REPORT.md`](reports/FINAL_RELEASE_REPORT.md). Latest audited suite: **136 tests passed**; GitHub Actions is green on the current U4 release.
+For the governance checklist and evidence trail, see [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md) and [`reports/FINAL_RELEASE_REPORT.md`](reports/FINAL_RELEASE_REPORT.md). Every bug found during development is recorded with its fix and lesson in [`docs/ascension/DECISIONS.md`](docs/ascension/DECISIONS.md). Latest audited suite: **136 tests passed**; GitHub Actions is green on the current U4 release.
