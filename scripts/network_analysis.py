@@ -436,7 +436,7 @@ def main() -> None:
             "accusation. A ring is a group worth looking at, not a group that is guilty.",
         ],
     }
-    OUT.write_text(json.dumps(payload, indent=2))
+    OUT.write_text(json.dumps(payload, indent=2, encoding="utf-8"))
 
     # ── markdown report ──
     lines = [
@@ -536,7 +536,7 @@ def main() -> None:
         "```",
         "",
     ]
-    REPORT.write_text("\n".join(lines))
+    REPORT.write_text("\n".join(lines, encoding="utf-8"))
 
     print("=" * 78)
     print("FRAUD-RING NETWORK ANALYSIS")

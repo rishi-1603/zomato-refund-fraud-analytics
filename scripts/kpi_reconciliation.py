@@ -204,7 +204,7 @@ def main() -> None:
         "pytest tests/test_kpi_reconciliation.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
 
     print(f"Reconciliation: {'ALL MATCH ✓' if all_match else 'MISMATCHES FOUND ✗'}")
     for key in py:

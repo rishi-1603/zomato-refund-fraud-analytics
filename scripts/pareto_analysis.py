@@ -132,7 +132,7 @@ def main() -> None:
         "pytest tests/test_pareto_analysis.py -v  # pins the cuts",
         "```",
     ]
-    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
 
     print(f"Customers: {c['n_customers']:,} | Total exposure: ₹{c['total_value']:,.0f}")
     print(f"Top 1% = {c['top1'][1]:.1f}% | Top 5% = {c['top5'][1]:.1f}% | "

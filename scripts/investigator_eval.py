@@ -100,7 +100,7 @@ def schema_audit(evidence: dict, forbidden: list[str]) -> list[str]:
 
 
 def run() -> dict:
-    bench = json.loads(BENCH_PATH.read_text())
+    bench = json.loads(BENCH_PATH.read_text(encoding="utf-8"))
     orders = pd.read_csv(ORDERS_PATH)
     orders["Order_Date"] = pd.to_datetime(orders["Order_Date"], dayfirst=True)
 
@@ -182,8 +182,8 @@ def run() -> dict:
     }
 
     JSON_PATH.parent.mkdir(exist_ok=True)
-    JSON_PATH.write_text(json.dumps(result, indent=2))
-    MD_PATH.write_text(render_md(result))
+    JSON_PATH.write_text(json.dumps(result, indent=2, encoding="utf-8"))
+    MD_PATH.write_text(render_md(result, encoding="utf-8"))
     return result
 
 

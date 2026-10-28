@@ -139,7 +139,7 @@ def main() -> None:
         "pytest tests/test_data_quality.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
     print(f"Checks: {len(rows)} | Failures: {sum(1 for r in rows if r['severity'] in ('High', 'Critical'))}")
     print(f"Report: {REPORT}")
 

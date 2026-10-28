@@ -15,7 +15,7 @@ MD = ROOT / "reports" / "external_validation.md"
 
 
 def _report():
-    return json.loads(REPORT.read_text())
+    return json.loads(REPORT.read_text(encoding="utf-8"))
 
 
 def test_provenance_is_complete_and_83pct_real():
@@ -54,7 +54,7 @@ def test_scope_of_validity_labels_both_worlds():
 
 
 def test_report_discloses_the_split():
-    md = MD.read_text().lower()
+    md = MD.read_text(encoding="utf-8").lower()
     assert "synthetic" in md
     assert "real" in md
     assert "scope of validity" in md
@@ -63,4 +63,4 @@ def test_report_discloses_the_split():
 def test_committed_external_copy_exists():
     fl = ROOT / "data" / "external" / "flights.csv"
     assert fl.exists()
-    assert len(fl.read_text().strip().splitlines()) == 145  # header + 144 months
+    assert len(fl.read_text(encoding="utf-8").strip().splitlines()) == 145  # header + 144 months

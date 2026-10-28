@@ -172,7 +172,7 @@ class TestCommittedArtifacts:
         import json
         p = ROOT / "reports" / "network_analysis.json"
         assert p.exists(), "run scripts/network_analysis.py to regenerate"
-        d = json.loads(p.read_text())
+        d = json.loads(p.read_text(encoding="utf-8"))
         for key in ("data", "parameters", "layers", "clustering_test", "honesty"):
             assert key in d, f"missing {key}"
         assert set(d["layers"]) == {
@@ -183,6 +183,6 @@ class TestCommittedArtifacts:
 
     def test_honesty_section_is_present_and_non_trivial(self):
         import json
-        d = json.loads((ROOT / "reports" / "network_analysis.json").read_text())
+        d = json.loads((ROOT / "reports" / "network_analysis.json").read_text(encoding="utf-8"))
         assert len(d["honesty"]) >= 3
         assert any("not evidence of collusion" in h for h in d["honesty"])

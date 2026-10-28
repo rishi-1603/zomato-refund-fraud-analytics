@@ -12,11 +12,11 @@ def test_script_runs_and_writes_report():
     assert REPORT.exists()
 
 def test_cohorts_present():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     for cohort in ["2022-02", "2022-03", "2022-04"]:
         assert cohort in text
 
 def test_honest_framing():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     assert "synthetic" in text.lower()
     assert "by construction" in text

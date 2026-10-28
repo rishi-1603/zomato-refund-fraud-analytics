@@ -12,12 +12,12 @@ def test_script_runs_and_writes_report():
     assert REPORT.exists()
 
 def test_all_checks_present():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     for family in ["Completeness", "Uniqueness", "Validity", "Consistency"]:
         assert family in text
 
 def test_known_quirks_documented():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     assert "six-star" in text or "6.0" in text  # the 53 ratings quirk
     assert "synthetic" in text.lower()
     assert "No records were dropped" in text

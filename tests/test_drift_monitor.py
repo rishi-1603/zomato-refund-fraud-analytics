@@ -34,7 +34,7 @@ MD = ROOT / "reports" / "drift_monitor.md"
 
 
 def _report():
-    return json.loads(REPORT.read_text())
+    return json.loads(REPORT.read_text(encoding="utf-8"))
 
 
 # ── A. real-stream pins ──────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ def test_run_is_deterministic():
 
 
 def test_report_discloses_synthetic_nature():
-    md = MD.read_text()
+    md = MD.read_text(encoding="utf-8")
     assert "synthetic" in md.lower()
     assert "retrain" in md.lower()
     r = _report()

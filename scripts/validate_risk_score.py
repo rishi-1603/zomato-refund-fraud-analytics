@@ -185,7 +185,7 @@ def main():
         "pytest tests/ -q                        # consistency tests pin all of this",
         "```",
     ]
-    REPORT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT_PATH.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
 
     print(f"\nPool: {len(pool)} | Planted High in pool: {in_pool_high}/{n_planted_high} "
           f"({coverage:.1%})")

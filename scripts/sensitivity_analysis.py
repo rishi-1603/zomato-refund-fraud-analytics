@@ -21,7 +21,10 @@ HONESTY RULES:
 Run:  python scripts/sensitivity_analysis.py
 Writes: reports/sensitivity_analysis.md
 """
-from pathlib import Path
+import random
+import numpy as np
+random.seed(0)
+np.random.seed(0)
 
 import numpy as np
 import pandas as pd
@@ -216,7 +219,7 @@ def main() -> None:
         "pytest tests/test_sensitivity_analysis.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
 
     print("A. Signal removal (tier changes):")
     for sig, r in removal_results.items():

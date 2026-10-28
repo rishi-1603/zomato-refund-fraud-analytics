@@ -31,7 +31,7 @@ MD = ROOT / "reports" / "alert_economics.md"
 
 
 def _report():
-    return json.loads(REPORT.read_text())
+    return json.loads(REPORT.read_text(encoding="utf-8"))
 
 
 def _policy(report, name):
@@ -137,7 +137,7 @@ def test_sensitivity_grid_is_9_scenarios_and_structural():
 # ── honest reporting ─────────────────────────────────────────────────────────
 
 def test_report_discloses_synthetic_nature():
-    md = MD.read_text()
+    md = MD.read_text(encoding="utf-8")
     assert "synthetic" in md.lower()
     assert "not a real P&L" in md
     r = _report()

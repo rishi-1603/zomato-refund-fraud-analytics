@@ -19,7 +19,7 @@ REPORT = ROOT / "reports" / "investigator_eval.json"
 
 
 def _report():
-    return json.loads(REPORT.read_text())
+    return json.loads(REPORT.read_text(encoding="utf-8"))
 
 
 def test_answerable_cases_all_grounded():

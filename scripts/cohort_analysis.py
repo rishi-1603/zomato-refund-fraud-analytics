@@ -107,7 +107,7 @@ def main() -> None:
         "pytest tests/test_cohort_analysis.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
     print(cohorts.to_string(index=False))
     print(f"\nReport: {REPORT}")
 

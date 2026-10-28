@@ -13,7 +13,7 @@ def test_script_runs_and_writes_report():
     assert REPORT.exists()
 
 def test_signal_removal_results_are_deterministic():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     # verified values from the audit run
     assert "75" in text and "26.9%" in text   # Refund_Rate removal
     assert "18" in text and "6.5%" in text    # Avg_Reason_Length removal
@@ -22,10 +22,10 @@ def test_signal_removal_results_are_deterministic():
 def test_alternative_weights_are_stable():
     """All alternative weight configs should have Spearman ρ > 0.95 — the
     ranking is robust to weight choices."""
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     assert "0.964" in text and "0.952" in text and "0.989" in text
 
 def test_honest_framing():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     assert "heuristic" in text
     assert "No optimization performed" in text

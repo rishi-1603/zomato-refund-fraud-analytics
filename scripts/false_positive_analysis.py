@@ -195,7 +195,7 @@ def main() -> None:
         "pytest tests/test_false_positive_analysis.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
 
     print(f"Ground truth: TP={n_tp}, FP={n_fp}, grey={n_other} of {len(sus)} flagged")
     print(f"Above baseline: {len(above)} ({above_fp} FP, {above_fp/len(above)*100:.1f}%)")

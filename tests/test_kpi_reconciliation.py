@@ -12,11 +12,11 @@ def test_script_runs_and_writes_report():
     assert REPORT.exists()
 
 def test_all_metrics_reconcile():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     assert "ALL METRICS RECONCILE" in text
     assert "MISMATCH" not in text
 
 def test_key_numbers_present():
-    text = REPORT.read_text()
+    text = REPORT.read_text(encoding="utf-8")
     for val in ["45,584", "3,596", "974,343", "9,895", "279", "377,891", "38.78"]:
         assert val in text, f"missing: {val}"
