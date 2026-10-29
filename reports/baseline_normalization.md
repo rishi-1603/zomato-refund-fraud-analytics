@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # Customer Baseline Normalization
 ### Is a customer's refund behavior abnormal relative to customers with similar order volume?
 

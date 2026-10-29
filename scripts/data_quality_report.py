@@ -8,7 +8,11 @@ Run:  python scripts/data_quality_report.py
 Writes: reports/data_quality_report.md
 """
 from pathlib import Path
+import numpy as np
 import pandas as pd
+import random
+random.seed(0)
+np.random.seed(0)
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw" / "Zomato Dataset.csv"
@@ -29,7 +33,7 @@ def run_checks(df: pd.DataFrame, raw: pd.DataFrame) -> list[dict]:
                      "treatment": treatment, "reason": reason})
 
     # Null analysis — separate structural nulls (expected) from data-quality nulls
-    structural_nulls = df["Refund_Reason"].isna().sum()  # no refund → no reason
+    structural_nulls = df["Refund_Reason"].isna().sum()  # no refund -> no reason
     source_nulls = df.isna().sum().sum() - structural_nulls  # Kaggle dataset gaps
     check("Completeness", f"Null values in source-data columns (Kaggle dataset gaps)",
           source_nulls, "Known (in source)", "Documented, not imputed",
@@ -65,7 +69,7 @@ def run_checks(df: pd.DataFrame, raw: pd.DataFrame) -> list[dict]:
     check("Validity — Refund flag consistency", "Refund amount > 0 where refund NOT requested",
           ((df["Refund_Requested"] == False) & (df["Refund_Amount"] > 0)).sum(),
           "Pass" if ((df["Refund_Requested"] == False) & (df["Refund_Amount"] > 0)).sum() == 0 else "High",
-          "None required", "No refund → zero amount expected")
+          "None required", "No refund -> zero amount expected")
 
     check("Validity — Refund reasons", "Unknown refund reason values",
           (~df["Refund_Reason"].dropna().isin(VALID_REASONS)).sum(),
@@ -102,6 +106,8 @@ def main() -> None:
     rows = run_checks(df, raw)
 
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# Data Quality Report",
         f"### data/processed/zomato_with_refunds.csv · {len(df):,} rows × {len(df.columns)} columns",
         "",
@@ -139,7 +145,7 @@ def main() -> None:
         "pytest tests/test_data_quality.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Checks: {len(rows)} | Failures: {sum(1 for r in rows if r['severity'] in ('High', 'Critical'))}")
     print(f"Report: {REPORT}")
 

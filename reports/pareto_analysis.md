@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # Refund Exposure Concentration (Pareto Analysis)
 ### How concentrated is refund value among customers?
 
@@ -8,7 +10,7 @@
 ## Headline result
 
 - **9,895 customers** appear in the data; 2,515 have ≥1 refund, 7,380 have none
-- Total refund exposure: **₹974,344** (historical refund VALUE,
+- Total refund exposure: **Rs.974,344** (historical refund VALUE,
   not confirmed fraud loss)
 
 | Customer cut | Customers | Share of refund value |

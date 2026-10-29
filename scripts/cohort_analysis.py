@@ -9,8 +9,11 @@ Run:  python scripts/cohort_analysis.py
 Writes: reports/cohort_analysis.md
 """
 from pathlib import Path
-import pandas as pd
 import numpy as np
+import pandas as pd
+import random
+random.seed(0)
+np.random.seed(0)
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
@@ -57,6 +60,8 @@ def main() -> None:
     ).dt.days / 30.44
 
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# Cohort Analysis — Refund Behavior by First-Order Month",
         "### Does suspicious refund behavior emerge early or after a customer has been active?",
         "",
@@ -71,7 +76,7 @@ def main() -> None:
     for _, c in cohorts.iterrows():
         lines.append(
             f"| {c['cohort_month']} | {int(c['customers']):,} | {int(c['orders']):,} | "
-            f"{int(c['refunds']):,} | {c['refund_rate']:.1f}% | ₹{c['avg_refund']:,.0f} | "
+            f"{int(c['refunds']):,} | {c['refund_rate']:.1f}% | Rs.{c['avg_refund']:,.0f} | "
             f"{c['avg_orders_per_cust']:.1f} |")
 
     lines += [
@@ -107,7 +112,7 @@ def main() -> None:
         "pytest tests/test_cohort_analysis.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(cohorts.to_string(index=False))
     print(f"\nReport: {REPORT}")
 

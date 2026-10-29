@@ -21,14 +21,14 @@ HONESTY RULES:
 Run:  python scripts/sensitivity_analysis.py
 Writes: reports/sensitivity_analysis.md
 """
-import random
+from pathlib import Path
+from sklearn.preprocessing import MinMaxScaler
 import numpy as np
+import pandas as pd
+import random
 random.seed(0)
 np.random.seed(0)
 
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
@@ -132,6 +132,8 @@ def main() -> None:
 
     # ── Report ──
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# Risk Score Sensitivity Analysis",
         "### Are the 40/30/20/10 weights defensible under stress?",
         "",
@@ -148,12 +150,12 @@ def main() -> None:
         "",
         "## A. Signal removal — what happens when you drop each signal?",
         "",
-        "| Signal removed | Customers change tier | % changed | High tier before → after |",
+        "| Signal removed | Customers change tier | % changed | High tier before -> after |",
         "|---|---|---|---|",
     ]
     for sig, r in removal_results.items():
         lines.append(f"| {sig.replace('_', ' ')} | {r['changed']} | {r['pct']:.1f}% | "
-                     f"{r['high_before']} → {r['high_after']} |")
+                     f"{r['high_before']} -> {r['high_after']} |")
     lines += [
         "",
         "**Reading:** the signal whose removal changes the most classifications is the",
@@ -162,7 +164,7 @@ def main() -> None:
         "",
         "## B. Alternative weight configurations",
         "",
-        "| Configuration | Customers change tier | % changed | High tier | Spearman ρ vs base |",
+        "| Configuration | Customers change tier | % changed | High tier | Spearman rho vs base |",
         "|---|---|---|---|---|",
     ]
     for name, r in alt_results.items():
@@ -190,7 +192,7 @@ def main() -> None:
         "",
         "## D. Signal contribution (ranking disruption when removed)",
         "",
-        "| Signal | Ranking disruption (1 − ρ) | Interpretation |",
+        "| Signal | Ranking disruption (1 − rho) | Interpretation |",
         "|---|---|---|",
     ]
     for sig, val in sorted(contrib.items(), key=lambda x: -x[1]):
@@ -219,20 +221,20 @@ def main() -> None:
         "pytest tests/test_sensitivity_analysis.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     print("A. Signal removal (tier changes):")
     for sig, r in removal_results.items():
-        print(f"  Drop {sig:28} → {r['changed']:3} change ({r['pct']:.1f}%)")
+        print(f"  Drop {sig:28} -> {r['changed']:3} change ({r['pct']:.1f}%)")
     print(f"\nB. Alternative weights:")
     for name, r in alt_results.items():
-        print(f"  {name:38} → {r['changed']:3} change, ρ={r['corr']:.3f}")
+        print(f"  {name:38} -> {r['changed']:3} change, rho={r['corr']:.3f}")
     print(f"\nC. Thresholds:")
     for name, r in thresh_results.items():
-        print(f"  {name:25} → {r['changed']:3} change ({r['pct']:.1f}%)")
+        print(f"  {name:25} -> {r['changed']:3} change ({r['pct']:.1f}%)")
     print(f"\nD. Signal contribution:")
     for sig, val in sorted(contrib.items(), key=lambda x: -x[1]):
-        print(f"  {sig:28} → disruption {val:.3f}")
+        print(f"  {sig:28} -> disruption {val:.3f}")
     print(f"\nReport: {REPORT}")
 
 

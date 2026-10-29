@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # Cohort Analysis — Refund Behavior by First-Order Month
 ### Does suspicious refund behavior emerge early or after a customer has been active?
 
@@ -8,9 +10,9 @@
 
 | Cohort | Customers | Orders | Refunds | Refund rate | Avg refund | Avg orders/cust |
 |---|---|---|---|---|---|---|
-| 2022-02 | 5,185 | 27,200 | 2,121 | 7.8% | ₹268 | 5.2 |
-| 2022-03 | 4,615 | 18,259 | 1,462 | 8.0% | ₹275 | 4.0 |
-| 2022-04 | 95 | 125 | 13 | 10.4% | ₹251 | 1.3 |
+| 2022-02 | 5,185 | 27,200 | 2,121 | 7.8% | Rs.268 | 5.2 |
+| 2022-03 | 4,615 | 18,259 | 1,462 | 8.0% | Rs.275 | 4.0 |
+| 2022-04 | 95 | 125 | 13 | 10.4% | Rs.251 | 1.3 |
 
 ## Planted high-risk share by cohort
 

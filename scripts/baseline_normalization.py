@@ -35,9 +35,12 @@ Run:  python scripts/baseline_normalization.py
 Writes: reports/baseline_normalization.md
 """
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
+import random
+random.seed(0)
+np.random.seed(0)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
@@ -109,6 +112,8 @@ def main() -> None:
     n_above_all = int(cust["above_baseline"].sum())
 
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# Customer Baseline Normalization",
         "### Is a customer's refund behavior abnormal relative to customers with similar order volume?",
         "",

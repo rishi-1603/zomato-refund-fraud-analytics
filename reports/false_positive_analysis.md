@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # False-Positive Analysis
 ### Could a legitimate customer be flagged by the risk score?
 
@@ -9,9 +11,9 @@
 ## Measured false-positive rate (ground truth)
 
 Of the **279 flagged customers**:
-- **131** are planted High-risk → **true positives** (47.0%)
-- **73** are planted Low-risk → **false positives** (26.2%)
-- **75** are planted Medium-risk → grey area (neither confirmed nor cleared)
+- **131** are planted High-risk -> **true positives** (47.0%)
+- **73** are planted Low-risk -> **false positives** (26.2%)
+- **75** are planted Medium-risk -> grey area (neither confirmed nor cleared)
 
 This is the advantage of having ground truth: the false-positive rate is
 **measured, not estimated**. On real data, this number would come from
@@ -38,7 +40,7 @@ false-positive candidates — validating it as a screening tool.
 | S1: High-volume user | ≥10 orders | 4 | 0 (0%) |
 | S2: Low-volume noise | 5-6 orders, exactly 2 refunds | 102 | 62 (61%) |
 | S3: Reason diversity | ≥3 different refund reasons | 36 | 8 (22%) |
-| S4: Small-claim pattern | Avg refund < ₹200 | 62 | 50 (81%) |
+| S4: Small-claim pattern | Avg refund < Rs.200 | 62 | 50 (81%) |
 
 **Interpretation:**
 - **S1 (high-volume)**: legitimate heavy users accumulate more refund

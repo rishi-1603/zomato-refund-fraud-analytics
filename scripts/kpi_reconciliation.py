@@ -22,10 +22,15 @@ HONESTY RULES:
 Run:  python scripts/kpi_reconciliation.py
 Writes: reports/kpi_reconciliation.md
 """
-import sqlite3
+import sys
 from pathlib import Path
-
+import numpy as np
 import pandas as pd
+import random
+import sqlite3
+random.seed(0)
+np.random.seed(0)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
@@ -46,7 +51,7 @@ def main() -> None:
     # ── in-memory SQLite ──
     conn = sqlite3.connect(":memory:")
     df.to_sql("orders", conn, index=False, dtype={
-        "Refund_Requested": "INTEGER",  # bool → int for SQLite
+        "Refund_Requested": "INTEGER",  # bool -> int for SQLite
         "Refund_Amount": "REAL",
     })
 
@@ -107,7 +112,6 @@ def main() -> None:
     # ── DASHBOARD VALUES (from the app's own computation) ──
     # The dashboard loads the same CSV and computes the same aggregates.
     # We verify by re-running the dashboard's concentration function.
-    import sys
     sys.path.insert(0, str(ROOT / "dashboard"))
     # can't import app.py directly (it's a Streamlit script), so we recompute
     # the values the dashboard shows using the same logic
@@ -122,8 +126,8 @@ def main() -> None:
     # ── RECONCILIATION TABLE ──
     fmt = {
         "total_orders": "{:,.0f}", "total_refund_orders": "{:,.0f}",
-        "total_refund_amount": "₹{:,.2f}", "unique_customers": "{:,.0f}",
-        "flagged_customers": "{:,.0f}", "flagged_exposure": "₹{:,.2f}",
+        "total_refund_amount": "Rs.{:,.2f}", "unique_customers": "{:,.0f}",
+        "flagged_customers": "{:,.0f}", "flagged_exposure": "Rs.{:,.2f}",
         "flagged_share_of_exposure": "{:.2f}%",
         "overall_refund_rate": "{:.2f}%",
     }
@@ -139,6 +143,8 @@ def main() -> None:
     }
 
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# KPI Reconciliation — Python vs SQL",
         "### Do independent implementations agree on every headline number?",
         "",
@@ -188,7 +194,7 @@ def main() -> None:
         "   adapted for SQLite (`ROUND()`, `= 1`) but the LOGIC is identical",
         "   to `sql/fraud_queries.sql`. On a real deployment, the PostgreSQL",
         "   queries would run against the warehouse directly.",
-        "2. **Tolerance:** monetary values tolerate ₹0.01 (rounding); counts and",
+        "2. **Tolerance:** monetary values tolerate Rs.0.01 (rounding); counts and",
         "   rates tolerate 0.001 (floating-point).",
         "3. **Dashboard verification:** the dashboard reads the same CSV and",
         "   applies the same pandas logic; browser tests (Phase 1 gate) confirmed",
@@ -204,12 +210,12 @@ def main() -> None:
         "pytest tests/test_kpi_reconciliation.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    print(f"Reconciliation: {'ALL MATCH ✓' if all_match else 'MISMATCHES FOUND ✗'}")
+    print(f"Reconciliation: {'ALL MATCH [OK]' if all_match else 'MISMATCHES FOUND ✗'}")
     for key in py:
         diff = abs(py[key] - sql[key])
-        mark = "✓" if diff < 0.01 else "✗"
+        mark = "[OK]" if diff < 0.01 else "✗"
         print(f"  {mark} {labels[key]:28} py={py[key]:>14,.2f}  sql={sql[key]:>14,.2f}  diff={diff:.4f}")
     print(f"\nReport: {REPORT}")
     conn.close()

@@ -15,7 +15,7 @@ Method:
     5. Compare against the ground truth to measure actual false-positive rate
 
 FALSE-POSITIVE SCENARIOS TESTED:
-    S1. High-volume users — many orders → more refund opportunities
+    S1. High-volume users — many orders -> more refund opportunities
     S2. Low-volume noise — 1-2 refunds on 5 orders crosses 30% by chance
     S3. Genuine delivery-issue victims — clustered refunds from real problems
     S4. High-value customers — large refunds inflate exposure without abuse
@@ -29,9 +29,15 @@ HONESTY RULES:
 Run:  python scripts/false_positive_analysis.py
 Writes: reports/false_positive_analysis.md
 """
+from baseline_normalization import build_baselines
+import sys
 from pathlib import Path
-
+import numpy as np
 import pandas as pd
+import random
+random.seed(0)
+np.random.seed(0)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
@@ -73,9 +79,7 @@ def main() -> None:
 
     # ── BASELINE SPLIT (from Phase 2) ──
     # recompute the volume-band baseline inline
-    import sys
     sys.path.insert(0, str(ROOT / "scripts"))
-    from baseline_normalization import build_baselines
     cust, bands = build_baselines(df)
     sus_ids = set(sus["Customer_ID"])
     cust["is_flagged"] = cust["Customer_ID"].isin(sus_ids)
@@ -109,13 +113,15 @@ def main() -> None:
     s3 = sus[sus["reason_diversity"] >= 3]
     s3_fp = int((s3["planted"] == "Low").sum())
 
-    # S4: Low refund amounts (avg refund < ₹200 — genuine small-claim issues)
+    # S4: Low refund amounts (avg refund < Rs.200 — genuine small-claim issues)
     sus["avg_refund"] = sus["Total_Refund_Amount"] / sus["Total_Refunds"].clip(lower=1)
     s4 = sus[sus["avg_refund"] < 200]
     s4_fp = int((s4["planted"] == "Low").sum())
 
     # ── REPORT ──
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# False-Positive Analysis",
         "### Could a legitimate customer be flagged by the risk score?",
         "",
@@ -127,9 +133,9 @@ def main() -> None:
         "## Measured false-positive rate (ground truth)",
         "",
         f"Of the **279 flagged customers**:",
-        f"- **{n_tp}** are planted High-risk → **true positives** ({n_tp/len(sus)*100:.1f}%)",
-        f"- **{n_fp}** are planted Low-risk → **false positives** ({n_fp/len(sus)*100:.1f}%)",
-        f"- **{n_other}** are planted Medium-risk → grey area (neither confirmed nor cleared)",
+        f"- **{n_tp}** are planted High-risk -> **true positives** ({n_tp/len(sus)*100:.1f}%)",
+        f"- **{n_fp}** are planted Low-risk -> **false positives** ({n_fp/len(sus)*100:.1f}%)",
+        f"- **{n_other}** are planted Medium-risk -> grey area (neither confirmed nor cleared)",
         "",
         "This is the advantage of having ground truth: the false-positive rate is",
         "**measured, not estimated**. On real data, this number would come from",
@@ -156,7 +162,7 @@ def main() -> None:
         f"| S1: High-volume user | ≥10 orders | {len(s1)} | {s1_fp} ({s1_fp/max(len(s1),1)*100:.0f}%) |",
         f"| S2: Low-volume noise | 5-6 orders, exactly 2 refunds | {len(s2)} | {s2_fp} ({s2_fp/max(len(s2),1)*100:.0f}%) |",
         f"| S3: Reason diversity | ≥3 different refund reasons | {len(s3)} | {s3_fp} ({s3_fp/max(len(s3),1)*100:.0f}%) |",
-        f"| S4: Small-claim pattern | Avg refund < ₹200 | {len(s4)} | {s4_fp} ({s4_fp/max(len(s4),1)*100:.0f}%) |",
+        f"| S4: Small-claim pattern | Avg refund < Rs.200 | {len(s4)} | {s4_fp} ({s4_fp/max(len(s4),1)*100:.0f}%) |",
         "",
         "**Interpretation:**",
         "- **S1 (high-volume)**: legitimate heavy users accumulate more refund",
@@ -195,7 +201,7 @@ def main() -> None:
         "pytest tests/test_false_positive_analysis.py -v",
         "```",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     print(f"Ground truth: TP={n_tp}, FP={n_fp}, grey={n_other} of {len(sus)} flagged")
     print(f"Above baseline: {len(above)} ({above_fp} FP, {above_fp/len(above)*100:.1f}%)")

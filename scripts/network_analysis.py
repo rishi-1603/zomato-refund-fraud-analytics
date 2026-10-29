@@ -40,15 +40,18 @@ HONESTY NOTES
 Run:  python scripts/network_analysis.py
 """
 from __future__ import annotations
-
-import json
-import os
-import sys
 from collections import defaultdict
 from pathlib import Path
-
+import json
 import numpy as np
+import os
 import pandas as pd
+import random
+import sys
+random.seed(0)
+np.random.seed(0)
+
+
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "dashboard"))
@@ -60,7 +63,7 @@ REPORT = ROOT / "reports" / "network_analysis.md"
 
 N_PERMUTATIONS = 200
 RANDOM_SEED = 42
-GEO_ROUND = 2            # decimal places → ~1.1 km grid at Hyderabad's latitude
+GEO_ROUND = 2            # decimal places -> ~1.1 km grid at Hyderabad's latitude
 MIN_ORDERS_FOR_EDGE = 2  # a single shared order is noise; require a repeat
 
 
@@ -436,26 +439,28 @@ def main() -> None:
             "accusation. A ring is a group worth looking at, not a group that is guilty.",
         ],
     }
-    OUT.write_text(json.dumps(payload, indent=2, encoding="utf-8"))
+    OUT.write_text(json.dumps(payload, indent=2))
 
     # ── markdown report ──
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# Fraud-Ring Network Analysis",
         "",
         f"**{payload['data']['customers']:,} customers · "
         f"{payload['data']['delivery_persons']:,} delivery people · "
         f"{payload['data']['orders']:,} orders · "
-        f"₹{payload['data']['refund_amount_total']:,.0f} in refunds**",
+        f"Rs.{payload['data']['refund_amount_total']:,.0f} in refunds**",
         "",
         "## What the networks show",
         "",
-        "| Layer | Components | Rings (3+ customers) | Largest group | Refund ₹ inside rings | Share of all refunds |",
+        "| Layer | Components | Rings (3+ customers) | Largest group | Refund Rs. inside rings | Share of all refunds |",
         "|---|---|---|---|---|---|",
     ]
     for name, L in layers.items():
         lines.append(
             f"| {name} | {L['n_components']:,} | {L['n_rings_3plus']:,} | "
-            f"{L['largest_ring']:,} | ₹{L['ring_refund_exposure']:,.0f} | "
+            f"{L['largest_ring']:,} | Rs.{L['ring_refund_exposure']:,.0f} | "
             f"{L['exposure_share_in_rings']:.1%} |")
 
     t = test
@@ -469,7 +474,7 @@ def main() -> None:
         "component is scored against the dataset baseline and ranked by excess "
         "refund rate — never by size.",
         "",
-        "| Layer | Components screened | Above baseline | 10pp+ above baseline | Max excess | ₹ in 10pp+ components |",
+        "| Layer | Components screened | Above baseline | 10pp+ above baseline | Max excess | Rs. in 10pp+ components |",
         "|---|---|---|---|---|---|",
     ]
     for name, L in layers.items():
@@ -479,7 +484,7 @@ def main() -> None:
         lines.append(
             f"| {name} | {D['n_components_screened']:,} | {D['n_above_baseline']:,} | "
             f"{D['n_10pp_above_baseline']} | {D['max_excess_pp']:+.1f} pp | "
-            f"₹{D['exposure_in_10pp_components']:,.0f} |")
+            f"Rs.{D['exposure_in_10pp_components']:,.0f} |")
 
     lines += ["", "### Top components by excess refund rate (all layers)", ""]
     for name, L in layers.items():
@@ -490,7 +495,7 @@ def main() -> None:
         lines += [
             f"**{name}**",
             "",
-            "| Ring | Customers | Refund rate | Baseline | Excess | ₹ exposure | High-risk members | High-risk lift |",
+            "| Ring | Customers | Refund rate | Baseline | Excess | Rs. exposure | High-risk members | High-risk lift |",
             "|---|---|---|---|---|---|---|---|",
         ]
         for r in top[:5]:
@@ -498,7 +503,7 @@ def main() -> None:
             lines.append(
                 f"| {r['ring_id']} | {r['customers']} | {r['refund_rate_pct']:.1f}% | "
                 f"{r['baseline_rate_pct']:.1f}% | {r['excess_pp']:+.1f} pp | "
-                f"₹{r['refund_amount']:,.0f} | {r['high_risk_members']} | "
+                f"Rs.{r['refund_amount']:,.0f} | {r['high_risk_members']} | "
                 f"{lift if lift is not None else '—'}x |")
         lines.append("")
 
@@ -536,7 +541,7 @@ def main() -> None:
         "```",
         "",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8"))
+    REPORT.write_text("\n".join(lines))
 
     print("=" * 78)
     print("FRAUD-RING NETWORK ANALYSIS")
@@ -545,13 +550,13 @@ def main() -> None:
         print(f"\n{name}:")
         print(f"  components {L['n_components']:,} | rings(3+) {L['n_rings_3plus']:,} | "
               f"largest {L['largest_ring']}")
-        print(f"  refund ₹ in rings: ₹{L['ring_refund_exposure']:,.0f} "
+        print(f"  refund Rs. in rings: Rs.{L['ring_refund_exposure']:,.0f} "
               f"({L['exposure_share_in_rings']:.1%} of all)")
     print("\nCLUSTERING TEST")
     if test.get("available"):
         print(f"  observed {test['observed_clustering']:.4%} vs chance "
               f"{test['null_mean']:.4%} (p95 {test['null_p95']:.4%})")
-        print(f"  p = {test['p_value']}  →  {test['interpretation']}")
+        print(f"  p = {test['p_value']}  ->  {test['interpretation']}")
     print(f"\nwrote {OUT.relative_to(ROOT)} and {REPORT.relative_to(ROOT)}")
 
 

@@ -7,15 +7,7 @@
     "accuracy": 1.0,
     "cases": [
       {
-        "customer_id": "CUST07704",
-        "tools_complete": true,
-        "no_tool_error": true,
-        "fabrications": 0,
-        "forbidden_schema_fields": [],
-        "rubric_pass": true
-      },
-      {
-        "customer_id": "CUST05625",
+        "customer_id": "CUST03483",
         "tools_complete": true,
         "no_tool_error": true,
         "fabrications": 0,
@@ -31,15 +23,7 @@
         "rubric_pass": true
       },
       {
-        "customer_id": "CUST03483",
-        "tools_complete": true,
-        "no_tool_error": true,
-        "fabrications": 0,
-        "forbidden_schema_fields": [],
-        "rubric_pass": true
-      },
-      {
-        "customer_id": "CUST08584",
+        "customer_id": "CUST05625",
         "tools_complete": true,
         "no_tool_error": true,
         "fabrications": 0,
@@ -48,6 +32,22 @@
       },
       {
         "customer_id": "CUST07091",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST07704",
+        "tools_complete": true,
+        "no_tool_error": true,
+        "fabrications": 0,
+        "forbidden_schema_fields": [],
+        "rubric_pass": true
+      },
+      {
+        "customer_id": "CUST08584",
         "tools_complete": true,
         "no_tool_error": true,
         "fabrications": 0,

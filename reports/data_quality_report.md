@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # Data Quality Report
 ### data/processed/zomato_with_refunds.csv · 45,584 rows × 24 columns
 
@@ -22,7 +24,7 @@
 | Validity — Age | Age outside 18–65 | 1892 | n/a% | Medium | None required | Rider age range |
 | Validity — Ratings | Rating outside 0–5 (known quirk: 53 rows at 6.0) | 53 | n/a% | Known (in source) | Documented, not cleaned | The public Kaggle dataset contains 53 ratings of 6.0 on a 5-star scale; pinned by tests to detect raw-data tampering |
 | Validity — Refund amounts | Refund amount ≤ 0 where refund requested | 0 | n/a% | Pass | None required | Refunds must have positive amounts |
-| Validity — Refund flag consistency | Refund amount > 0 where refund NOT requested | 0 | n/a% | Pass | None required | No refund → zero amount expected |
+| Validity — Refund flag consistency | Refund amount > 0 where refund NOT requested | 0 | n/a% | Pass | None required | No refund -> zero amount expected |
 | Validity — Refund reasons | Unknown refund reason values | 0 | n/a% | Pass | None required | Only 6 valid reasons in the generator |
 | Consistency | Raw dataset column count (must be 20) | 20 | 0.04% | Pass | None required | Raw Kaggle dataset has 20 columns; 4 synthetic columns added |
 | Consistency | Refund columns NOT present in raw data (synthetic layer separation) | Pass | n/a% | Pass | None required | Raw data must remain unmodified |

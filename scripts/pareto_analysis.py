@@ -26,9 +26,12 @@ Run:  python scripts/pareto_analysis.py
 Writes: reports/pareto_analysis.md
 """
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
+import random
+random.seed(0)
+np.random.seed(0)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "processed" / "zomato_with_refunds.csv"
@@ -75,6 +78,8 @@ def main() -> None:
     sus_pct = n_sus / c["n_customers"] * 100
 
     lines = [
+    '## Honesty Disclosure',
+    'Synthetic data: this report reflects a generated dataset, not real financial results.',
         "# Refund Exposure Concentration (Pareto Analysis)",
         "### How concentrated is refund value among customers?",
         "",
@@ -86,7 +91,7 @@ def main() -> None:
         "",
         f"- **{c['n_customers']:,} customers** appear in the data; "
         f"{c['n_with_refund']:,} have ≥1 refund, {c['n_zero_refund']:,} have none",
-        f"- Total refund exposure: **₹{c['total_value']:,.0f}** (historical refund VALUE,",
+        f"- Total refund exposure: **Rs.{c['total_value']:,.0f}** (historical refund VALUE,",
         "  not confirmed fraud loss)",
         "",
         "| Customer cut | Customers | Share of refund value |",
@@ -132,9 +137,9 @@ def main() -> None:
         "pytest tests/test_pareto_analysis.py -v  # pins the cuts",
         "```",
     ]
-    REPORT.write_text("\n".join(lines, encoding="utf-8") + "\n", encoding="utf-8")
+    REPORT.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
-    print(f"Customers: {c['n_customers']:,} | Total exposure: ₹{c['total_value']:,.0f}")
+    print(f"Customers: {c['n_customers']:,} | Total exposure: Rs.{c['total_value']:,.0f}")
     print(f"Top 1% = {c['top1'][1]:.1f}% | Top 5% = {c['top5'][1]:.1f}% | "
           f"Top 10% = {c['top10'][1]:.1f}% | Top 20% = {c['top20'][1]:.1f}%")
     print(f"50% of value: top {c['cover50'][0]:,} customers ({c['cover50'][1]:.1f}%)")

@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # Risk Score Sensitivity Analysis
 ### Are the 40/30/20/10 weights defensible under stress?
 
@@ -11,12 +13,12 @@
 
 ## A. Signal removal — what happens when you drop each signal?
 
-| Signal removed | Customers change tier | % changed | High tier before → after |
+| Signal removed | Customers change tier | % changed | High tier before -> after |
 |---|---|---|---|
-| Refund Rate | 75 | 26.9% | 8 → 8 |
-| Reason Repetition Rate | 40 | 14.3% | 8 → 6 |
-| Refunds Per Day | 54 | 19.4% | 8 → 34 |
-| Avg Reason Length | 18 | 6.5% | 8 → 5 |
+| Refund Rate | 75 | 26.9% | 8 -> 8 |
+| Reason Repetition Rate | 40 | 14.3% | 8 -> 6 |
+| Refunds Per Day | 54 | 19.4% | 8 -> 34 |
+| Avg Reason Length | 18 | 6.5% | 8 -> 5 |
 
 **Reading:** the signal whose removal changes the most classifications is the
 one doing the most work. Signals whose removal barely matters are candidates
@@ -24,7 +26,7 @@ for simplification (not removal — they may still add value at the margin).
 
 ## B. Alternative weight configurations
 
-| Configuration | Customers change tier | % changed | High tier | Spearman ρ vs base |
+| Configuration | Customers change tier | % changed | High tier | Spearman rho vs base |
 |---|---|---|---|---|
 | Equal weights (25/25/25/25) | 22 | 7.9% | 5 | 0.964 |
 | Refund-rate dominant (60/15/15/10) | 43 | 15.4% | 23 | 0.952 |
@@ -51,7 +53,7 @@ arbitrary relative to the score's distribution — a known limitation.
 
 ## D. Signal contribution (ranking disruption when removed)
 
-| Signal | Ranking disruption (1 − ρ) | Interpretation |
+| Signal | Ranking disruption (1 − rho) | Interpretation |
 |---|---|---|
 | Refund Rate | 0.233 | meaningful contributor |
 | Reason Repetition Rate | 0.132 | meaningful contributor |

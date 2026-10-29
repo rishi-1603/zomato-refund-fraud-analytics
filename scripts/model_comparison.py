@@ -33,26 +33,31 @@ Outputs:
                                                     else reports/)
 Run:  python scripts/model_comparison.py
 """
-import json
-import warnings
+import matplotlib
+import matplotlib.pyplot as plt
 from pathlib import Path
-
-import numpy as np
-import pandas as pd
-
-try:
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    HAS_MPL = True
-except ImportError:          # Streamlit Cloud / slim envs: figure is optional
-    HAS_MPL = False
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from validate_risk_score import build_risk_table, recover_ground_truth  # noqa: E402
+import json
+import numpy as np
+import pandas as pd
+import random
+import sys
+import warnings
+random.seed(0)
+np.random.seed(0)
+
+
+try:
+    matplotlib.use("Agg")
+    HAS_MPL = True
+except ImportError:          # Streamlit Cloud / slim envs: figure is optional
+    HAS_MPL = False
 
 warnings.filterwarnings("ignore")
 
@@ -64,9 +69,7 @@ METRICS_PATH = ROOT / "reports" / "model_comparison_metrics.json"
 FIG_DIR = ROOT / "docs" / "screenshots"
 FIG_DIR.mkdir(parents=True, exist_ok=True)
 
-import sys
 sys.path.insert(0, str(ROOT / "scripts"))
-from validate_risk_score import build_risk_table, recover_ground_truth  # noqa: E402
 
 RISK_SIGNALS = ["Refund_Rate", "Reason_Repetition_Rate", "Refunds_Per_Day", "Avg_Reason_Length"]
 CAPACITY_K = (5, 10, 20, 40)
@@ -311,7 +314,7 @@ def main():
     }
 
     REPORT_PATH.write_text(write_report(metrics, encoding="utf-8"))
-    METRICS_PATH.write_text(json.dumps(metrics, indent=2, encoding="utf-8"))
+    METRICS_PATH.write_text(json.dumps(metrics, indent=2))
     if HAS_MPL:
         make_figure(metrics, in_pool, full_y, full_gbm, pool_y, pool_rule)
     else:
@@ -373,7 +376,7 @@ def write_report(m):
       "accurate at the top as a trained model, while staying explainable in an "
       "investigation room, is hard to justify replacing.")
     a("")
-    a("### Rule tiers → empirical planted-High rates")
+    a("### Rule tiers -> empirical planted-High rates")
     a("")
     a("| Tier | n | Planted-High rate |")
     a("|---|---|---|")

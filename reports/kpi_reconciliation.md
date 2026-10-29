@@ -1,3 +1,5 @@
+## Honesty Disclosure
+Synthetic data: this report reflects a generated dataset, not real financial results.
 # KPI Reconciliation — Python vs SQL
 ### Do independent implementations agree on every headline number?
 
@@ -12,10 +14,10 @@
 |---|---|---|---|---|
 | Total orders | 45,584 | 45,584 | 0.0000 | ✅ MATCH |
 | Refund orders | 3,596 | 3,596 | 0.0000 | ✅ MATCH |
-| Total refund amount | ₹974,343.55 | ₹974,343.55 | 0.0000 | ✅ MATCH |
+| Total refund amount | Rs.974,343.55 | Rs.974,343.55 | 0.0000 | ✅ MATCH |
 | Unique customers | 9,895 | 9,895 | 0.0000 | ✅ MATCH |
 | Flagged customers | 279 | 279 | 0.0000 | ✅ MATCH |
-| Flagged exposure | ₹377,891.92 | ₹377,891.92 | 0.0000 | ✅ MATCH |
+| Flagged exposure | Rs.377,891.92 | Rs.377,891.92 | 0.0000 | ✅ MATCH |
 | Flagged % of exposure | 38.78% | 38.78% | 0.0000 | ✅ MATCH |
 | Overall refund rate | 7.89% | 7.89% | 0.0000 | ✅ MATCH |
 
@@ -27,7 +29,7 @@
    adapted for SQLite (`ROUND()`, `= 1`) but the LOGIC is identical
    to `sql/fraud_queries.sql`. On a real deployment, the PostgreSQL
    queries would run against the warehouse directly.
-2. **Tolerance:** monetary values tolerate ₹0.01 (rounding); counts and
+2. **Tolerance:** monetary values tolerate Rs.0.01 (rounding); counts and
    rates tolerate 0.001 (floating-point).
 3. **Dashboard verification:** the dashboard reads the same CSV and
    applies the same pandas logic; browser tests (Phase 1 gate) confirmed
