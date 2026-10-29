@@ -33,8 +33,6 @@ Outputs:
                                                     else reports/)
 Run:  python scripts/model_comparison.py
 """
-import matplotlib
-import matplotlib.pyplot as plt
 from pathlib import Path
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
@@ -54,7 +52,9 @@ np.random.seed(0)
 
 
 try:
+    import matplotlib
     matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
     HAS_MPL = True
 except ImportError:          # Streamlit Cloud / slim envs: figure is optional
     HAS_MPL = False
