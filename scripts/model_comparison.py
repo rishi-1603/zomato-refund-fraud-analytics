@@ -313,7 +313,7 @@ def main():
             f"at all. Note also that logistic regression ≈ GBM here: the simpler model pays.")
     }
 
-    REPORT_PATH.write_text(write_report(metrics, encoding="utf-8"))
+    REPORT_PATH.write_text(write_report(metrics), encoding="utf-8")
     METRICS_PATH.write_text(json.dumps(metrics, indent=2))
     if HAS_MPL:
         make_figure(metrics, in_pool, full_y, full_gbm, pool_y, pool_rule)

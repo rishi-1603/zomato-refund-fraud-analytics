@@ -12,12 +12,12 @@
 | System | ROC-AUC | PR-AUC | Precision@8 | Precision@20 | Recall@20 |
 |---|---|---|---|---|---|
 | rule_score | 0.9422 | 0.9403 | 1.0 | 1.0 | 0.1527 |
-| logistic_regression | 0.9611 | 0.9663 | 1.0 | 1.0 | 0.1527 |
-| gradient_boosting | 0.9782 | 0.9813 | 1.0 | 1.0 | 0.1527 |
+| logistic_regression | 0.9606 | 0.966 | 1.0 | 1.0 | 0.1527 |
+| gradient_boosting | 0.9774 | 0.9804 | 1.0 | 1.0 | 0.1527 |
 
 **Key finding — head parity:** at the cut sizes a fraud team actually reviews (top 8–20), all three systems are *identical* — 100% planted-High precision. The AUC gap lives in the ranking tail, not the head. A rule score that is as accurate at the top as a trained model, while staying explainable in an investigation room, is hard to justify replacing.
 
-### Rule tiers → empirical planted-High rates
+### Rule tiers -> empirical planted-High rates
 
 | Tier | n | Planted-High rate |
 |---|---|---|
@@ -32,7 +32,7 @@ The rule pipeline can only ever flag the eligible pool — which contains **131 
 | System | ROC-AUC | PR-AUC | Recall@10 | Recall@20 | Recall@40 |
 |---|---|---|---|---|---|
 | logistic_regression | 0.9939 | 0.9541 | 0.0336 | 0.0671 | 0.1342 |
-| gradient_boosting | 0.9872 | 0.9357 | 0.0336 | 0.0671 | 0.1342 |
+| gradient_boosting | 0.9872 | 0.9356 | 0.0336 | 0.0671 | 0.1342 |
 
 ### GBM calibration (OOF, full base)
 
@@ -45,7 +45,7 @@ The rule pipeline can only ever flag the eligible pool — which contains **131 
 | 5 | 1146 | 0.0002 | 0.1% |
 | 6 | 1257 | 0.0007 | 0.2% |
 | 7 | 1222 | 0.0034 | 0.9% |
-| 8 | 1230 | 0.2313 | 23.0% |
+| 8 | 1230 | 0.2315 | 23.0% |
 
 ## 3. Investigation capacity
 
@@ -80,7 +80,7 @@ The rule pipeline can only ever flag the eligible pool — which contains **131 
 
 ## 5. The verdict
 
-> **Do NOT swap the rule score for a model. At investigation-sized cut sizes the transparent rule score matches both models exactly (precision@8 and @20 = 100% for all three systems) — the AUC gap (0.942 rules vs 0.978 GBM) lives in the tail of the ranking, not the head a fraud team actually reviews. ML's real edge is coverage: 160 of the planted abusers missed at the top-20 cut sit OUTSIDE the eligibility funnel and are invisible to the rule pipeline. Ship the hybrid: keep rule-based triage for investigation (transparent, auditable), and fix the funnel — score the full customer base so low-volume abusers are visible at all. Note also that logistic regression ≈ GBM here: the simpler model pays.**
+> **Do NOT swap the rule score for a model. At investigation-sized cut sizes the transparent rule score matches both models exactly (precision@8 and @20 = 100% for all three systems) — the AUC gap (0.942 rules vs 0.977 GBM) lives in the tail of the ranking, not the head a fraud team actually reviews. ML's real edge is coverage: 160 of the planted abusers missed at the top-20 cut sit OUTSIDE the eligibility funnel and are invisible to the rule pipeline. Ship the hybrid: keep rule-based triage for investigation (transparent, auditable), and fix the funnel — score the full customer base so low-volume abusers are visible at all. Note also that logistic regression ≈ GBM here: the simpler model pays.**
 
 ## 6. Limitations
 

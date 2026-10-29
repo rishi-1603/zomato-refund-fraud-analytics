@@ -29,8 +29,8 @@
       "recall_at_40": 0.3053,
       "precision_at_8": 1.0,
       "recall_at_8": 0.0611,
-      "roc_auc": 0.9611,
-      "pr_auc": 0.9663,
+      "roc_auc": 0.9606,
+      "pr_auc": 0.966,
       "n_positives": 131,
       "prevalence": 0.4695
     },
@@ -45,8 +45,8 @@
       "recall_at_40": 0.3053,
       "precision_at_8": 1.0,
       "recall_at_8": 0.0611,
-      "roc_auc": 0.9782,
-      "pr_auc": 0.9813,
+      "roc_auc": 0.9774,
+      "pr_auc": 0.9804,
       "n_positives": 131,
       "prevalence": 0.4695
     }
@@ -97,7 +97,7 @@
       "precision_at_40": 1.0,
       "recall_at_40": 0.1342,
       "roc_auc": 0.9872,
-      "pr_auc": 0.9357,
+      "pr_auc": 0.9356,
       "n_positives": 298,
       "prevalence": 0.0301
     },
@@ -147,7 +147,7 @@
       {
         "bin": 8,
         "n": 1230,
-        "mean_score": 0.2313,
+        "mean_score": 0.2315,
         "event_rate": 0.2301
       }
     ]
@@ -268,10 +268,10 @@
   },
   "verdict": {
     "in_pool_rule_auc": 0.9422,
-    "in_pool_gbm_auc": 0.9782,
+    "in_pool_gbm_auc": 0.9774,
     "head_parity_at_top20": true,
     "full_base_gbm_recall_at_40": 0.1342,
     "missed_high_outside_funnel": 160,
-    "recommendation": "Do NOT swap the rule score for a model. At investigation-sized cut sizes the transparent rule score matches both models exactly (precision@8 and @20 = 100% for all three systems) \u2014 the AUC gap (0.942 rules vs 0.978 GBM) lives in the tail of the ranking, not the head a fraud team actually reviews. ML's real edge is coverage: 160 of the planted abusers missed at the top-20 cut sit OUTSIDE the eligibility funnel and are invisible to the rule pipeline. Ship the hybrid: keep rule-based triage for investigation (transparent, auditable), and fix the funnel \u2014 score the full customer base so low-volume abusers are visible at all. Note also that logistic regression \u2248 GBM here: the simpler model pays."
+    "recommendation": "Do NOT swap the rule score for a model. At investigation-sized cut sizes the transparent rule score matches both models exactly (precision@8 and @20 = 100% for all three systems) \u2014 the AUC gap (0.942 rules vs 0.977 GBM) lives in the tail of the ranking, not the head a fraud team actually reviews. ML's real edge is coverage: 160 of the planted abusers missed at the top-20 cut sit OUTSIDE the eligibility funnel and are invisible to the rule pipeline. Ship the hybrid: keep rule-based triage for investigation (transparent, auditable), and fix the funnel \u2014 score the full customer base so low-volume abusers are visible at all. Note also that logistic regression \u2248 GBM here: the simpler model pays."
   }
 }
