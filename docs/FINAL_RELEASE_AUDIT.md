@@ -97,3 +97,5 @@ Recheck repaired partial-month messaging after Streamlit redeployment. Full Post
 ## Production follow-up
 
 The first post-push check reproduced an outdated imported KPI schema in the running Streamlit process (KeyError after the application source refreshed). A fail-closed compatibility guard now shows a refresh/reboot notice rather than rendering stale comparison advice or crashing. A local AppTest simulates the prior schema. A clean Streamlit reboot is required if the deployed module remains stale; full repaired deployment is not yet certified.
+
+The follow-up repair reloads the stateless analytics module only when its result schema is stale, then recomputes KPIs and narration together. The simulated previous-schema AppTest now requires the correct partial-period warning, not merely absence of exceptions. A fail-closed warning remains only if reloading cannot supply the current schema.

@@ -480,7 +480,14 @@ def tab_overview(
     kpis = compute_kpis(orders, suspects, truth)
     mom = kpis["mom"]
     # Streamlit can retain imported modules during a rolling source refresh.
-    # Fail closed rather than crash or present an old, unqualified monthly trend.
+    # Reload this stateless analytics module only when its result schema is stale.
+    import importlib
+    import sys
+    engine = sys.modules[compute_kpis.__module__]
+    if "partial_periods" not in mom:
+        engine = importlib.reload(engine)
+        kpis = engine.compute_kpis(orders, suspects, truth)
+        mom = kpis["mom"]
     if "partial_periods" not in mom:
         st.warning("Analytics modules are refreshing. Please reload this page; "
                    "if this persists, the app owner should reboot the Streamlit app.")
@@ -489,7 +496,7 @@ def tab_overview(
         st.warning(mom["coverage_note"])
 
     # ── "What changed?" — computed from data. No LLM, no hardcoding. ──
-    insights = what_changed(orders, suspects, truth)
+    insights = engine.what_changed(orders, suspects, truth)
     if insights:
         st.subheader("What changed?")
         st.caption("This month vs last, on the data you're viewing. Each card shows where its number comes from.")

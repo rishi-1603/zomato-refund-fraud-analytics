@@ -38,4 +38,5 @@ def test_overview_handles_cached_pre_publication_module(monkeypatch):
     app_path = Path(__file__).resolve().parents[1] / "dashboard" / "app.py"
     app = AppTest.from_file(str(app_path)).run(timeout=30)
     assert not app.exception
-    assert any("Analytics modules are refreshing" in item.value for item in app.warning)
+    assert any("not a like-for-like business trend" in item.value for item in app.warning)
+    assert not any("Analytics modules are refreshing" in item.value for item in app.warning)
