@@ -102,7 +102,7 @@ class DSU:
 # ──────────────────────────────────────────────────────────────────────────────
 def load() -> pd.DataFrame:
     df = pd.read_csv(DATA)
-    df["Order_Date"] = pd.to_datetime(df["Order_Date"], errors="coerce")
+    df["Order_Date"] = pd.to_datetime(df["Order_Date"], dayfirst=True, errors="coerce")
     # a stable drop-location key: rounded coordinates (~1 km cell)
     df["drop_cell"] = (
         df["Delivery_location_latitude"].round(GEO_ROUND).astype(str)
@@ -297,8 +297,8 @@ def clustering_test(df: pd.DataFrame, stats: pd.DataFrame) -> dict:
             "High-risk customers share delivery people far more than chance predicts"
             if p_value < 0.05 else
             "No evidence that High-risk customers cluster on shared delivery people "
-            "beyond what chance produces — the refund signal is individual-level on "
-            "this dataset, not network-level"
+            "beyond what chance produces in this test. Nonsignificance does not "
+            "establish the absence of organized activity."
         ),
     }
 

@@ -1163,7 +1163,6 @@ def main() -> None:
     except (OSError, ValueError):
         metric_defs = None
 
-    app_header(orders)
 
     # ── Sidebar: product mark + filters + scope status + reset + methodology ──
     st.sidebar.markdown(
@@ -1242,6 +1241,8 @@ def main() -> None:
             "- **Data**: seeded/synthetic Zomato-style delivery data — disclosed "
             "in the README"
         )
+
+    app_header(orders_f)
 
     # ── Empty state: filters excluded everything ──
     if not len(orders_f):

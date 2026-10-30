@@ -1,12 +1,12 @@
 -- Query: Volume-band baselines — is a flagged customer's refund rate abnormal
 --         for their order volume?
--- Business Question: Which of the 279 flagged customers are probably false
---                     positives (refund rate NORMAL for their volume band)?
+-- Business Question: Which flagged customers are at or below their
+--                     order-volume band baseline?
 -- Technique: CASE banding + PERCENTILE_CONT (P95) per band + eligibility join.
 -- Verified (Python/reports): 113 of 279 flagged (40.5%) sit below their band
--- P95 — likely false positives; de-prioritise or move to watchlist.
--- Decision: review above-baseline flags first; below-baseline flags get a
--- lighter-touch check, not a full investigation.
+-- P95. This is comparison context, not a measured false-positive rate.
+-- Decision: include the baseline in human review; do not automatically clear
+-- or deprioritise a customer solely from this statistic.
 
 WITH customer_stats AS (
     SELECT "Customer_ID",

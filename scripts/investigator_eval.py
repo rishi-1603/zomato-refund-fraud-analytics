@@ -29,7 +29,6 @@ Run:  python scripts/investigator_eval.py
 """
 from __future__ import annotations
 from pathlib import Path
-import ai_investigator as inv  # noqa: E402
 import json
 import numpy as np
 import pandas as pd
@@ -42,6 +41,8 @@ np.random.seed(0)
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "dashboard"))
+
+import ai_investigator as inv  # noqa: E402
 
 
 BENCH_PATH = ROOT / "evals" / "investigator_benchmark.json"

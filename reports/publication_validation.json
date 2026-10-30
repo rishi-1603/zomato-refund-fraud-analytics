@@ -1,0 +1,90 @@
+{
+  "audit_date": "2026-10-30",
+  "independent_metrics": {
+    "orders": 45584,
+    "customers": 9895,
+    "refund_requests": 3596,
+    "refund_amount": 974343.55,
+    "refund_rate_pct": 7.8887,
+    "flagged": 279,
+    "below_p95": 113,
+    "missing_reasons_on_refunds": 0,
+    "date_min": "2022-02-11",
+    "date_max": "2022-04-06",
+    "independent_permutation": {
+      "observed": 0.020699,
+      "null_mean": 0.021484,
+      "empirical_p": 0.76,
+      "plus_one_mc_p": 0.7612,
+      "shuffles": 200,
+      "interpretation": "No detected excess on this test; nonsignificance does not establish absence of organized activity."
+    }
+  },
+  "postgres": {
+    "dialect": "Original PostgreSQL query files, quoted source-column schema",
+    "scripts": {
+      "baseline_bands.sql": [
+        {
+          "statement": 1,
+          "status": "PASS",
+          "result_rows": 279
+        },
+        {
+          "statement": 2,
+          "status": "PASS",
+          "result_rows": 4
+        }
+      ],
+      "cumulative_pareto.sql": [
+        {
+          "statement": 1,
+          "status": "PASS",
+          "result_rows": 100
+        },
+        {
+          "statement": 2,
+          "status": "PASS",
+          "result_rows": 1
+        }
+      ],
+      "fraud_queries.sql": [
+        {
+          "statement": 1,
+          "status": "PASS",
+          "result_rows": 1
+        },
+        {
+          "statement": 2,
+          "status": "PASS",
+          "result_rows": 20
+        },
+        {
+          "statement": 3,
+          "status": "PASS",
+          "result_rows": 20
+        },
+        {
+          "statement": 4,
+          "status": "PASS",
+          "result_rows": 4
+        },
+        {
+          "statement": 5,
+          "status": "PASS",
+          "result_rows": 1
+        },
+        {
+          "statement": 6,
+          "status": "PASS",
+          "result_rows": 1
+        }
+      ]
+    },
+    "independent_metrics": {
+      "orders": 45584,
+      "customers": 9895,
+      "refund_amount": 974343.55,
+      "refund_requests": 3596
+    }
+  }
+}

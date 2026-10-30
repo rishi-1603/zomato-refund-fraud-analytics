@@ -40,3 +40,14 @@ def test_overview_handles_cached_pre_publication_module(monkeypatch):
     assert not app.exception
     assert any("not a like-for-like business trend" in item.value for item in app.warning)
     assert not any("Analytics modules are refreshing" in item.value for item in app.warning)
+
+
+def test_header_population_updates_with_city_filter():
+    from streamlit.testing.v1 import AppTest
+    app_path = Path(__file__).resolve().parents[1] / "dashboard" / "app.py"
+    app = AppTest.from_file(str(app_path)).run(timeout=30)
+    app.multiselect(key="f_city").set_value(["Metropolitian"]).run(timeout=30)
+    assert not app.exception
+    rendered = "\n".join(element.value for element in app.markdown)
+    assert "34,087 orders in scope" in rendered
+    assert "45,584 orders in scope" not in rendered

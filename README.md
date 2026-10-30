@@ -6,7 +6,7 @@ A refund-review case study built around a limited investigation queue: **which c
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
-![Refund analytics dashboard and investigation queue](docs/screenshots/v2_console_overview.png)
+![Refund analytics dashboard and investigation queue](docs/screenshots/publication_overview.png)
 
 > The delivery attributes come from a public dataset. Customer IDs, refund events, amounts and risk labels are synthetic and seeded. No real fraud was detected and no real customer is implicated. This is an independent portfolio project, not an official Zomato product.
 
@@ -76,6 +76,8 @@ Use the city and customer-volume controls to explore a narrower population. Inve
 
 The dashboard may need waking after Streamlit inactivity. A [local-demo guide](docs/DEMO_FALLBACK_GUIDE.md) is included if the hosted app is unavailable.
 
+![Customer investigation view](docs/screenshots/publication_investigation.png)
+
 ## Checks behind the analysis
 
 Eight headline KPIs are independently calculated in pandas and SQL, with **zero reconciliation discrepancies** within the documented tolerance. The automated check uses SQLite adaptations; the PostgreSQL-oriented query files are available for database review.
@@ -84,7 +86,7 @@ The weekly PSI monitor reports the seeded stream as stable. Its tripwire is test
 
 The investigation assistant retrieves evidence through deterministic tools. A small authored benchmark passed **6/6 grounded cases and 6/6 refusals**, with no fabricated numbers in those cases. Optional LLM narration is outside that evaluation.
 
-The audited regression suite contains **139 tests**. The [publication audit](docs/FINAL_RELEASE_AUDIT.md) records what was executed and what remains unverified, including exhaustive filters, exports, AI-provider paths, accessibility and load testing.
+The audited regression suite contains **141 tests**. The [publication audit](docs/FINAL_RELEASE_AUDIT.md) records what was executed and what remains unverified, including exhaustive filters, exports, AI-provider paths, accessibility and load testing.
 
 [KPI reconciliation](reports/kpi_reconciliation.md) · [Drift monitor](reports/drift_monitor.md) · [Evidence-tool evaluation](reports/investigator_eval.md) · [Provenance and external validation](reports/external_validation.md)
 

@@ -1,62 +1,43 @@
-# Final publication audit — Food-Delivery Refund Risk & Operations Analytics
+# Publication verification — Food-Delivery Refund Risk & Operations Analytics
 
-Audit date: 2026-10-30. Scope: targeted publication repair, not a certification of literal perfection.
-Baseline GitHub main: `e084babbf25492a418f565e6338a452bc15da6a1`. Recoverable branch: `audit/publication-review`.
+Audit date: 2026-10-30. This follow-up supersedes the earlier snapshot that treated PostgreSQL, fresh screenshots and accessibility tooling as wholly unperformed.
 
-## Execution and ownership
-No autonomous subagents were available. One assistant performed sequential data/SQL, code, QA, security, browser and documentation workstreams. Tests and tool checks are evidence; there was no independent human or separately spawned QA agent.
+## What was executed
 
-## Changes and issue register
-| Severity | File/screen | Evidence | Root cause | Repair | Verification |
-|---|---|---|---|---|---|
-| HIGH | dashboard/kpi_engine.py; dashboard/app.py | Live cards describe an 80% April decline although history stops on April 6. | Partial month compared with full prior month without coverage context. | Flag observed partial month boundaries, disclose unequal coverage, suppress partial-period order/exposure KPI deltas. | FIXED: arithmetic preserved; two new regression tests; full suite 139 passes. |
-| MEDIUM | dashboard/kpi_engine.py | Below-P95 flags called likely false positives and automatically de-prioritized. | Baseline comparison overstated as an outcome finding. | Replace with human-review context and no automatic clearance. | FIXED; existing 113/279 metric retained. |
-| LOW | dashboard/app.py; scripts/validate_risk_score.py | 17 pandas GroupBy.apply deprecation warnings. | Grouping columns implicitly passed to apply. | Select Refund_Reason explicitly before apply; compatible with the existing pandas>=2.0 minimum. | FIXED: 139 tests pass without those warnings. |
-| LOW | dashboard/app.py | Monthly chart title says 2022–2024 although dataset spans February–April 2022. | Hardcoded date span. | Use observed-data title. | FIXED in source. |
+- Fresh-source branch with recoverable commits; no unrelated changes overwritten.
+- Independent raw-data calculations and actual PostgreSQL execution, with dialect boundaries documented.
+- Actual anonymous browser rendering, tab/navigation actions, representative filters, downloads and deterministic assistant workflows.
+- Fresh screenshots stored in `docs/screenshots/publication_*.png` and referenced by the README.
+- axe-core WCAG 2 A/AA and 2.1 AA checks at desktop/mobile, with measured defects repaired. Automated scans do not certify screen-reader usability.
+- Direct deterministic AI benchmark execution, selected static checks and full regression: **141 tests**.
+- Reviewed integration of the related publication-audit PR. The unrelated E-Commerce revenue PR remains outside this release.
 
-## Data and metric verification
-45,584 orders; 9,895 customers; refund amount 974,343.55; flagged exposure 377,891.92; 279 flagged; refund rate approximately 7.89%. Reconciliation script independently executed, zero discrepancies.
+## Evidence by area
 
-PASS for documented eight-KPI SQLite reconciliation (script exited 0). PARTIAL for the full PostgreSQL-oriented query library; no PostgreSQL server execution.
+| Area | Result and boundary |
+|---|---|
+| Structure/documentation | PASS for corrected links, fresh screenshot references and this separated audit set |
+| Metrics/data quality | PASS for independently recomputed figures in [data validation](DATA_AND_METRIC_VALIDATION.md); not every future metric |
+| SQL | PASS: all original PostgreSQL scripts executed |
+| Code/static checks | PASS for Ruff E9/F63/F7/F82/F401/F541/F841; not an exhaustive proof of correctness |
+| Regression | 141 tests pass; tests not weakened or skipped |
+| Functionality | Representative workflows recorded in [feature matrix](FEATURE_VERIFICATION_MATRIX.md); combinatorial coverage remains partial |
+| Accessibility | Automated tested scope repaired; incomplete axe checks and manual assistive-technology review remain PARTIAL |
+| Security | [Security scope](SECURITY_AUDIT.md); no blanket security certification |
+| Performance | Bounded local API concurrency and warm browser checks, not production capacity/stress certification |
+| CI/release | Exact published commit and its Actions result must be checked at [GitHub Actions](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions) |
+| Deployment identity | Changed behavior checked separately; no whole-commit Streamlit attestation without platform build metadata |
 
-## Feature verification matrix
-Production app woke successfully. Overview, Refund Patterns, Investigation and Delivery Context tabs clicked without displayed Streamlit exceptions. Four requested viewport screenshots captured. Local AppTest coverage passes. Every filter combination, download and external narration provider remains unverified.
+## Documents
 
-- Production browser checks were separate from local tests.
-- Initial Streamlit sleep screens were not counted as application success; apps were woken and actual embedded app frames inspected.
-- Screenshot captures were genuine browser images, not generated mockups. Baseline production captures are retained in the external audit evidence pack, not represented as post-repair screenshots.
-- No independent LLM provider test, exhaustive state-space check, accessibility-tool audit or production load test was completed.
+[Issues](ISSUE_REGISTER.md) · [Data/SQL/statistics](DATA_AND_METRIC_VALIDATION.md) · [Features](FEATURE_VERIFICATION_MATRIX.md) · [Security](SECURITY_AUDIT.md) · [Release checklist](RELEASE_CHECKLIST.md)
 
-## Source, structure and security checks
-- 121 tracked files inventoried; 99 relevant text files pattern-scanned. This is not a claim of exhaustive semantic line-by-line review.
-- Fatal syntax/undefined-name static check: `ruff check . --select E9,F63,F7,F82` passed. Broad style/type cleanup was not performed.
-- README local link/image paths: no missing targets detected at baseline.
-- Known GitHub token, Google-key and private-key signature scan over selected current text files and reachable historical text blobs: no matches. Heuristic only; screenshots/binary secrets and all possible credential formats are unverified.
-- No tracked .env, credentials.json or secrets.toml found by the targeted filename check.
-- pip-audit requirements resolution: no known vulnerabilities reported at scan time. This is not a guarantee of secure deployment or a replacement for a lockfile.
-- The token supplied in chat is exposed and should be revoked/rotated. It must never enter repository content.
+## Verdict
 
-## Release scorecard
-| Area | Status | Evidence / boundary |
-|---|---|---|
-| Repository structure | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| Code quality | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| Data cleaning | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| Metric correctness | PARTIAL | Executed reconciliation/tests for covered metrics; not every displayed calculation independently re-derived. |
-| SQL validation | PARTIAL | PASS for documented eight-KPI SQLite reconciliation (script exited 0). PARTIAL for the full PostgreSQL-oriented query library; no PostgreSQL server execution. |
-| Feature functionality | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| UI/UX | PARTIAL | Four viewports captured; tab/navigation smoke checks only. |
-| Accessibility | BLOCKED | No complete keyboard/screen-reader/contrast audit; viewport checks do not establish accessibility. |
-| Security | PARTIAL | Requirements scan and selected secret signatures only. |
-| Performance | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| Automated tests | PASS | 139 passed; see external final test log. |
-| Build and CI | PARTIAL | Local checks recorded; pushed-commit CI is verified separately in the delivery report. |
-| README and documentation | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| GitHub presentation | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| Live deployment | PARTIAL | Baseline production rendered; repaired-commit deployment must be confirmed separately. |
-| Recruiter readiness | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
+**READY WITH DISCLOSED LIMITATIONS for the checked portfolio-demonstration scope**, contingent on the final pushed commit passing CI. Not a claim of clinical validity, real fraud detection, realized savings, exhaustive accessibility, or production-scale reliability.
 
 ## Recruiter notes
+
 ### 15-second summary
 Refund-risk review case study emphasizing SQL/Python KPI parity, customer-volume context and scenario-based alert policy economics—not confirmed fraud detection.
 
@@ -79,43 +60,3 @@ Refund-risk review case study emphasizing SQL/Python KPI parity, customer-volume
 - Why do partial months distort volume comparisons?
 - What changes the alert-policy recommendation?
 - What does p=0.76 establish—and not establish?
-
-## Release checklist
-- [x] Fresh public clone; old workspaces left untouched.
-- [x] Recoverable branch and scoped diff.
-- [x] Targeted fixes tested; no test weakened or deleted.
-- [x] Selected SQL/data, security and browser evidence recorded.
-- [ ] Pushed commit CI and repaired deployment verified (see delivery report).
-- [ ] Complete accessibility, filter/export/provider and performance coverage.
-
-## Remaining verification
-Recheck repaired partial-month messaging after Streamlit redeployment. Full PostgreSQL library, exhaustive filter/export/provider tests, accessibility and load/performance verification remain incomplete.
-
-## Verdict
-**NOT READY for an unconditional all-features final-release claim.** Targeted source repairs pass their local acceptance tests. Publication as an analytics demonstration must retain the listed limitations; release completion depends on the pushed-commit CI and deployment follow-up.
-
-## Production follow-up
-
-The first post-push check reproduced an outdated imported KPI schema in the running Streamlit process (KeyError after the application source refreshed). A fail-closed compatibility guard now shows a refresh/reboot notice rather than rendering stale comparison advice or crashing. A local AppTest simulates the prior schema. A clean Streamlit reboot is required if the deployed module remains stale; full repaired deployment is not yet certified.
-
-The follow-up repair reloads the stateless analytics module only when its result schema is stale, then recomputes KPIs and narration together. The simulated previous-schema AppTest now requires the correct partial-period warning, not merely absence of exceptions. A fail-closed warning remains only if reloading cannot supply the current schema.
-
-## 2026-10-30 Second-pass publication audit (independent)
-
-Baseline main: `bedbd2e`. Recoverable branch: `audit/publication-review-2`. All work on a branch; nothing pushed to `main` directly.
-
-### Verified in this pass
-- Dependency install from `requirements.txt`: exit 0.
-- Full automated suite executed on Python 3.13: **139 passed**.
-- Static fatal-error scan (`ruff check --select E9,F63,F7,F82`): **All checks passed**.
-- CI on the current `main` head: **success** (GitHub Actions API).
-- README internal links and local image paths: no missing targets.
-
-### Fixes applied
-- Fixed a grammar/casing error and unlinked path in `README.md`.
-- Corrected stale test counts in `docs/RELEASE_GATES.md` and `docs/DEPLOYMENT_VERIFICATION.md` (136 -> 139).
-
-### Blocked / manual action required
-- Repository homepage field: **set** via the GitHub API (HTTP 200) to the live app URL.
-- **Live app is not publicly reachable**: the Streamlit URL redirects (HTTP 303) to `share.streamlit.io/-/auth/app`. Make the app public in Streamlit Cloud settings.
-- Full PostgreSQL query library, exhaustive filter/export/provider paths, accessibility and load testing remain unverified.

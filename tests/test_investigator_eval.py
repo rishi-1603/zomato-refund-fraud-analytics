@@ -75,3 +75,16 @@ def test_eval_is_deterministic():
     a, b = run(), run()
     assert a["verdict"] == b["verdict"]
     assert a["fabrications_total"] == b["fabrications_total"]
+
+
+def test_benchmark_cli_runs_in_a_fresh_interpreter():
+    import os
+    import subprocess
+    env = os.environ.copy()
+    env.pop("PYTHONPATH", None)
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "investigator_eval.py")],
+        cwd=ROOT, env=env, capture_output=True, text=True, timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "fabrications 0 | PASS" in result.stdout

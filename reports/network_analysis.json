@@ -267,7 +267,7 @@
     "null_p95": 0.023754,
     "p_value": 0.76,
     "n_permutations": 200,
-    "interpretation": "No evidence that High-risk customers cluster on shared delivery people beyond what chance produces \u2014 the refund signal is individual-level on this dataset, not network-level"
+    "interpretation": "No evidence that High-risk customers cluster on shared delivery people beyond what chance produces in this test. Nonsignificance does not establish the absence of organized activity."
   },
   "honesty": [
     "Edges are shared-attribute associations, not evidence of collusion. Sharing a busy delivery person is normal behaviour.",
