@@ -1,0 +1,80 @@
+﻿{
+  "project": "Food-Delivery Refund Risk Intelligence & Operations Analytics",
+  "repository": "https://github.com/rishi-1603/zomato-refund-fraud-analytics",
+  "last_updated": "2026-10-30",
+  "verified_ci_tests": 136,
+  "claims": [
+    {
+      "metric_id": "zomato_total_orders",
+      "display_name": "Total Delivery Orders",
+      "value": 45584,
+      "formatted_value": "45,584",
+      "unit": "Orders",
+      "population": "Complete historical order log",
+      "definition": "COUNT(order_id)",
+      "source_file": "src/eda.py",
+      "test_file": "tests/test_data_integrity.py",
+      "limitations": "Public delivery records with synthetic refund attributes"
+    },
+    {
+      "metric_id": "zomato_total_customers",
+      "display_name": "Observed Customers",
+      "value": 9895,
+      "formatted_value": "9,895",
+      "unit": "Customers",
+      "population": "Unique customer entities",
+      "definition": "COUNT(DISTINCT customer_id)",
+      "source_file": "src/feature_engineering.py",
+      "test_file": "tests/test_data_integrity.py",
+      "limitations": "Encompasses one-time and recurring diners"
+    },
+    {
+      "metric_id": "zomato_refund_exposure",
+      "display_name": "Historical Refund Exposure",
+      "value": 974250.00,
+      "formatted_value": "Rs. 9.74L",
+      "unit": "INR",
+      "population": "Cumulative requested refund value",
+      "definition": "SUM(refund_amount)",
+      "source_file": "src/exposure_analysis.py",
+      "test_file": "tests/test_risk_scoring.py",
+      "limitations": "Requested refund volume; does not equate to realized net fraud loss"
+    },
+    {
+      "metric_id": "zomato_flagged_accounts",
+      "display_name": "Initial Anomaly Pool",
+      "value": 279,
+      "formatted_value": "279",
+      "unit": "Accounts",
+      "population": "Multi-signal risk score above screening threshold",
+      "definition": "COUNT(account_id) WHERE initial_risk_score > threshold",
+      "source_file": "src/risk_engine.py",
+      "test_file": "tests/test_triage_queue.py",
+      "limitations": "Represents candidate pool, not confirmed fraud"
+    },
+    {
+      "metric_id": "zomato_false_positives_mitigated",
+      "display_name": "Volume-Band Normalized Normal Accounts",
+      "value": 113,
+      "formatted_value": "113 (40.5%)",
+      "unit": "Accounts",
+      "population": "Flagged accounts below P95 in respective order-volume deciles",
+      "definition": "Flagged accounts cleared due to baseline activity consistency",
+      "source_file": "src/volume_bands.py",
+      "test_file": "tests/test_volume_normalization.py",
+      "limitations": "Prevents friction for high-value regular customers"
+    },
+    {
+      "metric_id": "zomato_actionable_alerts",
+      "display_name": "Prioritized Review Alerts",
+      "value": 115,
+      "formatted_value": "115 High/Med Alerts",
+      "unit": "Alerts",
+      "population": "Prioritized queue within operational capacity",
+      "definition": "High and Medium severity investigation tickets",
+      "source_file": "src/alert_policy.py",
+      "test_file": "tests/test_alert_economics.py",
+      "limitations": "Sized for operational queue capacity constraints"
+    }
+  ]
+}
