@@ -6,6 +6,18 @@
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml) ![Tests](https://img.shields.io/badge/tests-136%20passed-brightgreen)
 
+> ### 🧭 Recruiter & Interview Verification Hub (October 2026 Comprehensive Upgrade)
+> - **Direct Resume Evidence Index:** [RESUME_EVIDENCE.md](RESUME_EVIDENCE.md) *(Claims, definitions, reproduction commands, & test files)*
+> - **Executive Risk Operations Brief:** [docs/EXECUTIVE_FINDINGS_REPORT.md](docs/EXECUTIVE_FINDINGS_REPORT.md) *(Pareto exposure, false-positive volume trap, & queue policy)*
+> - **Operations Triage Funnel:** [docs/REFUND_RISK_FUNNEL.md](docs/REFUND_RISK_FUNNEL.md) *(Visual breakdown: 9,895 -> 4,120 -> 279 -> 115 High/Med Alerts)*
+> - **Investigator Case Workflow:** [docs/INVESTIGATOR_CASE_WORKFLOW.md](docs/INVESTIGATOR_CASE_WORKFLOW.md) *(Triage interface, volume-band comparison, & audit fields)*
+> - **Alert Economics Sensitivity:** [docs/ALERT_ECONOMICS_SENSITIVITY.md](docs/ALERT_ECONOMICS_SENSITIVITY.md) *(Cost matrix: review cost vs fraud prevention vs friction)*
+> - **PSI Drift Monitoring Runbook:** [docs/PSI_MONITORING_RUNBOOK.md](docs/PSI_MONITORING_RUNBOOK.md) *(Weekly population stability index calculation & thresholds)*
+> - **Offline Demo Fallback Guide:** [docs/DEMO_FALLBACK_GUIDE.md](docs/DEMO_FALLBACK_GUIDE.md) *(Local instant execution & smoke-test instructions)*
+
+---
+
+
 ![Alert economics: alerting more is worth less — the optimum is High+Medium tiers](docs/screenshots/alert_policy_net_value.png)
 
 > **Data and claims notice:** The base order dataset is public; **refund events, refund amounts, and risk labels are synthetic and seeded**. No real fraud was detected and no real customer is implicated. The score is an uncalibrated review-prioritization heuristic—not a fraud probability, verdict, or basis for automated customer action. This is an independent portfolio project, not an official Zomato product.
