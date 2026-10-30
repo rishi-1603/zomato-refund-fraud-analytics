@@ -9,6 +9,7 @@
 | Medium | dashboard/app.py | Filtered Metro KPI was 34,087, but header still said 45,584 in scope. | Header rendered the unfiltered table before filtering. | Render header using orders_f after global filters. | New AppTest asserts 34,087 header and absence of stale population. |
 | Medium | scripts/network_analysis.py; sql/baseline_bands.sql | Ambiguous DD-MM parsing and language equating nonsignificance/baseline position with outcomes. | Implicit parsing and over-strong analytical wording. | Set dayfirst=True; disclose no detected network excess rather than absence; remove automatic-deprioritization advice. | Independent 200-shuffle result p=.76 and direct network regeneration. |
 | Low | Selected Python/notebook code | 37 selected lint findings at baseline. | Unused imports/locals and unnecessary f prefixes. | Remove dead bindings without changing analytical assertions. | Selected Ruff rules clean; full suite pass. |
+| Low | scripts/investigator_eval.py; reports/investigator_eval.* | Audit wording suggested every evidence value was independently verified. | Benchmark actually recomputes four selected risk metrics. | Narrow scope statements to the four checked metrics and six answerable cases. | Direct benchmark and full regression pass; optional narration remains outside scope. |
 
 ## Remaining boundaries
 - No real parallel subagent facility was available; sequential specialist workstreams were used.

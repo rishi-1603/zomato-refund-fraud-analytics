@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/investigator_eval.py",
-  "honesty": "Refund layer is synthetic; this audit verifies the investigator never fabricates relative to the dataset it is given \u2014 a property that holds for any dataset. The optional LLM narrative layer is gated behind API keys and must be grounded in these same tools.",
+  "honesty": "Refund layer is synthetic; this audit verifies the investigator checks four selected risk metrics on six authored answerable cases plus six refusals. The optional LLM narrative layer is gated behind API keys and must be grounded in these same tools.",
   "answerable": {
     "n": 6,
     "passed": 6,
