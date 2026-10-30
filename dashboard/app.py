@@ -386,7 +386,7 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
 
     reason_repetition = (
         refund_df.groupby("Customer_ID")
-        .apply(top_reason_rate)
+        .apply(top_reason_rate, include_groups=False)
         .reset_index(name="Reason_Repetition_Rate")
     )
     avg_reason_length = refund_df.groupby("Customer_ID").agg(
@@ -479,6 +479,8 @@ def tab_overview(
 
     kpis = compute_kpis(orders, suspects, truth)
     mom = kpis["mom"]
+    if mom.get("partial_periods"):
+        st.warning(mom["coverage_note"])
 
     # ── "What changed?" — computed from data. No LLM, no hardcoding. ──
     insights = what_changed(orders, suspects, truth)
@@ -498,7 +500,7 @@ def tab_overview(
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     c1.metric(
         "Delivery orders", f"{kpis['total_orders']:,}",
-        delta=(f"{mom['orders_delta_pct']:+.1f}%" if mom["orders_delta_pct"] is not None else None),
+        delta=(f"{mom['orders_delta_pct']:+.1f}%" if mom["orders_delta_pct"] is not None and not mom["partial_periods"] else None),
         help=f"Month-over-month: {mom['prev_label']} → {mom['label']} on the current scope.",
     )
     c2.metric(
@@ -514,7 +516,7 @@ def tab_overview(
         "Refund exposure", f"₹{kpis['refund_exposure']:,.0f}",
         delta=(
             f"{mom['exposure_delta_pct']:+.1f}%"
-            if mom["exposure_delta_pct"] is not None else None
+            if mom["exposure_delta_pct"] is not None and not mom["partial_periods"] else None
         ),
         delta_color="inverse",
         help="Historical refund value — NOT a confirmed loss and NOT future revenue at risk.",
@@ -594,7 +596,7 @@ def tab_overview(
         secondary_y=True,
     )
     fig.update_layout(
-        title="Monthly order volume vs refund rate (2022–2024)", **PLOTLY_LAYOUT
+        title="Monthly order volume vs refund rate (observed data)", **PLOTLY_LAYOUT
     )
     fig.update_yaxes(title_text="Orders", secondary_y=False)
     fig.update_yaxes(title_text="Refund rate (%)", secondary_y=True)

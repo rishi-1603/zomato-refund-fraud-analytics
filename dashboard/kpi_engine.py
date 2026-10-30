@@ -68,6 +68,7 @@ def _mom(orders: pd.DataFrame) -> dict:
         "label": None, "prev_label": None,
         "orders_delta_pct": None, "exposure_delta_pct": None,
         "refund_rate_delta_pp": None,
+        "partial_periods": False, "coverage_note": "",
     }
     if "Order_Date" not in orders.columns or orders.empty:
         return out
@@ -84,6 +85,17 @@ def _mom(orders: pd.DataFrame) -> dict:
     cur, prev = m.iloc[-1], m.iloc[-2]
     out["label"] = str(m.index[-1])
     out["prev_label"] = str(m.index[-2])
+    # Observed boundary coverage is not a guarantee of complete source ingestion.
+    # Preserve the arithmetic, but never present a truncated month as a business decline.
+    for period in m.index[-2:]:
+        observed = dates[dates.dt.to_period("M") == period].dropna()
+        if observed.min().day != 1 or observed.max().day != period.days_in_month:
+            out["partial_periods"] = True
+    if out["partial_periods"]:
+        out["coverage_note"] = (
+            "Observed monthly totals cover partial calendar periods; unequal coverage "
+            "can explain the change. This is not a like-for-like business trend."
+        )
     out["orders_delta_pct"] = (cur["orders"] - prev["orders"]) / prev["orders"] * 100 if prev["orders"] else None
     out["exposure_delta_pct"] = (
         (cur["amount"] - prev["amount"]) / prev["amount"] * 100 if prev["amount"] else None
@@ -151,8 +163,8 @@ def what_changed(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataFra
         direction = "rose" if d >= 0 else "fell"
         insights.append({
             "headline": f"Orders {direction} {abs(d):.1f}% in {mom['label']}",
-            "detail": f"{mom['prev_label']} → {mom['label']}, month-over-month.",
-            "level": level,
+            "detail": f"{mom['prev_label']} → {mom['label']}, month-over-month. " + mom["coverage_note"],
+            "level": "watch" if mom["partial_periods"] else level,
             "evidence": "Order volume by month, computed from Order_Date.",
         })
     if mom["exposure_delta_pct"] is not None:
@@ -161,8 +173,8 @@ def what_changed(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataFra
         direction = "rose" if d >= 0 else "fell"
         insights.append({
             "headline": f"Refund exposure {direction} {abs(d):.1f}% in {mom['label']}",
-            "detail": "Refund amount, month-over-month — the exposure KPI's trend.",
-            "level": level,
+            "detail": "Observed refund amount, month-over-month. " + mom["coverage_note"],
+            "level": "watch" if mom["partial_periods"] else level,
             "evidence": "Refund_Amount summed by month.",
         })
     if mom["refund_rate_delta_pp"] is not None:
@@ -181,7 +193,8 @@ def what_changed(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataFra
                 "headline": f"{kpis['below_baseline_flagged']} of {kpis['flagged_count']} flags sit below their volume-band baseline",
                 "detail": (
                     f"{kpis['below_baseline_share_pct']:.1f}% of flagged customers refund at a rate "
-                    "normal for their order volume — likely false positives, de-prioritise."
+                    "at or below the volume-band P95. This is context for human review, "
+                    "not a confirmed false positive or an automatic clearance."
                 ),
                 "level": "watch",
                 "evidence": "Refund rate vs volume-band P95 (baseline rule).",
