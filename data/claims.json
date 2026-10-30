@@ -1,4 +1,4 @@
-﻿{
+{
   "project": "Food-Delivery Refund Risk Intelligence & Operations Analytics",
   "repository": "https://github.com/rishi-1603/zomato-refund-fraud-analytics",
   "last_updated": "2026-10-30",
@@ -31,7 +31,7 @@
     {
       "metric_id": "zomato_refund_exposure",
       "display_name": "Historical Refund Exposure",
-      "value": 974250.00,
+      "value": 974250.0,
       "formatted_value": "Rs. 9.74L",
       "unit": "INR",
       "population": "Cumulative requested refund value",
