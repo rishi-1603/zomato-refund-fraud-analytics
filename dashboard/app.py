@@ -385,8 +385,8 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
         return round(counts.iloc[0] / len(group) * 100, 2)
 
     reason_repetition = (
-        refund_df.groupby("Customer_ID")
-        .apply(top_reason_rate, include_groups=False)
+        refund_df.groupby("Customer_ID")[["Refund_Reason"]]
+        .apply(top_reason_rate)
         .reset_index(name="Reason_Repetition_Rate")
     )
     avg_reason_length = refund_df.groupby("Customer_ID").agg(

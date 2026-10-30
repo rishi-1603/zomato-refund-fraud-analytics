@@ -75,8 +75,8 @@ def build_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
             return 0.0
         return round(g["Refund_Reason"].value_counts().iloc[0] / len(g) * 100, 2)
 
-    rr = (refund_df.groupby("Customer_ID")
-          .apply(top_reason_rate, include_groups=False).reset_index(name="Reason_Repetition_Rate"))
+    rr = (refund_df.groupby("Customer_ID")[["Refund_Reason"]]
+          .apply(top_reason_rate).reset_index(name="Reason_Repetition_Rate"))
     flagged = flagged.merge(rr, on="Customer_ID", how="left")
 
     refund_df["Reason_Length"] = refund_df["Refund_Reason"].str.len()

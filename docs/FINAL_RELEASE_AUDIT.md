@@ -11,7 +11,7 @@ No autonomous subagents were available. One assistant performed sequential data/
 |---|---|---|---|---|---|
 | HIGH | dashboard/kpi_engine.py; dashboard/app.py | Live cards describe an 80% April decline although history stops on April 6. | Partial month compared with full prior month without coverage context. | Flag observed partial month boundaries, disclose unequal coverage, suppress partial-period order/exposure KPI deltas. | FIXED: arithmetic preserved; two new regression tests; full suite 139 passes. |
 | MEDIUM | dashboard/kpi_engine.py | Below-P95 flags called likely false positives and automatically de-prioritized. | Baseline comparison overstated as an outcome finding. | Replace with human-review context and no automatic clearance. | FIXED; existing 113/279 metric retained. |
-| LOW | dashboard/app.py; scripts/validate_risk_score.py | 17 pandas GroupBy.apply deprecation warnings. | Grouping columns implicitly passed to apply. | Use include_groups=False; callbacks do not depend on grouping key. | FIXED: 139 tests pass without those warnings. |
+| LOW | dashboard/app.py; scripts/validate_risk_score.py | 17 pandas GroupBy.apply deprecation warnings. | Grouping columns implicitly passed to apply. | Select Refund_Reason explicitly before apply; compatible with the existing pandas>=2.0 minimum. | FIXED: 139 tests pass without those warnings. |
 | LOW | dashboard/app.py | Monthly chart title says 2022–2024 although dataset spans February–April 2022. | Hardcoded date span. | Use observed-data title. | FIXED in source. |
 
 ## Data and metric verification
