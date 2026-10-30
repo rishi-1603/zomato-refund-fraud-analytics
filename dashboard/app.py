@@ -26,7 +26,6 @@ try:  # executed by Streamlit — the script dir is on sys.path
         compute_kpis,
         load_metric_definitions,
         volume_band,
-        what_changed,
     )
 except ImportError:  # imported as a module from the repo root (tests)
     from dashboard.kpi_engine import (  # noqa: E402
@@ -35,7 +34,6 @@ except ImportError:  # imported as a module from the repo root (tests)
         compute_kpis,
         load_metric_definitions,
         volume_band,
-        what_changed,
     )
 
 RISK_WEIGHTS = {
@@ -80,6 +78,8 @@ PLOTLY_LAYOUT = dict(
 def inject_css() -> None:
     st.markdown("""
 <style>
+/* White selected-tag text needs WCAG AA contrast on the blue background. */
+[data-tag], [data-baseweb="tag"] { background-color: #2563EB !important; }
 :root {
   --z-bg:#0A0F1E; --z-card:#141D31; --z-card2:#18233C; --z-border:#26375C; --z-border2:#334155;
   --z-text:#F1F5F9; --z-text2:#CBD5E1; --z-muted:#94A3B8;
@@ -470,9 +470,6 @@ def tab_overview(
     truth: pd.DataFrame | None = None,
     metric_defs: dict | None = None,
 ) -> None:
-    total_orders = len(orders)
-    refund_orders = int(orders["Refund_Requested"].sum())
-    refund_rate = refund_orders / total_orders * 100
     refund_amount = orders["Refund_Amount"].sum()
     flagged_exposure = suspects["Total_Refund_Amount"].sum()
     exposure_share = flagged_exposure / refund_amount * 100 if refund_amount else 0

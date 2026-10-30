@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'dashboard'))
-from kpi_engine import _mom, what_changed
+from kpi_engine import _mom
 
 
 def test_partial_month_is_disclosed_without_changing_arithmetic():

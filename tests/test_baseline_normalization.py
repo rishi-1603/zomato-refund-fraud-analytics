@@ -8,12 +8,11 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from baseline_normalization import build_baselines, BAND_LABELS  # noqa: E402
+from baseline_normalization import build_baselines  # noqa: E402
 
 REPORT = ROOT / "reports" / "baseline_normalization.md"
 

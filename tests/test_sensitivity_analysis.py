@@ -1,7 +1,6 @@
 """test_sensitivity_analysis.py — the score's stress test must be reproducible."""
 import subprocess, sys
 from pathlib import Path
-import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "reports" / "sensitivity_analysis.md"

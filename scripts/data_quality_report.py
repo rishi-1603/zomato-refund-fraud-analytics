@@ -35,7 +35,7 @@ def run_checks(df: pd.DataFrame, raw: pd.DataFrame) -> list[dict]:
     # Null analysis — separate structural nulls (expected) from data-quality nulls
     structural_nulls = df["Refund_Reason"].isna().sum()  # no refund -> no reason
     source_nulls = df.isna().sum().sum() - structural_nulls  # Kaggle dataset gaps
-    check("Completeness", f"Null values in source-data columns (Kaggle dataset gaps)",
+    check("Completeness", "Null values in source-data columns (Kaggle dataset gaps)",
           source_nulls, "Known (in source)", "Documented, not imputed",
           f"Original Kaggle dataset has {source_nulls:,} nulls across 8 optional columns "
           "(rider age 4.1%, ratings 4.2%, city 2.6%, etc.) — typical of public data")

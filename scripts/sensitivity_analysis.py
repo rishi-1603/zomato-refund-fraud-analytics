@@ -226,13 +226,13 @@ def main() -> None:
     print("A. Signal removal (tier changes):")
     for sig, r in removal_results.items():
         print(f"  Drop {sig:28} -> {r['changed']:3} change ({r['pct']:.1f}%)")
-    print(f"\nB. Alternative weights:")
+    print("\nB. Alternative weights:")
     for name, r in alt_results.items():
         print(f"  {name:38} -> {r['changed']:3} change, rho={r['corr']:.3f}")
-    print(f"\nC. Thresholds:")
+    print("\nC. Thresholds:")
     for name, r in thresh_results.items():
         print(f"  {name:25} -> {r['changed']:3} change ({r['pct']:.1f}%)")
-    print(f"\nD. Signal contribution:")
+    print("\nD. Signal contribution:")
     for sig, val in sorted(contrib.items(), key=lambda x: -x[1]):
         print(f"  {sig:28} -> disruption {val:.3f}")
     print(f"\nReport: {REPORT}")

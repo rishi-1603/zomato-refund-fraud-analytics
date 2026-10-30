@@ -1,7 +1,6 @@
 """test_false_positive_analysis.py — FP analysis must be reproducible & honest."""
 import subprocess, sys
 from pathlib import Path
-import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "reports" / "false_positive_analysis.md"

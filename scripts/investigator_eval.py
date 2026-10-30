@@ -34,7 +34,6 @@ import json
 import numpy as np
 import pandas as pd
 import random
-import re
 import sys
 random.seed(0)
 np.random.seed(0)

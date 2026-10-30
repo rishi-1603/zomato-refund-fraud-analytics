@@ -21,7 +21,6 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from alert_economics import (  # noqa: E402
     break_even_precision,
-    evaluate_policy,
     load_pool,
     run,
 )

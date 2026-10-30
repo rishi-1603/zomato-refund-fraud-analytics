@@ -44,7 +44,6 @@ from collections import defaultdict
 from pathlib import Path
 import json
 import numpy as np
-import os
 import pandas as pd
 import random
 import sys

@@ -122,7 +122,7 @@ def main() -> None:
         f"2. **The 50% line sits at {c['cover50'][1]:.1f}% of customers** — "
         f"in this dataset, the {c['cover50'][0]:,} highest-exposure customers "
         f"account for 50% of historical refund value.",
-        f"3. **Concentration ≠ guilt.** High refund value can have legitimate",
+        "3. **Concentration ≠ guilt.** High refund value can have legitimate",
         "   causes (high order volume, genuinely bad delivery experiences). "
         "Phases 2–4 of this program (baseline normalization, sensitivity, "
         "false-positive analysis) test exactly that before anyone acts on a flag.",

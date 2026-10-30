@@ -132,7 +132,7 @@ def main() -> None:
         "",
         "## Measured false-positive rate (ground truth)",
         "",
-        f"Of the **279 flagged customers**:",
+        "Of the **279 flagged customers**:",
         f"- **{n_tp}** are planted High-risk -> **true positives** ({n_tp/len(sus)*100:.1f}%)",
         f"- **{n_fp}** are planted Low-risk -> **false positives** ({n_fp/len(sus)*100:.1f}%)",
         f"- **{n_other}** are planted Medium-risk -> grey area (neither confirmed nor cleared)",

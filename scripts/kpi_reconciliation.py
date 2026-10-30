@@ -22,7 +22,6 @@ HONESTY RULES:
 Run:  python scripts/kpi_reconciliation.py
 Writes: reports/kpi_reconciliation.md
 """
-import sys
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -108,20 +107,6 @@ def main() -> None:
     sql["overall_refund_rate"] = (
         sql["total_refund_orders"] / sql["total_orders"] * 100
     )
-
-    # ── DASHBOARD VALUES (from the app's own computation) ──
-    # The dashboard loads the same CSV and computes the same aggregates.
-    # We verify by re-running the dashboard's concentration function.
-    sys.path.insert(0, str(ROOT / "dashboard"))
-    # can't import app.py directly (it's a Streamlit script), so we recompute
-    # the values the dashboard shows using the same logic
-    dash = {
-        "total_refund_amount": py["total_refund_amount"],  # same CSV, same sum
-        "flagged_customers": py["flagged_customers"],      # same suspects CSV
-        "flagged_exposure": py["flagged_exposure"],        # same sum
-        # dashboard-specific values are verified via browser tests
-        # (see dashboard screenshots — values confirmed in Phase 1 gate)
-    }
 
     # ── RECONCILIATION TABLE ──
     fmt = {
