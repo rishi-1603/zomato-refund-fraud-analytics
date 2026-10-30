@@ -21,3 +21,21 @@ def test_observed_complete_boundaries_do_not_claim_partial_month():
         ['2022-03-01', '2022-03-31', '2022-04-01', '2022-04-30']),
         'Refund_Requested': [False, True, False, True], 'Refund_Amount': [0, 10, 0, 5]})
     assert _mom(df)['partial_periods'] is False
+
+
+def test_overview_handles_cached_pre_publication_module(monkeypatch):
+    from streamlit.testing.v1 import AppTest
+    import kpi_engine
+    original = kpi_engine._mom
+
+    def previous_schema(orders):
+        value = original(orders)
+        value.pop("partial_periods", None)
+        value.pop("coverage_note", None)
+        return value
+
+    monkeypatch.setattr(kpi_engine, "_mom", previous_schema)
+    app_path = Path(__file__).resolve().parents[1] / "dashboard" / "app.py"
+    app = AppTest.from_file(str(app_path)).run(timeout=30)
+    assert not app.exception
+    assert any("Analytics modules are refreshing" in item.value for item in app.warning)

@@ -479,6 +479,12 @@ def tab_overview(
 
     kpis = compute_kpis(orders, suspects, truth)
     mom = kpis["mom"]
+    # Streamlit can retain imported modules during a rolling source refresh.
+    # Fail closed rather than crash or present an old, unqualified monthly trend.
+    if "partial_periods" not in mom:
+        st.warning("Analytics modules are refreshing. Please reload this page; "
+                   "if this persists, the app owner should reboot the Streamlit app.")
+        return
     if mom.get("partial_periods"):
         st.warning(mom["coverage_note"])
 

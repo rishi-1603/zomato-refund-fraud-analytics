@@ -9,9 +9,9 @@ No autonomous subagents were available. One assistant performed sequential data/
 ## Changes and issue register
 | Severity | File/screen | Evidence | Root cause | Repair | Verification |
 |---|---|---|---|---|---|
-| HIGH | dashboard/kpi_engine.py; dashboard/app.py | Live cards describe an 80% April decline although history stops on April 6. | Partial month compared with full prior month without coverage context. | Flag observed partial month boundaries, disclose unequal coverage, suppress partial-period order/exposure KPI deltas. | FIXED: arithmetic preserved; two new regression tests; full suite 138 passes. |
+| HIGH | dashboard/kpi_engine.py; dashboard/app.py | Live cards describe an 80% April decline although history stops on April 6. | Partial month compared with full prior month without coverage context. | Flag observed partial month boundaries, disclose unequal coverage, suppress partial-period order/exposure KPI deltas. | FIXED: arithmetic preserved; two new regression tests; full suite 139 passes. |
 | MEDIUM | dashboard/kpi_engine.py | Below-P95 flags called likely false positives and automatically de-prioritized. | Baseline comparison overstated as an outcome finding. | Replace with human-review context and no automatic clearance. | FIXED; existing 113/279 metric retained. |
-| LOW | dashboard/app.py; scripts/validate_risk_score.py | 17 pandas GroupBy.apply deprecation warnings. | Grouping columns implicitly passed to apply. | Use include_groups=False; callbacks do not depend on grouping key. | FIXED: 138 tests pass without those warnings. |
+| LOW | dashboard/app.py; scripts/validate_risk_score.py | 17 pandas GroupBy.apply deprecation warnings. | Grouping columns implicitly passed to apply. | Use include_groups=False; callbacks do not depend on grouping key. | FIXED: 139 tests pass without those warnings. |
 | LOW | dashboard/app.py | Monthly chart title says 2022–2024 although dataset spans February–April 2022. | Hardcoded date span. | Use observed-data title. | FIXED in source. |
 
 ## Data and metric verification
@@ -49,7 +49,7 @@ Production app woke successfully. Overview, Refund Patterns, Investigation and D
 | Accessibility | BLOCKED | No complete keyboard/screen-reader/contrast audit; viewport checks do not establish accessibility. |
 | Security | PARTIAL | Requirements scan and selected secret signatures only. |
 | Performance | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
-| Automated tests | PASS | 138 passed; see external final test log. |
+| Automated tests | PASS | 139 passed; see external final test log. |
 | Build and CI | PARTIAL | Local checks recorded; pushed-commit CI is verified separately in the delivery report. |
 | README and documentation | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
 | GitHub presentation | PARTIAL | Targeted evidence above; comprehensive requirement coverage not established. |
@@ -93,3 +93,7 @@ Recheck repaired partial-month messaging after Streamlit redeployment. Full Post
 
 ## Verdict
 **NOT READY for an unconditional all-features final-release claim.** Targeted source repairs pass their local acceptance tests. Publication as an analytics demonstration must retain the listed limitations; release completion depends on the pushed-commit CI and deployment follow-up.
+
+## Production follow-up
+
+The first post-push check reproduced an outdated imported KPI schema in the running Streamlit process (KeyError after the application source refreshed). A fail-closed compatibility guard now shows a refresh/reboot notice rather than rendering stale comparison advice or crashing. A local AppTest simulates the prior schema. A clean Streamlit reboot is required if the deployed module remains stale; full repaired deployment is not yet certified.

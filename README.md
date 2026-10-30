@@ -4,7 +4,7 @@
 
 [Dashboard URL (authentication may be required)](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Executive summary](reports/executive_summary.md) · [KPI reconciliation](reports/kpi_reconciliation.md) · [SQL queries](sql/fraud_queries.sql) · [Score validation](reports/score_validation.md) · [Model comparison](reports/model_comparison.md) · [Data dictionary](data/DATA_DICTIONARY.md) · [Tests](tests/) · [Release gates](docs/RELEASE_GATES.md)
 
-[![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml) ![Tests](https://img.shields.io/badge/tests-138%20passed-brightgreen)
+[![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml) ![Tests](https://img.shields.io/badge/tests-139%20passed-brightgreen)
 
 > ### 🧭 Recruiter & Interview Verification Hub (October 2026 Comprehensive Upgrade)
 > - **Direct Resume Evidence Index:** [RESUME_EVIDENCE.md](RESUME_EVIDENCE.md) *(Claims, definitions, reproduction commands, & test files)*
@@ -177,7 +177,7 @@ Notebook-only extras (Jupyter, plotting, and PostgreSQL drivers) are listed in c
 ├── evals/                # investigator benchmark cases
 ├── reports/              # KPI, model, error, network, economics, drift, and validation reports
 ├── docs/                 # methodology, governance, release gates, decision log
-└── tests/                 # 138 automated tests across the pipeline and analysis modules
+└── tests/                 # 139 automated tests across the pipeline and analysis modules
 ```
 
 ## Limitations and responsible-use boundary
@@ -191,7 +191,7 @@ Notebook-only extras (Jupyter, plotting, and PostgreSQL drivers) are listed in c
 - The drift monitor is tested on seeded data plus a separate public drift sample; it is not monitoring a live fraud system.
 - The investigator eval covers a small authored benchmark of deterministic tools; optional generative narration is not scored by that benchmark.
 
-For the governance checklist and evidence trail, see [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md) and [`reports/FINAL_RELEASE_REPORT.md`](reports/FINAL_RELEASE_REPORT.md). Every bug found during development is recorded with its fix and lesson in [`docs/ascension/DECISIONS.md`](docs/ascension/DECISIONS.md). Latest audited suite: **138 tests passed**; The current publication-audit test result is recorded in `docs/FINAL_RELEASE_AUDIT.md`; deployment verification is reported separately.
+For the governance checklist and evidence trail, see [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md) and [`reports/FINAL_RELEASE_REPORT.md`](reports/FINAL_RELEASE_REPORT.md). Every bug found during development is recorded with its fix and lesson in [`docs/ascension/DECISIONS.md`](docs/ascension/DECISIONS.md). Latest audited suite: **139 tests passed**; The current publication-audit test result is recorded in `docs/FINAL_RELEASE_AUDIT.md`; deployment verification is reported separately.
 
 ### Interpreting monthly changes
 
