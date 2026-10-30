@@ -116,6 +116,6 @@ Baseline main: `bedbd2e`. Recoverable branch: `audit/publication-review-2`. All 
 - Corrected stale test counts in `docs/RELEASE_GATES.md` and `docs/DEPLOYMENT_VERIFICATION.md` (136 -> 139).
 
 ### Blocked / manual action required
-- GitHub repository **homepage** field could not be set via API (HTTP 403). Set manually: Settings -> Homepage = the Streamlit app URL.
+- Repository homepage field: **set** via the GitHub API (HTTP 200) to the live app URL.
 - **Live app is not publicly reachable**: the Streamlit URL redirects (HTTP 303) to `share.streamlit.io/-/auth/app`. Make the app public in Streamlit Cloud settings.
 - Full PostgreSQL query library, exhaustive filter/export/provider paths, accessibility and load testing remain unverified.
