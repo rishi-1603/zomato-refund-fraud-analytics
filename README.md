@@ -191,7 +191,7 @@ Notebook-only extras (Jupyter, plotting, and PostgreSQL drivers) are listed in c
 - The drift monitor is tested on seeded data plus a separate public drift sample; it is not monitoring a live fraud system.
 - The investigator eval covers a small authored benchmark of deterministic tools; optional generative narration is not scored by that benchmark.
 
-For the governance checklist and evidence trail, see [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md) and [`reports/FINAL_RELEASE_REPORT.md`](reports/FINAL_RELEASE_REPORT.md). Every bug found during development is recorded with its fix and lesson in [`docs/ascension/DECISIONS.md`](docs/ascension/DECISIONS.md). Latest audited suite: **139 tests passed**; The current publication-audit test result is recorded in `docs/FINAL_RELEASE_AUDIT.md`; deployment verification is reported separately.
+For the governance checklist and evidence trail, see [`docs/RELEASE_GATES.md`](docs/RELEASE_GATES.md) and [`reports/FINAL_RELEASE_REPORT.md`](reports/FINAL_RELEASE_REPORT.md). Every bug found during development is recorded with its fix and lesson in [`docs/ascension/DECISIONS.md`](docs/ascension/DECISIONS.md). Latest audited suite: **139 tests passed** (2026-10-30). The publication-audit result is recorded in [`docs/FINAL_RELEASE_AUDIT.md`](docs/FINAL_RELEASE_AUDIT.md); deployment verification is reported separately.
 
 ### Interpreting monthly changes
 

@@ -99,3 +99,23 @@ Recheck repaired partial-month messaging after Streamlit redeployment. Full Post
 The first post-push check reproduced an outdated imported KPI schema in the running Streamlit process (KeyError after the application source refreshed). A fail-closed compatibility guard now shows a refresh/reboot notice rather than rendering stale comparison advice or crashing. A local AppTest simulates the prior schema. A clean Streamlit reboot is required if the deployed module remains stale; full repaired deployment is not yet certified.
 
 The follow-up repair reloads the stateless analytics module only when its result schema is stale, then recomputes KPIs and narration together. The simulated previous-schema AppTest now requires the correct partial-period warning, not merely absence of exceptions. A fail-closed warning remains only if reloading cannot supply the current schema.
+
+## 2026-10-30 Second-pass publication audit (independent)
+
+Baseline main: `bedbd2e`. Recoverable branch: `audit/publication-review-2`. All work on a branch; nothing pushed to `main` directly.
+
+### Verified in this pass
+- Dependency install from `requirements.txt`: exit 0.
+- Full automated suite executed on Python 3.13: **139 passed**.
+- Static fatal-error scan (`ruff check --select E9,F63,F7,F82`): **All checks passed**.
+- CI on the current `main` head: **success** (GitHub Actions API).
+- README internal links and local image paths: no missing targets.
+
+### Fixes applied
+- Fixed a grammar/casing error and unlinked path in `README.md`.
+- Corrected stale test counts in `docs/RELEASE_GATES.md` and `docs/DEPLOYMENT_VERIFICATION.md` (136 -> 139).
+
+### Blocked / manual action required
+- GitHub repository **homepage** field could not be set via API (HTTP 403). Set manually: Settings -> Homepage = the Streamlit app URL.
+- **Live app is not publicly reachable**: the Streamlit URL redirects (HTTP 303) to `share.streamlit.io/-/auth/app`. Make the app public in Streamlit Cloud settings.
+- Full PostgreSQL query library, exhaustive filter/export/provider paths, accessibility and load testing remain unverified.
