@@ -1,7 +1,7 @@
 # Assumptions & Limitations
 ### What this project can and cannot tell you
 
-> An interviewer WILL probe these. Answering first is the skill.
+> These assumptions define the scope of the analysis and the checks needed before operational use.
 
 ---
 

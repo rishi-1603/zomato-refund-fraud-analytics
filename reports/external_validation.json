@@ -66,12 +66,12 @@
   },
   "scope_of_validity": [
     {
-      "claim": "Traffic density drives delivery time",
+      "claim": "Delivery time varies across traffic categories",
       "world": "real-backed",
       "evidence": "median time monotonic across traffic levels: {'Low': 20.0, 'High': 27.0, 'Medium': 27.0, 'Jam': 31.0}"
     },
     {
-      "claim": "Weather condition drives delivery time",
+      "claim": "Delivery time varies across weather categories",
       "world": "real-backed",
       "evidence": "worst weather = Cloudy: {'Cloudy': 28.0, 'Fog': 28.0, 'Sandstorms': 26.0, 'Stormy': 26.0, 'Windy': 26.0, 'Sunny': 20.0}"
     },
@@ -81,7 +81,7 @@
       "evidence": "mean 4.634, 0.3% below 3.0"
     },
     {
-      "claim": "Fraud-ring network null result (U1)",
+      "claim": "Shared-attribute network test",
       "world": "real-backed",
       "evidence": "built on shared delivery-person / restaurant / drop-cell attributes \u2014 real columns"
     },
@@ -93,7 +93,7 @@
     {
       "claim": "Drift tripwire detects real drift",
       "world": "real-backed",
-      "evidence": "PSI 11.8773 on real airline data \u2192 grade significant"
+      "evidence": "PSI 11.8773 on real airline data -> grade significant"
     }
   ]
 }

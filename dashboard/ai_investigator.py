@@ -1,9 +1,10 @@
 """
 ai_investigator.py — evidence-grounded AI investigation assistant
 ==================================================================
-Tool-calling layer: the LLM can query the risk engine, refund history,
-and baseline comparison for any customer. The LLM NEVER computes numbers —
-every value comes from these deterministic tools.
+Three deterministic functions collect the risk signals, refund history and
+volume-band comparison. Optional provider narration receives that evidence
+package. Its instructions require grounded figures; unrestricted narration
+is not covered by the deterministic benchmark.
 
 GUARDRAILS (enforced in the system prompt):
     - Risk score ≠ proof of fraud
@@ -188,7 +189,7 @@ STRUCTURE your response as:
 ## Important Caveats
 [Risk score ≠ fraud, synthetic data, missing information]
 
-Use these tool functions to get the data before answering. Call ALL three tools for a complete picture."""
+The supplied evidence package contains results from all three tool functions. Use only that evidence. If a needed value is missing, say so; do not claim to have queried additional sources."""
 
 
 def investigate(customer_id: str) -> dict:

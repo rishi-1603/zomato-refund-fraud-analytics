@@ -50,11 +50,11 @@ Synthetic data: this report reflects a generated dataset, not real financial res
 | 75% | Rs.250 | tier_high_plus_medium | Rs.153,263 |
 | 75% | Rs.400 | tier_high_plus_medium | Rs.136,013 |
 
-## How to defend this in an interview
+## Using these results
 
-1. **Alerts are decisions, not scores.** This prices the decision.
-2. **Break-even precision is the single number** an ops team needs: it converts
-   an ML metric into a budget rule.
-3. **Sensitivity shows the recommendation is structural**, not an artifact of one guess.
-4. **The negative-space is honest**: at high review costs even a good score
-   stops paying — that trade-off is exactly what this tool surfaces.
+1. Compare review policies using the same cost and recovery assumptions.
+2. Break-even precision provides a budget reference under the stated assumptions;
+   it is not a calibrated fraud probability.
+3. Check the sensitivity grid before choosing a policy. The result depends on the scenario.
+4. If review costs exceed modeled recoveries, reducing or stopping reviews may be preferable.
+   The recommended label compares the three tier policies, not every possible alert budget.

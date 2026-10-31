@@ -86,7 +86,7 @@ The weekly PSI monitor reports the seeded stream as stable. Its tripwire is test
 
 The investigation assistant retrieves evidence through deterministic tools. A small authored benchmark passed **6/6 grounded cases and 6/6 refusals**, with no fabricated numbers in those cases. Optional LLM narration is outside that evaluation.
 
-The audited regression suite contains **141 tests**. The [publication audit](docs/FINAL_RELEASE_AUDIT.md) records what was executed and what remains unverified, including exhaustive filters, exports, AI-provider paths, accessibility and load testing.
+The audited regression suite contains **142 tests**. The [publication audit](docs/FINAL_RELEASE_AUDIT.md) records what was executed and what remains unverified, including exhaustive filters, exports, AI-provider paths, accessibility and load testing.
 
 [KPI reconciliation](reports/kpi_reconciliation.md) · [Drift monitor](reports/drift_monitor.md) · [Evidence-tool evaluation](reports/investigator_eval.md) · [Provenance and external validation](reports/external_validation.md)
 

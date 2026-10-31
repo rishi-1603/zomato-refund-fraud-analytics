@@ -71,8 +71,8 @@ def real_findings(df: pd.DataFrame) -> dict:
     return {
         "median_time_by_traffic_min": {k: float(v) for k, v in traffic_order.items()},
         "traffic_time_monotonic": bool(
-            list(traffic_order.index) == sorted(traffic_order.index,
-                                                key=lambda t: traffic_order[t])),
+            traffic_order.reindex(["Low", "Medium", "High", "Jam"]).notna().all()
+            and traffic_order.reindex(["Low", "Medium", "High", "Jam"]).is_monotonic_increasing),
         "median_time_by_weather_min": {k: float(v) for k, v in weather.items()},
         "worst_weather": str(weather.index[0]),
         "ratings_mean": round(float(ratings.mean()), 3),
@@ -112,16 +112,16 @@ def run() -> dict:
     drift = external_drift_validation()
 
     verdicts = [
-        {"claim": "Traffic density drives delivery time",
+        {"claim": "Delivery time varies across traffic categories",
          "world": "real-backed",
          "evidence": f"median time monotonic across traffic levels: {findings['median_time_by_traffic_min']}"},
-        {"claim": "Weather condition drives delivery time",
+        {"claim": "Delivery time varies across weather categories",
          "world": "real-backed",
          "evidence": f"worst weather = {findings['worst_weather']}: {findings['median_time_by_weather_min']}"},
         {"claim": "Delivery ratings distribution",
          "world": "real-backed",
          "evidence": f"mean {findings['ratings_mean']}, {findings['ratings_below_3_share']:.1%} below 3.0"},
-        {"claim": "Fraud-ring network null result (U1)",
+        {"claim": "Shared-attribute network test",
          "world": "real-backed",
          "evidence": "built on shared delivery-person / restaurant / drop-cell attributes — real columns"},
         {"claim": "Risk score, alert economics, break-even precision",
@@ -199,13 +199,13 @@ def render_md(r: dict) -> str:
         lines.append(f"| {v['claim']} | **{v['world']}** | {v['evidence']} |")
     lines += [
         "",
-        "## How to defend this in an interview",
+        "## Interpretation",
         "",
-        "1. **'How much is real?' gets a table** — 80% of the schema is the real",
-        "   public dataset; the refund layer is labelled synthetic everywhere.",
-        "2. **Ops findings (traffic, weather, ratings) survive without the synthetic layer.**",
-        "3. **The fraud economics are sold as method demonstrations**, not as facts",
-        "   about real fraud — that honesty is the credibility.",
+        "1. Twenty of the 24 columns come from the public delivery dataset;",
+        "   the four generated customer/refund columns are identified separately.",
+        "2. Traffic, weather and ratings summaries use the original columns. These are descriptive associations.",
+        "3. Refund-policy economics demonstrate a method under synthetic labels and assumed costs,",
+        "   not measured financial impact or confirmed fraud.",
         "",
     ]
     return "\n".join(lines)

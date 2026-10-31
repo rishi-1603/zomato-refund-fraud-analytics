@@ -64,3 +64,17 @@ def test_committed_external_copy_exists():
     fl = ROOT / "data" / "external" / "flights.csv"
     assert fl.exists()
     assert len(fl.read_text(encoding="utf-8").strip().splitlines()) == 145  # header + 144 months
+
+
+def test_traffic_order_check_rejects_reversed_pattern():
+    import sys
+    import pandas as pd
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from external_validation import real_findings
+    sample = pd.DataFrame({
+        "Road_traffic_density": ["Low", "Medium", "High", "Jam"],
+        "Time_taken (min)": [40, 30, 20, 10],
+        "Weather_conditions": ["Sunny"] * 4,
+        "Delivery_person_Ratings": [4.5] * 4,
+    })
+    assert real_findings(sample)["traffic_time_monotonic"] is False

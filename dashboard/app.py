@@ -267,7 +267,7 @@ def app_header(orders: pd.DataFrame) -> None:
     <div class="ah-mark">ZR</div>
     <div>
       <div class="ah-title">Refund Fraud Analytics</div>
-      <div class="ah-sub">A tool for finding and reviewing suspicious refunds — every number comes straight from the data</div>
+      <div class="ah-sub">Refund patterns, customer comparisons and evidence for human review</div>
     </div>
   </div>
   <div class="ah-right">
@@ -952,9 +952,9 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     # ---- AI Investigation Assistant (tool calling + evidence grounding) ----
     st.subheader("AI Investigation Assistant")
     st.caption(
-        "Ask the AI about a customer. It looks up real numbers from the data and explains "
-        "what they mean. It never makes up figures, and it can't accuse anyone — "
-        "a flag only means 'look closer'."
+        "Retrieve a customer's risk signals, refund history and volume-band comparison. "
+        "The numeric evidence is computed by the tools; optional AI narration needs review. "
+        "A flag is not a fraud determination."
     )
     inv_customer = st.selectbox(
         "Select customer to investigate",

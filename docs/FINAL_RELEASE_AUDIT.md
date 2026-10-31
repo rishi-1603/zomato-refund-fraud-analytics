@@ -60,3 +60,9 @@ Refund-risk review case study emphasizing SQL/Python KPI parity, customer-volume
 - Why do partial months distort volume comparisons?
 - What changes the alert-policy recommendation?
 - What does p=0.76 establish—and not establish?
+
+## Language and claim-scope review — 2026-10-31
+
+Replaced promotional report endings with analytical interpretation and clarified the scope of provider narration. Corrected causal wording about traffic/weather. Repaired the traffic-order check so a reversed pattern fails; the current observed values are unchanged. Full suite: 142 tests.
+
+Numerical findings were not increased or relabelled as real-world outcomes. Synthetic-data, AI-use, evaluation-scope and deployment limitations remain explicit.
