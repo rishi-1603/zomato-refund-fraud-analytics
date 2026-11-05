@@ -94,3 +94,31 @@ class TestEvidenceConsistency:
         ]["Refund_Amount"].sum()
         h = get_refund_history("CUST07704")
         assert h["total_refund_amount"] == expected
+
+
+def test_provider_failure_does_not_expose_exception_or_credentials(monkeypatch):
+    import dashboard.ai_investigator as inv
+    monkeypatch.delenv('GOOGLE_API_KEY', raising=False)
+    monkeypatch.setenv('OPENAI_API_KEY', 'test-key-never-render')
+    monkeypatch.setattr(inv, 'investigate', lambda _: {'risk': {'risk_score': 1}, 'history': {}, 'baseline': {}})
+    def fail(*_args):
+        raise RuntimeError('PRIVATE_PROVIDER_ERROR test-key-never-render')
+    monkeypatch.setattr(inv, '_investigate_with_openai', fail)
+    result = inv.investigate_with_llm('CUST00001')
+    assert result['ok'] and result['explanation'] is None
+    assert 'PRIVATE_PROVIDER_ERROR' not in str(result)
+    assert 'test-key-never-render' not in str(result)
+    assert result.get('llm_error')
+
+
+def test_gemini_failure_does_not_expose_exception_or_credentials(monkeypatch):
+    import dashboard.ai_investigator as inv
+    monkeypatch.delenv('OPENAI_API_KEY', raising=False)
+    monkeypatch.setenv('GOOGLE_API_KEY', 'test-google-key-not-real')
+    monkeypatch.setattr(inv, 'investigate', lambda _: {'risk': {'risk_score': 1}, 'history': {}, 'baseline': {}})
+    def fail(*_args):
+        raise RuntimeError('PRIVATE_GEMINI_ERROR test-google-key-not-real')
+    monkeypatch.setattr(inv, '_investigate_with_gemini', fail)
+    result = inv.investigate_with_llm('CUST00001')
+    assert result['ok'] and result['explanation'] is None
+    assert 'PRIVATE_GEMINI_ERROR' not in str(result) and 'test-google-key-not-real' not in str(result)

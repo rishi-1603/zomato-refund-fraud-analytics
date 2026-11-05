@@ -1,45 +1,13 @@
-# Fraud & Operations Investigator Case Workflow
-**Role:** Senior Risk Operations Specialist / Fraud Triage Investigator  
-**Interface:** Streamlit Triage Console & Case Management System
+# Investigator case workflow
 
----
+This is a **synthetic-data investigation demonstration**, not evidence of fraud or an official Zomato case-management process. The current application does not provide persistent case management, an OTP workflow, verified GPS arrival or account restrictions.
 
-## 1. Case Header & Profile Snapshot
-- **Case ID:** `CASE-2026-0942`
-- **Customer ID:** `CUST_7841`
-- **Account Age:** 142 Days
-- **Total Orders Placed:** 54 Orders (Top 5% Order Volume Decile)
-- **Refunds Requested:** 16 Orders (29.6% Refund Rate)
-- **Total Refund Exposure:** Rs. 4,820.00
+## Review a flagged customer
 
----
+1. Apply the dashboard's city/volume and investigation filters. The review queue selects customers; their risk scores, exposure and order counts are computed from the full committed order history. Last-order-date filtering is not an order-level time-period filter.
+2. Inspect the customer's reported refund counts, repeated reasons and volume-band comparison. The score is an uncalibrated, pool-relative review signal; a flag is **not confirmed fraud**. Being inside a P95 band does not establish an error or clear a customer.
+3. Use the deterministic evidence tools in `dashboard/ai_investigator.py` for the supported customer lookup. Optional provider narration is separate, can be wrong and is not validated by the authored deterministic benchmark.
+4. Record a proposed review policy in **Decision & Value**. Specify capacity, an assumed review cost and an assumed recoverable share of historical exposure. The modeled net is an illustrative scenario, not realized savings or evidence that an individual refund was inappropriate.
+5. Download the aggregate JSON decision record and, if needed, the synthetic customer queue CSV. Data is not saved to a server. The optional follow-up note is user-entered and unverified. Do not enter real personal or sensitive data.
 
-## 2. Multi-Signal Evidence Summary
-1. **Volume-Band Benchmark:** For customer volume band (50-60 orders), 95th percentile refund rate is **12.5%**. Customer's rate (29.6%) exceeds baseline by **2.37x**.
-2. **Refund Reason Distribution:**
-   - "Missing Item": 11 claims (68.8%)
-   - "Quality / Cold Food": 4 claims (25.0%)
-   - "Late Delivery": 1 claim (6.2%)
-3. **Restaurant Diversity:** Refunds requested across 9 distinct restaurant partners (rules out single-vendor packaging issue).
-4. **Delivery Partner Verification:** 14 of 16 delivery trips confirmed on-time GPS arrival.
-
----
-
-## 3. Human Review Decision Workflow
-
-```
-                        [Investigator Review]
-                                  │
-         ┌────────────────────────┼────────────────────────┐
-         ▼                        ▼                        ▼
-  [Approve Claims]        [Require OTP Verification] [Account Restrictions]
-- Verified vendor issue  - Two-factor photo/OTP     - Freeze refund claims
-- Clear account flag     - Monitor next 5 orders     - Escalate to legal/risk
-```
-
----
-
-## 4. Case Audit Fields
-- **Review Decision:** `REQUIRE_OTP_VERIFICATION`
-- **Confidence Rating:** 4 / 5 (High)
-- **Investigator Notes:** Frequent "missing item" claims concentrated on high-value side dishes across multiple reliable restaurants. Require customer photo confirmation upon delivery.
+Before any real operational action, an organization would need verified evidence, a defined review process, governed data, appropriate privacy controls and evaluation of customer harm. This demo does not automate account actions or establish financial losses prevented.

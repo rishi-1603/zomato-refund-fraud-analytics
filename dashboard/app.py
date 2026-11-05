@@ -836,7 +836,7 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
         b1.metric("Flagged above band baseline", f"{len(_above):,}",
                    f"{len(_above)/len(_flagged)*100:.0f}% of flagged")
         b2.metric("Flagged but within band norms", f"{len(_below):,}",
-                  f"{len(_below)/len(_flagged)*100:.0f}% — false-positive candidates",
+                  f"{len(_below)/len(_flagged)*100:.0f}% — review context, not an error label",
                   delta_color="inverse")
         b3.metric("Above baseline (all customers)", f"{int(_cust['above_baseline'].sum()):,}")
 
@@ -953,7 +953,7 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     st.subheader("AI Investigation Assistant")
     st.caption(
         "Retrieve a customer's risk signals, refund history and volume-band comparison. "
-        "The numeric evidence is computed by the tools; optional AI narration needs review. "
+        "The numeric evidence is computed by the tools; optional AI narration is not validated and needs human review. "
         "A flag is not a fraud determination."
     )
     inv_customer = st.selectbox(
@@ -994,6 +994,8 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
                     st.markdown("#### AI Investigation Summary")
                     st.markdown(explanation)
                 else:
+                    if result.get("llm_error"):
+                        st.warning("Optional AI narration unavailable; deterministic evidence remains available.")
                     if result.get("note"):
                         st.info("No AI key set — showing the raw numbers only. "
                                "Set OPENAI_API_KEY or GOOGLE_API_KEY to get the AI-written summary.")
@@ -1004,8 +1006,8 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
                     st.json(ev["baseline"], expanded=False)
         except ImportError:
             st.info("AI investigation module not available.")
-        except Exception as e:
-            st.error(f"Investigation error: {str(e)}")
+        except Exception:
+            st.error("Investigation could not complete. Review the data and try again.")
 
     st.subheader("Explain a flag")
     customer_options = filtered["Customer_ID"].tolist()
@@ -1147,6 +1149,76 @@ def tab_operations(orders: pd.DataFrame) -> None:
 # MAIN
 # ════════════════════════════════════════════════════════════════════════════
 
+
+def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
+    """Capacity and assumed-cost scenario on the already-filtered eligible queue."""
+    import json
+    try:
+        from decision_engine import plan_reviews
+    except ImportError:
+        from dashboard.decision_engine import plan_reviews
+
+    st.subheader("Decision & value — review capacity")
+    st.caption("Select cases from the filtered eligible queue. Customer scores and exposures use full source history; date filtering is on last order, not transaction dates.")
+    try:
+        scope, _ = plan_reviews(filtered, capacity=0, review_cost=0, recoverable_fraction=0, filter_context=filter_context)
+    except ValueError as error:
+        st.warning("Decision planning is blocked: " + str(error))
+        st.session_state.pop("refund_decision_record", None)
+        st.session_state.pop("refund_decision_queue", None)
+        return
+    scope_id = scope['scope']['scope_id']
+    signature = scope_id + ':' + json.dumps(filter_context, sort_keys=True)
+    if st.session_state.get("refund_decision_scope") != signature:
+        st.session_state["refund_decision_scope"] = signature
+        st.session_state.pop("refund_decision_record", None)
+        st.session_state.pop("refund_decision_queue", None)
+    st.metric("Eligible customers in current queue", len(filtered))
+    with st.form("refund_decision_form"):
+        c1, c2, c3 = st.columns(3)
+        capacity = c1.number_input("Investigation capacity (customers)", min_value=0, max_value=1000000, value=50, step=1, key="refund_dec_capacity")
+        review_cost = c2.number_input("Assumed review cost per customer (₹)", min_value=0.0, max_value=10000000.0, value=250.0, step=50.0, key="refund_dec_cost")
+        recovery_pct = c3.number_input("Assumed recoverable exposure (%)", min_value=0.0, max_value=100.0, value=10.0, step=1.0, key="refund_dec_recovery")
+        action = st.text_input("Proposed action", value="Review cases with human oversight", max_chars=500, key="refund_dec_action")
+        metric = st.text_input("Follow-up KPI", value="Verified review outcomes and customer friction", max_chars=500, key="refund_dec_metric")
+        follow_up = st.text_input("Validation plan", value="Compare reviewed outcomes with a documented baseline", max_chars=500, key="refund_dec_follow")
+        status = st.selectbox("Decision status", ["proposed", "approved", "deferred"], key="refund_dec_status")
+        observed = st.text_input("Optional observed follow-up note (user-entered, unverified)", max_chars=500, key="refund_dec_observed")
+        submit = st.form_submit_button("Build review decision", type="primary")
+    if submit:
+        try:
+            record, queue = plan_reviews(filtered, capacity, review_cost, recovery_pct / 100,
+                                          action=action, success_metric=metric, follow_up=follow_up,
+                                          observed_note=observed, status=status, filter_context=filter_context)
+            st.session_state["refund_decision_record"] = record
+            st.session_state["refund_decision_queue"] = queue
+        except ValueError as error:
+            st.session_state.pop("refund_decision_record", None)
+            st.session_state.pop("refund_decision_queue", None)
+            st.error(str(error))
+    record = st.session_state.get("refund_decision_record")
+    if record is None:
+        st.info("Build a snapshot; it is not stored on a server. Download the files to keep it.")
+        return
+    st.caption("Snapshot reflects the submitted assumptions. Changing the filtered queue clears it. User-entered follow-up is unverified.")
+    c1, c2 = st.columns(2)
+    c1.metric("Selected for review", record['scope']['selected_customers'])
+    c2.metric("Selected historical refund exposure", f"₹{record['evidence']['selected_historical_exposure_inr']:,.2f}")
+    st.caption("Selected queue count, refund count and historical exposure: SQLite/pandas reconciliation PASS. Assumed recovery and costs are not validated by that check.")
+    scenarios = pd.DataFrame([{'scenario': name, **record['scenarios'][name]} for name in ('low', 'base', 'high')])
+    st.dataframe(scenarios, hide_index=True, width="stretch")
+    threshold = record['scenarios']['break_even_recovery_fraction']
+    st.caption("Break-even assumed recoverable share: " + (f"{threshold:.1%}" if threshold is not None else "not available: selected exposure is zero"))
+    st.warning("Modeled net = selected historical exposure × assumed recoverable share − review cost. This is not realized savings, a fraud probability or a confirmed fraud determination. Low/base/high use 0.5×/1×/1.5× the assumed share, capped at 100%.")
+    st.dataframe(st.session_state["refund_decision_queue"], hide_index=True, width="stretch")
+    b1, b2 = st.columns(2)
+    b1.download_button("Download decision record (JSON)", json.dumps(record, indent=2, allow_nan=False).encode('utf-8'),
+                       f"refund_decision_{scope_id[:8]}.json", "application/json", key="refund_download_record")
+    b2.download_button("Download review queue (CSV)", st.session_state["refund_decision_queue"].to_csv(index=False).encode('utf-8'),
+                       f"refund_queue_{scope_id[:8]}.csv", "text/csv", key="refund_download_queue")
+    st.caption("The JSON is an aggregate snapshot; the queue CSV includes synthetic customer IDs. Use no sensitive notes. Neither file is server-side case management.")
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Zomato Refund Fraud Analytics",
@@ -1254,8 +1326,8 @@ def main() -> None:
         app_footer()
         return
 
-    tab1, tab2, tab3, tab4 = st.tabs(
-        ["Overview", "Refund Patterns", "Investigation", "Delivery Context"]
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+        ["Overview", "Refund Patterns", "Investigation", "Delivery Context", "Decision & Value"]
     )
     with tab1:
         tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
@@ -1265,6 +1337,12 @@ def main() -> None:
         tab_customer_risk(filtered, suspects)
     with tab4:
         tab_operations(orders_f)
+    with tab5:
+        selected_dates = ([str(date_range[0]), str(date_range[1])]
+                          if isinstance(date_range, tuple) and len(date_range) == 2 else None)
+        filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
+                          "risk_tiers": risk_tiers, "last_order_date_range": selected_dates}
+        tab_decision_value(filtered, filter_context)
 
     app_footer()
 

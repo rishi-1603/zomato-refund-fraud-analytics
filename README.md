@@ -71,12 +71,19 @@ The order history ends on **6 April 2022**. Comparing April's total with March's
 - **Refund Patterns:** reasons, concentration and customer-level patterns.
 - **Investigation:** score components, volume-band context and customer evidence.
 - **Delivery Context:** traffic, weather and other delivery attributes.
+- **Decision & Value:** capacity-constrained review queue and assumption-driven cost/recovery scenarios, with a downloadable decision snapshot.
 
 Use the city and customer-volume controls to explore a narrower population. Investigation filters apply to the review queue. A flag means review the evidence, not deny a refund or restrict an account.
 
 The dashboard may need waking after Streamlit inactivity. A [local-demo guide](docs/DEMO_FALLBACK_GUIDE.md) is included if the hosted app is unavailable.
 
 ![Customer investigation view](docs/screenshots/publication_investigation.png)
+
+### Decision record and scenario limits
+
+A user can choose review capacity and explicit cost/recovery assumptions, inspect low/base/high modeled outcomes and export an aggregate JSON decision record or synthetic-ID queue CSV. The current queue is filtered by customer attributes; scores and exposure remain full-history aggregates. Outcomes are optional user-entered notes, not verified savings or a persistent case-management system.
+
+[Decision workflow, formulas and limitations](docs/BUSINESS_VALUE_DECISION_ENGINE.md)
 
 ## Checks behind the analysis
 
@@ -86,7 +93,7 @@ The weekly PSI monitor reports the seeded stream as stable. Its tripwire is test
 
 The investigation assistant retrieves evidence through deterministic tools. A small authored benchmark passed **6/6 grounded cases and 6/6 refusals**, with no fabricated numbers in those cases. Optional LLM narration is outside that evaluation.
 
-The audited regression suite contains **142 tests**. The [publication audit](docs/FINAL_RELEASE_AUDIT.md) records what was executed and what remains unverified, including exhaustive filters, exports, AI-provider paths, accessibility and load testing.
+The regression suite covers analytical and application behavior. The [publication audit](docs/FINAL_RELEASE_AUDIT.md) records what was executed and what remains unverified, including exhaustive filters, exports, AI-provider paths, accessibility and load testing.
 
 [KPI reconciliation](reports/kpi_reconciliation.md) · [Drift monitor](reports/drift_monitor.md) · [Evidence-tool evaluation](reports/investigator_eval.md) · [Provenance and external validation](reports/external_validation.md)
 

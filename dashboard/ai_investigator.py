@@ -104,7 +104,7 @@ def get_baseline_comparison(customer_id: str) -> dict:
             "ABOVE baseline: refund rate is unusual for their order volume"
             if r["above_baseline"]
             else "WITHIN baseline: refund rate is high in absolute terms but "
-                 "not unusual for their order volume (false-positive candidate)"
+                 "not unusual for their order volume; this is not a confirmed false-positive label"
         ),
     }
 
@@ -213,9 +213,9 @@ def investigate_with_llm(customer_id: str) -> dict:
         if google_key:
             try:
                 return _investigate_with_gemini(customer_id, evidence, google_key)
-            except Exception as e:
+            except Exception:
                 return {"ok": True, "evidence": evidence,
-                        "explanation": None, "llm_error": str(e)}
+                        "explanation": None, "llm_error": "Optional narration unavailable; showing deterministic evidence."}
 
     if not api_key:
         return {"ok": True, "evidence": evidence, "explanation": None,
@@ -223,9 +223,9 @@ def investigate_with_llm(customer_id: str) -> dict:
 
     try:
         return _investigate_with_openai(customer_id, evidence, api_key)
-    except Exception as e:
+    except Exception:
         return {"ok": True, "evidence": evidence, "explanation": None,
-                "llm_error": str(e)}
+                "llm_error": "Optional narration unavailable; showing deterministic evidence."}
 
 
 def _investigate_with_openai(customer_id, evidence, api_key):
