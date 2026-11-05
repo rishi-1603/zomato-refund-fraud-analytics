@@ -81,7 +81,7 @@ The dashboard may need waking after Streamlit inactivity. A [local-demo guide](d
 
 ### Decision record and scenario limits
 
-A user can choose review capacity and explicit cost/recovery assumptions, inspect low/base/high modeled outcomes and export an aggregate JSON decision record or synthetic-ID queue CSV. The current queue is filtered by customer attributes; scores and exposure remain full-history aggregates. Outcomes are optional user-entered notes, not verified savings or a persistent case-management system.
+A user can choose review capacity and explicit cost/recovery assumptions, inspect low/base/high modeled outcomes, ask bounded deterministic queue questions and export a decision record, history or synthetic-ID queue CSV. The current queue is filtered by customer attributes; scores and exposure remain full-history aggregates. User-managed history can be downloaded and re-imported; follow-up values are user-entered and unverified, not verified savings or server-side case management.
 
 [Decision workflow, formulas and limitations](docs/BUSINESS_VALUE_DECISION_ENGINE.md)
 

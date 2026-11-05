@@ -1155,8 +1155,10 @@ def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
     import json
     try:
         from decision_engine import plan_reviews
+        from decision_history import render_history
     except ImportError:
         from dashboard.decision_engine import plan_reviews
+        from dashboard.decision_history import render_history
 
     st.subheader("Decision & value — review capacity")
     st.caption("Select cases from the filtered eligible queue. Customer scores and exposures use full source history; date filtering is on last order, not transaction dates.")
@@ -1173,7 +1175,27 @@ def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
         st.session_state["refund_decision_scope"] = signature
         st.session_state.pop("refund_decision_record", None)
         st.session_state.pop("refund_decision_queue", None)
+        st.session_state.pop("refund_copilot_answer", None)
     st.metric("Eligible customers in current queue", len(filtered))
+    with st.expander("Ask the selected queue (deterministic)"):
+        st.caption("Try: How many flagged customers? or What is the refund rate for CUST07704? One supported metric at a time; no LLM or external provider is used.")
+        with st.form("refund_copilot_form"):
+            question = st.text_input("Queue question", max_chars=300, key="refund_copilot_question")
+            asked = st.form_submit_button("Calculate queue answer")
+        if asked:
+            try:
+                from decision_copilot import ask
+            except ImportError:
+                from dashboard.decision_copilot import ask
+            st.session_state["refund_copilot_answer"] = ask(filtered, question)
+        answer = st.session_state.get("refund_copilot_answer")
+        if answer:
+            if answer['ok']:
+                st.success(f"{answer['value']:,.2f} {answer['unit']}")
+                st.caption(f"Formula: {answer['formula']} · Scope: {answer['scope_customers']} customers · Sources: {', '.join(answer['source_columns'])} · SQLite/pandas queue check: {answer['reconciliation']}.")
+                st.caption(answer['warnings'][0])
+            else:
+                st.info(answer['text'])
     with st.form("refund_decision_form"):
         c1, c2, c3 = st.columns(3)
         capacity = c1.number_input("Investigation capacity (customers)", min_value=0, max_value=1000000, value=50, step=1, key="refund_dec_capacity")
@@ -1199,6 +1221,7 @@ def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
     record = st.session_state.get("refund_decision_record")
     if record is None:
         st.info("Build a snapshot; it is not stored on a server. Download the files to keep it.")
+        render_history("refund_risk", None, "refund")
         return
     st.caption("Snapshot reflects the submitted assumptions. Changing the filtered queue clears it. User-entered follow-up is unverified.")
     c1, c2 = st.columns(2)
@@ -1217,6 +1240,7 @@ def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
     b2.download_button("Download review queue (CSV)", st.session_state["refund_decision_queue"].to_csv(index=False).encode('utf-8'),
                        f"refund_queue_{scope_id[:8]}.csv", "text/csv", key="refund_download_queue")
     st.caption("The JSON is an aggregate snapshot; the queue CSV includes synthetic customer IDs. Use no sensitive notes. Neither file is server-side case management.")
+    render_history("refund_risk", record, "refund")
 
 
 def main() -> None:
