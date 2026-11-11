@@ -1,0 +1,160 @@
+{
+ "exceptions": [],
+ "errors": [],
+ "tabs": [
+  "Overview",
+  "Refund Patterns",
+  "Investigation",
+  "Delivery Context",
+  "Decision & Value"
+ ],
+ "metrics": [
+  [
+   "Delivery orders",
+   "45,584"
+  ],
+  [
+   "Refund rate",
+   "7.9%"
+  ],
+  [
+   "Refund exposure",
+   "₹974,344"
+  ],
+  [
+   "Flagged customers",
+   "279"
+  ],
+  [
+   "High-tier flags",
+   "8"
+  ],
+  [
+   "Below-baseline flags",
+   "113"
+  ],
+  [
+   "Total refund exposure",
+   "₹974,344"
+  ],
+  [
+   "Customers",
+   "9,895"
+  ],
+  [
+   "Top 10% hold",
+   "75.6% of exposure"
+  ],
+  [
+   "Half of exposure",
+   "top 292 customers"
+  ],
+  [
+   "Avg refund amount",
+   "₹271"
+  ],
+  [
+   "Largest refund",
+   "₹800"
+  ],
+  [
+   "Refunds per month",
+   "100"
+  ],
+  [
+   "Repeat same reason (≥50%)",
+   "89.2%"
+  ],
+  [
+   "Median reason-repetition",
+   "60%"
+  ],
+  [
+   "Median refund velocity",
+   "0.14/day"
+  ],
+  [
+   "Flagged accounts",
+   "279"
+  ],
+  [
+   "Total refund exposure",
+   "₹377,892"
+  ],
+  [
+   "Avg risk score",
+   "35.2"
+  ],
+  [
+   "High risk tier",
+   "8"
+  ],
+  [
+   "Flagged above band baseline",
+   "166"
+  ],
+  [
+   "Flagged but within band norms",
+   "113"
+  ],
+  [
+   "Above baseline (all customers)",
+   "400"
+  ],
+  [
+   "Avg delivery time",
+   "26.3 min"
+  ],
+  [
+   "Median delivery time",
+   "26 min"
+  ],
+  [
+   "Avg rider rating",
+   "4.63 / 5"
+  ],
+  [
+   "Slowest deliveries (90th pct)",
+   "40 min"
+  ],
+  [
+   "Eligible customers in current queue",
+   "279"
+  ]
+ ],
+ "subheaders": [
+  "What changed?",
+  "Top suspects — investigation queue",
+  "Where the refund money concentrates",
+  "Patterns among flagged customers",
+  "Refund rate by operating conditions",
+  "Is the refund rate abnormal for the customer's order volume?",
+  "Flagged customers — review list",
+  "AI Investigation Assistant",
+  "Explain a flag",
+  "Decision & value — review capacity",
+  "Decision history & follow-up"
+ ],
+ "sidebar_widgets": [
+  "SpecialBlock:",
+  "Markdown:",
+  "Markdown:",
+  "Multiselect:City type",
+  "Multiselect:Customer volume band",
+  "Markdown:",
+  "DateInput:Last order date range",
+  "Multiselect:Risk tier",
+  "Markdown:",
+  "Button:↺ Reset all filters",
+  "Expander:📖 Methodology & how to read this",
+  "Markdown:"
+ ],
+ "buttons": [
+  "Run AI Investigation",
+  "Calculate queue answer",
+  "Build review decision",
+  "Add current snapshot to history",
+  "Import selected history",
+  "↺ Reset all filters"
+ ]
+}
