@@ -7,6 +7,8 @@ Run with: streamlit run dashboard/app.py
 Tabs: Overview · Refund Patterns · Investigation · Delivery Context
 """
 
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -15,9 +17,11 @@ from plotly.subplots import make_subplots
 import streamlit as st
 from sklearn.preprocessing import MinMaxScaler
 
-DATA_PATH = "data/processed/zomato_with_refunds.csv"
-TRUTH_PATH = "data/processed/ground_truth_customer_risk.csv"
-METRICS_PATH = "data/metrics.json"
+# Paths are resolved from this file, so the app runs from any working directory.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+DATA_PATH = str(_REPO_ROOT / "data" / "processed" / "zomato_with_refunds.csv")
+TRUTH_PATH = str(_REPO_ROOT / "data" / "processed" / "ground_truth_customer_risk.csv")
+METRICS_PATH = str(_REPO_ROOT / "data" / "metrics.json")
 
 try:  # executed by Streamlit — the script dir is on sys.path
     from kpi_engine import (  # noqa: E402
@@ -264,15 +268,16 @@ def app_header(orders: pd.DataFrame) -> None:
         f"""
 <div class="app-header">
   <div class="ah-left">
-    <div class="ah-mark">ZR</div>
+    <div class="ah-mark">RR</div>
     <div>
-      <div class="ah-title">Refund Fraud Analytics</div>
+      <div class="ah-title">Refund Risk &amp; Operations Analytics</div>
       <div class="ah-sub">Refund patterns, customer comparisons and evidence for human review</div>
     </div>
   </div>
   <div class="ah-right">
     <span class="ah-chip"><span class="live">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
     <span class="ah-chip">{n:,} orders in scope · {period}</span>
+    <span class="ah-chip">Delivery data: public · Refund layer: synthetic</span>
     <span class="ah-chip">Risk score ≠ proof of fraud</span>
   </div>
 </div>
@@ -687,7 +692,7 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     x, cum, n_cust, total_val, k50, k80, top10_share = concentration_curve(orders)
 
     p1, p2, p3, p4 = st.columns(4)
-    p1.metric("Total refund exposure", f"₹{total_val:,.0f}")
+    p1.metric("Refund exposure, all customers", f"₹{total_val:,.0f}")
     p2.metric("Customers", f"{n_cust:,}")
     p3.metric("Top 10% hold", f"{top10_share:.1f}% of exposure")
     p4.metric("Half of exposure", f"top {k50:,} customers")
@@ -802,8 +807,8 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
 
 def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> None:
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Flagged accounts", len(filtered))
-    c2.metric("Total refund exposure", f"₹{filtered['Total_Refund_Amount'].sum():,.0f}")
+    c1.metric("Flagged customers", len(filtered))
+    c2.metric("Refund exposure, flagged customers", f"₹{filtered['Total_Refund_Amount'].sum():,.0f}")
     c3.metric(
         "Avg risk score",
         f"{filtered['Fraud_Risk_Score'].mean():.1f}" if len(filtered) else "—",
@@ -824,7 +829,7 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
         from pathlib import Path as _Path
         _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "scripts"))
         from baseline_normalization import build_baselines
-        _df = pd.read_csv("data/processed/zomato_with_refunds.csv")
+        _df = pd.read_csv(DATA_PATH)
         _cust, _bands = build_baselines(_df)
         _sus_ids = set(all_suspects["Customer_ID"])
         _cust["is_flagged"] = _cust["Customer_ID"].isin(_sus_ids)
@@ -881,12 +886,14 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
             .sort_values(ascending=False).rename_axis("City").reset_index(name="flagged")
         )
         if len(rep):
-            fig = px.pie(
-                rep, names="City", values="flagged",
-                title="Flagged customers by city type", hole=0.45,
-                color_discrete_sequence=[C_PRIMARY, C_ACCENT, C_GOOD],
+            fig = px.bar(
+                rep.iloc[::-1], x="flagged", y="City", orientation="h",
+                title="Flagged customers by city type",
+                color_discrete_sequence=[C_PRIMARY],
+                text="flagged",
             )
-            fig.update_layout(**PLOTLY_LAYOUT)
+            fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
+            fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Flagged customers")
             left.plotly_chart(fig, width="stretch")
 
     with right:
@@ -1108,12 +1115,14 @@ def tab_operations(orders: pd.DataFrame) -> None:
         type_counts = (
             orders["Type_of_order"].value_counts().rename_axis("Type").reset_index(name="count")
         )
-        fig = px.pie(
-            type_counts, names="Type", values="count", hole=0.45,
-            title="Order mix by type",
-            color_discrete_sequence=[C_PRIMARY, C_ACCENT, C_GOOD, C_WARN],
+        fig = px.bar(
+            type_counts.iloc[::-1], x="count", y="Type", orientation="h",
+            title="Order mix by type (orders)",
+            color_discrete_sequence=[C_PRIMARY],
+            text="count",
         )
-        fig.update_layout(**PLOTLY_LAYOUT)
+        fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
+        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Orders")
         c4_.plotly_chart(fig, width="stretch")
 
     # ── Rider-level view: top riders by volume + rating
@@ -1245,7 +1254,7 @@ def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
 
 def main() -> None:
     st.set_page_config(
-        page_title="Zomato Refund Fraud Analytics",
+        page_title="Refund Risk & Operations Analytics",
         page_icon="🍽️",
         layout="wide",
     )
@@ -1262,7 +1271,7 @@ def main() -> None:
 
     # ── Sidebar: product mark + filters + scope status + reset + methodology ──
     st.sidebar.markdown(
-        '<div class="side-mark"><div class="sm-t">ZFA · Refund Fraud Analytics</div>'
+        '<div class="side-mark"><div class="sm-t">Refund Risk &amp; Operations Analytics</div>'
         '<div class="sm-s">Filters apply across all tabs</div></div>',
         unsafe_allow_html=True,
     )

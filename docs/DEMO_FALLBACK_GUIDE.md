@@ -1,4 +1,4 @@
-# Live Demo & Offline Fallback Guide — Refund Risk Intelligence
+# Live Demo & Offline Fallback Guide — Refund Risk & Operations Analytics
 **Primary Live Streamlit App:** https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/  
 
 ---

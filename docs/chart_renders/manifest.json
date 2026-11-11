@@ -1,0 +1,102 @@
+[
+ {
+  "file": "00_monthly_order_volume_vs_refund_rate_observed_data.png",
+  "title": "Monthly order volume vs refund rate (observed data)",
+  "ok": true
+ },
+ {
+  "file": "01_refund_reasons_ranked.png",
+  "title": "Refund reasons, ranked",
+  "ok": true
+ },
+ {
+  "file": "02_orders_by_city_type_colour_refund_rate.png",
+  "title": "Orders by city type (colour = refund rate)",
+  "ok": true
+ },
+ {
+  "file": "03_chart_3.png",
+  "title": "chart_3",
+  "ok": true
+ },
+ {
+  "file": "04_refund_amount_distribution.png",
+  "title": "Refund amount distribution",
+  "ok": true
+ },
+ {
+  "file": "05_avg_refund_amount_by_reason.png",
+  "title": "Avg refund amount by reason",
+  "ok": true
+ },
+ {
+  "file": "06_by_weather_condition.png",
+  "title": "By weather condition",
+  "ok": true
+ },
+ {
+  "file": "07_by_order_type.png",
+  "title": "By order type",
+  "ok": true
+ },
+ {
+  "file": "08_by_road_traffic_density.png",
+  "title": "By road traffic density",
+  "ok": true
+ },
+ {
+  "file": "09_by_festival_period.png",
+  "title": "By festival period",
+  "ok": true
+ },
+ {
+  "file": "10_chart_10.png",
+  "title": "chart_10",
+  "ok": true
+ },
+ {
+  "file": "11_risk_tier_distribution_all_flagged.png",
+  "title": "Risk tier distribution (all flagged)",
+  "ok": true
+ },
+ {
+  "file": "12_flagged_customers_by_city_type.png",
+  "title": "Flagged customers by city type",
+  "ok": true
+ },
+ {
+  "file": "13_top_20_by_fraud_risk_score.png",
+  "title": "Top 20 by fraud risk score",
+  "ok": true
+ },
+ {
+  "file": "14_delivery_time_distribution.png",
+  "title": "Delivery time distribution",
+  "ok": true
+ },
+ {
+  "file": "15_delivery_time_by_traffic_density.png",
+  "title": "Delivery time by traffic density",
+  "ok": true
+ },
+ {
+  "file": "16_delivery_time_by_weather.png",
+  "title": "Delivery time by weather",
+  "ok": true
+ },
+ {
+  "file": "17_order_mix_by_type_orders.png",
+  "title": "Order mix by type (orders)",
+  "ok": true
+ },
+ {
+  "file": "18_rider_ratings_distribution_of_rider_averages.png",
+  "title": "Rider ratings — distribution of rider averages",
+  "ok": true
+ },
+ {
+  "file": "19_top_10_riders_by_order_volume.png",
+  "title": "Top 10 riders by order volume",
+  "ok": true
+ }
+]

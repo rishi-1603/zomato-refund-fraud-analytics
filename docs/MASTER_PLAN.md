@@ -1,4 +1,4 @@
-# MASTER PLAN — Zomato Refund & Fraud Analytics
+# MASTER PLAN — Food-Delivery Refund Risk & Operations Analytics
 ### Portfolio project · week of 2026-10-15 · status: COMPLETE
 
 ## Objective
