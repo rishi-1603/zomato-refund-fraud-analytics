@@ -7,6 +7,8 @@ Run with: streamlit run dashboard/app.py
 Tabs: Overview · Refund Patterns · Investigation · Delivery Context
 """
 
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -15,9 +17,11 @@ from plotly.subplots import make_subplots
 import streamlit as st
 from sklearn.preprocessing import MinMaxScaler
 
-DATA_PATH = "data/processed/zomato_with_refunds.csv"
-TRUTH_PATH = "data/processed/ground_truth_customer_risk.csv"
-METRICS_PATH = "data/metrics.json"
+# Paths are resolved from this file, so the app runs from any working directory.
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+DATA_PATH = str(_REPO_ROOT / "data" / "processed" / "zomato_with_refunds.csv")
+TRUTH_PATH = str(_REPO_ROOT / "data" / "processed" / "ground_truth_customer_risk.csv")
+METRICS_PATH = str(_REPO_ROOT / "data" / "metrics.json")
 
 try:  # executed by Streamlit — the script dir is on sys.path
     from kpi_engine import (  # noqa: E402
@@ -825,7 +829,7 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
         from pathlib import Path as _Path
         _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "scripts"))
         from baseline_normalization import build_baselines
-        _df = pd.read_csv("data/processed/zomato_with_refunds.csv")
+        _df = pd.read_csv(DATA_PATH)
         _cust, _bands = build_baselines(_df)
         _sus_ids = set(all_suspects["Customer_ID"])
         _cust["is_flagged"] = _cust["Customer_ID"].isin(_sus_ids)
