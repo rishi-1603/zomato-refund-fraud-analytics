@@ -87,3 +87,7 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 - Decision: keep the regenerated numbers. `data/metrics.json`, `docs/DATA_AND_METRIC_AUDIT.md`, `docs/MODEL_AND_AI_EVALUATION.md`, `reports/interview_prep.md` and `tests/test_model_comparison.py` already use 0.9611 / 0.9782, so this restores consistency.
 - Not done: exact-version pinning of scikit-learn. The gap is small, but the result still depends on the installed version. Pinning is a user decision; record it before publishing.
 - Verified by execution: `validate_risk_score.py` exit 0; `model_comparison.py` exit 0; `pytest -q` 188 passed; 34 relative Markdown links and all image references resolve.
+
+## Licence (update)
+
+- `LICENSE` added: MIT, copyright holder "Rishi" (GitHub account rishi-1603). This covers the code only. The dataset licence is still unverified, so the public-release gate remains BLOCKED.
