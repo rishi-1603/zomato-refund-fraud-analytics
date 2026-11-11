@@ -273,6 +273,7 @@ def app_header(orders: pd.DataFrame) -> None:
   <div class="ah-right">
     <span class="ah-chip"><span class="live">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
     <span class="ah-chip">{n:,} orders in scope · {period}</span>
+    <span class="ah-chip">Delivery data: public · Refund layer: synthetic</span>
     <span class="ah-chip">Risk score ≠ proof of fraud</span>
   </div>
 </div>
