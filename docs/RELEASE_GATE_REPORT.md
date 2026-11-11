@@ -80,3 +80,10 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 4. Click through every filter and visually check every tab in a browser. Record any defects.
 5. Wake the public Streamlit app and verify all five tabs render. Record the date.
 6. Review PR #6 and merge it to `main` only after steps 1–5.
+
+## Model-comparison regeneration (decision record)
+
+- Re-running `scripts/model_comparison.py` under scikit-learn 1.9.1 (requirements `>=1.3,<2`) changed the committed in-pool AUCs slightly: logistic regression 0.9606 → 0.9611, gradient boosting 0.9774 → 0.9782. The rule score (0.942) is unchanged.
+- Decision: keep the regenerated numbers. `data/metrics.json`, `docs/DATA_AND_METRIC_AUDIT.md`, `docs/MODEL_AND_AI_EVALUATION.md`, `reports/interview_prep.md` and `tests/test_model_comparison.py` already use 0.9611 / 0.9782, so this restores consistency.
+- Not done: exact-version pinning of scikit-learn. The gap is small, but the result still depends on the installed version. Pinning is a user decision; record it before publishing.
+- Verified by execution: `validate_risk_score.py` exit 0; `model_comparison.py` exit 0; `pytest -q` 188 passed; 34 relative Markdown links and all image references resolve.

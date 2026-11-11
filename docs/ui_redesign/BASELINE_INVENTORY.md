@@ -73,7 +73,7 @@ Taken from the app state and README; these are the regression anchors.
 - Review pool 279 (≥5 orders and refund rate >30%).
 - Risk tiers of the 279 review pool: High 8 · Medium 107 · Low 164 (checked by running `build_customer_risk_table` on this commit).
 - Eligible review queue 279. Flagged above band P95: 166. Within band norms: 113.
-- Committed model-comparison AUCs (rule 0.942, logistic 0.9606, gradient boosting 0.9774) live in `reports/model_comparison_metrics.json`, not on screen.
+- Committed model-comparison AUCs (rule 0.942, logistic 0.9611, gradient boosting 0.9782, after the regeneration noted in the release report) live in `reports/model_comparison_metrics.json`, not on screen.
 
 ## 7. Optional AI feature (status)
 
