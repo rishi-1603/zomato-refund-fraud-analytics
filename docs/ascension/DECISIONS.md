@@ -1,4 +1,4 @@
-# Ascension Log — Zomato Refund & Fraud Analytics
+# Ascension Log — Food-Delivery Refund Risk & Operations Analytics
 
 ## U1 — Fraud-ring network layer (real attributes, honest null result)
 

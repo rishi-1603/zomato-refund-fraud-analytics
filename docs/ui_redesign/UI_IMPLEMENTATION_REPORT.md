@@ -25,7 +25,7 @@ The Overview KPI "Refund exposure" was kept unchanged because an existing test (
 | KPI cards | 28 before, 28 after. Every value identical, in the same order |
 | Label changes | Exactly three, as listed in §1 |
 | Buttons and subheadings | Identical |
-| Test suite (`pytest`) | 186 passed |
+| Test suite (`pytest`) | 186 passed at the time of this change (188 after the later path fix) |
 | Analytical code and data | Not modified |
 
 ## 3. Not verified in this environment

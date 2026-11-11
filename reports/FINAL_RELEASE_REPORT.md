@@ -1,4 +1,4 @@
-# Final Release Report — Zomato Refund & Fraud Analytics
+# Final Release Report — Food-Delivery Refund Risk & Operations Analytics
 **Date:** 2026-10-15 · **Release commit:** (this file) · **CI:** green (70/70 tests)
 
 ## A. Overall result

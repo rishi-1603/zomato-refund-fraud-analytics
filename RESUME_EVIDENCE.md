@@ -1,4 +1,4 @@
-﻿# Food-Delivery Refund Risk Intelligence & Operations Analytics — Resume Evidence Index
+﻿# Food-Delivery Refund Risk & Operations Analytics — Resume Evidence Index
 **Repository:** https://github.com/rishi-1603/zomato-refund-fraud-analytics  
 **Live Application:** https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/  
 **Verification Date:** 2026-10-30  

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "project": "Zomato Refund Fraud Analytics",
+    "project": "Food-Delivery Refund Risk & Operations Analytics",
     "description": "Semantic layer \u2014 exact definitions of every KPI. The dashboard and the AI Investigation Assistant must cite these definitions; no other definitions are valid.",
     "disclosure": "Orders are a real Kaggle food-delivery dataset; the refund layer is synthetic and seeded (disclosed in docs/risk_scoring_methodology.md). Risk score != proof of fraud. Planted labels exist only to validate the ranking.",
     "source_data": "data/processed/zomato_with_refunds.csv (45,584 orders, 9,895 customers)",

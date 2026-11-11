@@ -3,7 +3,7 @@
 Scope: presentation only. This file records what the existing Streamlit app shows **before** any redesign, so the redesign can be checked against it. No analytical logic was changed to write this file.
 
 Measured on branch `arena/e5f9b9a3-zomato-refund-fraud-analytics` at `f1b1792`:
-- Test suite: **186 passed** (`pytest`).
+- Test suite: **186 passed** (`pytest`) at this baseline (188 after later commits).
 - App load (Streamlit `AppTest`, default filters): **0 exceptions, 0 errors**. Full captured state: `baseline_app_state.json`.
 
 ## 1. Pages (5 tabs, all in `dashboard/app.py`)

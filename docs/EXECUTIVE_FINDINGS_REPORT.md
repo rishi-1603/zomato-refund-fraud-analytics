@@ -1,5 +1,5 @@
 # Executive Findings & Risk Operations Brief
-**Subject:** Delivery Refund Risk Intelligence & Queue Sizing  
+**Subject:** Delivery Refund Risk & Queue Sizing  
 **Dataset Scope:** 45,584 Orders | 9,895 Customers | Rs. 9.74L Historical Refund Exposure  
 **Author:** Rishi Dappu, Data Analyst
 

@@ -268,9 +268,9 @@ def app_header(orders: pd.DataFrame) -> None:
         f"""
 <div class="app-header">
   <div class="ah-left">
-    <div class="ah-mark">ZR</div>
+    <div class="ah-mark">RR</div>
     <div>
-      <div class="ah-title">Refund Fraud Analytics</div>
+      <div class="ah-title">Refund Risk &amp; Operations Analytics</div>
       <div class="ah-sub">Refund patterns, customer comparisons and evidence for human review</div>
     </div>
   </div>
@@ -1254,7 +1254,7 @@ def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
 
 def main() -> None:
     st.set_page_config(
-        page_title="Zomato Refund Fraud Analytics",
+        page_title="Refund Risk & Operations Analytics",
         page_icon="🍽️",
         layout="wide",
     )
@@ -1271,7 +1271,7 @@ def main() -> None:
 
     # ── Sidebar: product mark + filters + scope status + reset + methodology ──
     st.sidebar.markdown(
-        '<div class="side-mark"><div class="sm-t">ZFA · Refund Fraud Analytics</div>'
+        '<div class="side-mark"><div class="sm-t">Refund Risk &amp; Operations Analytics</div>'
         '<div class="sm-s">Filters apply across all tabs</div></div>',
         unsafe_allow_html=True,
     )

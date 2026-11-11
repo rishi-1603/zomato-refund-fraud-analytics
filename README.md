@@ -48,7 +48,7 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 - **Application:** Streamlit (5 tabs, sidebar filters, downloads).
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
 - **SQL:** queries in `sql/`, validated against pandas on SQLite; PostgreSQL-oriented files are included for database review.
-- **Testing and CI:** pytest (186 tests) and GitHub Actions.
+- **Testing and CI:** pytest (188 tests) and GitHub Actions.
 - **Optional:** OpenAI or Gemini for narration. The app runs without any API key.
 
 ## 6. Analytical methodology

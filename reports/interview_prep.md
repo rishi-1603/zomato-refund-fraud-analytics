@@ -1,5 +1,5 @@
 # Interview Preparation Pack
-### Zomato Refund Fraud Analytics — questions and answers based ONLY on the actual project
+### Food-Delivery Refund Risk & Operations Analytics — questions and answers based ONLY on the actual project
 
 ---
 
