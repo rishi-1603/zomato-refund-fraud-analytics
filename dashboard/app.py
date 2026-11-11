@@ -892,7 +892,7 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
                 color_discrete_sequence=[C_PRIMARY],
                 text="flagged",
             )
-            fig.update_traces(textposition="outside")
+            fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Flagged customers")
             left.plotly_chart(fig, width="stretch")
 
@@ -1121,7 +1121,7 @@ def tab_operations(orders: pd.DataFrame) -> None:
             color_discrete_sequence=[C_PRIMARY],
             text="count",
         )
-        fig.update_traces(textposition="outside")
+        fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Orders")
         c4_.plotly_chart(fig, width="stretch")
 
