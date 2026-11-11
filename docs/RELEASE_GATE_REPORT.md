@@ -10,7 +10,7 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 | Gate | Status | Evidence |
 |---|---|---|
 | Business problem clearly documented | PASS | README §2 and §3 |
-| Dataset source verified | CONDITIONAL | Source is named as the public Kaggle Zomato delivery dataset (`data/DATA_DICTIONARY.md`). The repo has no URL, licence or extraction date. Needs confirming by the owner. |
+| Dataset source verified | CONDITIONAL | Named as the public Kaggle Zomato delivery dataset (`data/DATA_DICTIONARY.md`). Web search (this session) found Kaggle pages with the same column names, e.g. kaggle.com/datasets/saurabhbadole/zomato-delivery-operations-analytics-dataset, but none was confirmed as this exact file. Their licences were not confirmed either. The owner must confirm the URL, licence and download date.
 | Data assumptions explicit | PASS | README §11, `reports/assumptions_and_limitations.md` |
 | Important KPIs validated | PASS | `reports/kpi_reconciliation.md`: 8 KPIs MATCH, 0 mismatches. Uses SQLite, not PostgreSQL. |
 | SQL and Python consistent where comparable | PASS | Same report as above |
@@ -51,13 +51,13 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 | Setup instructions tested | CONDITIONAL | Clean install and `pytest` tested. Launch tested only through `AppTest`. |
 | Screenshots current | BLOCKED | `docs/screenshots/` predates the header chip, the three label renames and the two bar-chart changes. The README image shows the old labels. |
 | Limitations documented | PASS | README §11 |
-| Live demo URL correct | UNVERIFIED | The Streamlit Cloud URL could not be reached from the sandbox |
+| Live demo URL correct | CONDITIONAL | The URL responds, but the app is asleep: the page shows Streamlit's "This app has gone to sleep" screen with a wake button. The app's content was not loaded, so it is not verified.
 
 ## 5. Deployment gates
 
 | Gate | Status | Evidence |
 |---|---|---|
-| Public application reachable | UNVERIFIED | Not reachable from the sandbox |
+| Public application reachable | CONDITIONAL | Host responds; app is asleep until woken by a visitor (or the owner)
 | Application completes startup | UNVERIFIED on the platform | Startup verified locally only |
 | Critical workflows smoke-tested | CONDITIONAL | Load-level only |
 | No secrets exposed | PASS | Regex scan of tracked files: no API keys, tokens, private keys or passwords. `.env.example` lists variable names with empty values. `.gitignore` covers `.env`, `.venv/`, `.streamlit/secrets.toml`. |
@@ -78,5 +78,5 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 2. Confirm the Kaggle dataset URL, licence and extraction date, and record them in the README and data dictionary.
 3. Choose and add a `LICENSE` file, if the owner wants one.
 4. Click through every filter and visually check every tab in a browser. Record any defects.
-5. Verify the public Streamlit URL loads and all five tabs render. Record the date.
+5. Wake the public Streamlit app and verify all five tabs render. Record the date.
 6. Review PR #6 and merge it to `main` only after steps 1–5.
