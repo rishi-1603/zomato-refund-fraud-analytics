@@ -330,19 +330,69 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 div[data-testid="stExpander"] {
   background: var(--z-card); border: 1px solid var(--z-border); border-radius: 10px;
 }
+div[data-testid="stDownloadButton"] > button {
+  border-radius: 8px; border: 1px solid var(--z-border2); font-weight: 600; font-size: 12.5px;
+  background: rgba(59,130,246,0.12); color: #93C5FD;
+}
+
+/* ── AI Refund Analyst page head (mockup: sparkles + Beta chip) ── */
+.ai-head {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 140%);
+  border: 1px solid var(--z-border); border-radius: 14px; padding: 14px 18px; margin-bottom: 10px;
+}
+.ai-spark {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(139,92,246,0.18); display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.ai-title { font-size: 16px; font-weight: 800; color: var(--z-text); }
+.ai-sub { font-size: 11.5px; color: var(--z-muted); margin-top: 2px; }
+.beta-chip {
+  margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  color: #C4B5FD; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.4);
+  border-radius: 999px; padding: 3px 10px; flex-shrink: 0;
+}
+
+/* ── Data Quality check rows ── */
+.dq-card {
+  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
+  padding: 4px 14px; margin-bottom: 8px;
+}
+.dq-row {
+  display: flex; align-items: center; gap: 14px; padding: 10px 4px;
+  border-bottom: 1px solid rgba(38,55,92,0.5); font-size: 12.5px;
+}
+.dq-row:last-child { border-bottom: none; }
+.dq-check { color: var(--z-text); font-weight: 700; width: 210px; flex-shrink: 0; }
+.dq-result { color: var(--z-text2); flex: 1; line-height: 1.45; }
+.dq-pill {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.07em; border-radius: 999px;
+  padding: 2px 9px; flex-shrink: 0;
+}
+.dq-pill.pass { color: var(--z-good); background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4); }
+.dq-pill.gap { color: var(--z-warn); background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4); }
+.dq-pill.disclosed { color: #93C5FD; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4); }
+.dq-pill.review { color: var(--z-bad); background: rgba(248,113,113,0.13); border: 1px solid rgba(248,113,113,0.4); }
 </style>
 """, unsafe_allow_html=True)
 
 
-def app_header(orders: pd.DataFrame) -> None:
-    """Product header band — every value computed from the live dataset."""
+def app_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> None:
+    """Product header band — every value computed from the live dataset.
+
+    `export_df` (optional) is the flagged queue for the current scope; when
+    given, a mockup-style export button sits in the header's right slot.
+    """
     n = len(orders)
     period = (
         f"{orders['Order_Date'].min():%b %Y} – {orders['Order_Date'].max():%b %Y}"
         if n else "no data in scope"
     )
-    st.markdown(
-        f"""
+    head_col, act_col = st.columns([0.86, 0.14])
+    with head_col:
+        st.markdown(
+            f"""
 <div class="app-header">
   <div class="ah-left">
     <div class="ah-mark">RR</div>
@@ -359,8 +409,18 @@ def app_header(orders: pd.DataFrame) -> None:
   </div>
 </div>
 """,
-        unsafe_allow_html=True,
-    )
+            unsafe_allow_html=True,
+        )
+    with act_col:
+        if export_df is not None:
+            st.download_button(
+                "⬇ Export",
+                data=export_df.to_csv(index=False).encode("utf-8"),
+                file_name="flagged_queue_current_scope.csv",
+                mime="text/csv",
+                help="Download the flagged investigation queue for the current filter scope.",
+                use_container_width=True,
+            )
 
 
 def insight_card_html(ins: dict) -> str:
@@ -1091,8 +1151,69 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
                 help="The current filtered scope — ready for the review workflow.",
             )
 
-    # ---- AI Investigation Assistant (tool calling + evidence grounding) ----
-    st.subheader("AI Investigation Assistant")
+    st.subheader("Explain a flag")
+    customer_options = filtered["Customer_ID"].tolist()
+    if customer_options:
+        chosen = st.selectbox("Select a customer", customer_options)
+        row = filtered[filtered["Customer_ID"] == chosen].iloc[0]
+        st.write(
+            f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})"
+        )
+        signals = [
+            ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
+            ("Reason repetition", row["Reason_Repetition_Rate"],
+             f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
+            ("Refund velocity", row["Refunds_Per_Day"],
+             f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
+            ("Reason length", row["Avg_Reason_Length"],
+             f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
+        ]
+        pop = all_suspects  # P95 reference: the flagged population, current scope
+        meters = ""
+        for name, value, text, weight in signals:
+            col_name = {
+                "Refund rate": "Refund_Rate",
+                "Reason repetition": "Reason_Repetition_Rate",
+                "Refund velocity": "Refunds_Per_Day",
+                "Reason length": "Avg_Reason_Length",
+            }[name]
+            p95 = float(pop[col_name].quantile(0.95)) if len(pop) else 0.0
+            pct = min(100.0, (value / p95 * 100)) if p95 > 0 else 0.0
+            over = value >= p95 and p95 > 0
+            fill = "over" if over else ""
+            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over
+                    else f"P95 of flagged: {p95:.1f}")
+            meters += (
+                f'<div class="meter-row">'
+                f'<div class="meter-head"><span>{name} <span style="color:var(--z-muted);">· weight {weight:.0%}</span></span>'
+                f'<b>{text}</b></div>'
+                f'<div class="meter-track"><div class="meter-fill {fill}" style="width:{pct:.0f}%"></div></div>'
+                f'<div class="meter-note">{note}</div>'
+                f'</div>'
+            )
+        st.markdown(f'<div class="meter-card">{meters}</div>', unsafe_allow_html=True)
+        st.caption(
+            "Each bar shows how extreme one score factor is, compared to the 95th percentile "
+            "of flagged customers in the current view. The score is a simple weighted formula — "
+            "full details in docs/risk_scoring_methodology.md."
+        )
+    else:
+        st.info("No customers match the current filters.")
+
+
+def tab_ai_analyst(filtered: pd.DataFrame) -> None:
+    """AI Refund Analyst page — evidence-grounded investigation assistant.
+
+    The numeric evidence is always deterministic (computed by the tools); the
+    optional LLM narration is clearly separated and flagged for human review.
+    """
+    st.markdown(
+        '<div class="ai-head"><span class="ai-spark">✨</span>'
+        '<div><div class="ai-title">AI Refund Analyst</div>'
+        '<div class="ai-sub">Deterministic evidence tools · optional AI narration · human review required</div></div>'
+        '<span class="beta-chip">BETA</span></div>',
+        unsafe_allow_html=True,
+    )
     st.caption(
         "Retrieve a customer's risk signals, refund history and volume-band comparison. "
         "The numeric evidence is computed by the tools; optional AI narration is not validated and needs human review. "
@@ -1151,54 +1272,137 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
         except Exception:
             st.error("Investigation could not complete. Review the data and try again.")
 
-    st.subheader("Explain a flag")
-    customer_options = filtered["Customer_ID"].tolist()
-    if customer_options:
-        chosen = st.selectbox("Select a customer", customer_options)
-        row = filtered[filtered["Customer_ID"] == chosen].iloc[0]
-        st.write(
-            f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})"
-        )
-        signals = [
-            ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
-            ("Reason repetition", row["Reason_Repetition_Rate"],
-             f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
-            ("Refund velocity", row["Refunds_Per_Day"],
-             f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
-            ("Reason length", row["Avg_Reason_Length"],
-             f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
-        ]
-        pop = all_suspects  # P95 reference: the flagged population, current scope
-        meters = ""
-        for name, value, text, weight in signals:
-            col_name = {
-                "Refund rate": "Refund_Rate",
-                "Reason repetition": "Reason_Repetition_Rate",
-                "Refund velocity": "Refunds_Per_Day",
-                "Reason length": "Avg_Reason_Length",
-            }[name]
-            p95 = float(pop[col_name].quantile(0.95)) if len(pop) else 0.0
-            pct = min(100.0, (value / p95 * 100)) if p95 > 0 else 0.0
-            over = value >= p95 and p95 > 0
-            fill = "over" if over else ""
-            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over
-                    else f"P95 of flagged: {p95:.1f}")
-            meters += (
-                f'<div class="meter-row">'
-                f'<div class="meter-head"><span>{name} <span style="color:var(--z-muted);">· weight {weight:.0%}</span></span>'
-                f'<b>{text}</b></div>'
-                f'<div class="meter-track"><div class="meter-fill {fill}" style="width:{pct:.0f}%"></div></div>'
-                f'<div class="meter-note">{note}</div>'
-                f'</div>'
+
+def tab_data_quality(orders: pd.DataFrame) -> None:
+    """Data Quality page — computed live from the loaded dataset.
+
+    Describes the SOURCE dataset (not the filter scope): completeness,
+    consistency checks and provenance. The full audit lives in
+    reports/data_quality_report.md.
+    """
+    st.subheader("Data Quality")
+    st.caption(
+        "Computed live from `data/processed/zomato_with_refunds.csv` (45,584 orders). "
+        "The fuller audit — pandas↔SQL reconciliation, drift monitor, sensitivity — lives in "
+        "reports/data_quality_report.md and is pinned by CI."
+    )
+
+    req = orders["Refund_Requested"].astype(bool)
+    missing = orders.isna().sum()
+    n = len(orders)
+    dup_ids = int(orders["ID"].duplicated().sum())
+    span_min, span_max = orders["Order_Date"].min(), orders["Order_Date"].max()
+
+    checks = [
+        ("Order ID uniqueness", f"{dup_ids} duplicate ID(s) across {n:,} rows",
+         "pass" if dup_ids == 0 else "review"),
+        ("Refund amount consistency",
+         f"{int((req & (orders['Refund_Amount'] <= 0)).sum())} refund request(s) with amount ≤ 0",
+         "pass" if int((req & (orders["Refund_Amount"] <= 0)).sum()) == 0 else "review"),
+        ("Refund reason coverage",
+         f"{int((req & orders['Refund_Reason'].isna()).sum())} refund request(s) missing a reason",
+         "pass" if int((req & orders["Refund_Reason"].isna()).sum()) == 0 else "review"),
+        ("No amount without a request",
+         f"{int((~req & (orders['Refund_Amount'] > 0)).sum())} rows carry refund value without a request",
+         "pass" if int((~req & (orders["Refund_Amount"] > 0)).sum()) == 0 else "review"),
+        ("Date window sanity",
+         f"All orders inside {span_min:%d %b %Y} → {span_max:%d %b %Y}",
+         "pass"),
+        ("City coverage",
+         f"{int(missing['City']):,} orders ({missing['City'] / n * 100:.1f}%) have no City value — "
+         "kept in scope by the default filters (NaN-safe)",
+         "gap"),
+        ("Delivery-person fields",
+         f"Age missing on {int(missing['Delivery_person_Age']):,} ({missing['Delivery_person_Age'] / n * 100:.1f}%) · "
+         f"ratings missing on {int(missing['Delivery_person_Ratings']):,} "
+         f"({missing['Delivery_person_Ratings'] / n * 100:.1f}%) — retained, never imputed",
+         "gap"),
+        ("Refund layer provenance",
+         "Customer IDs, refund events, amounts and ground-truth labels are synthetic and seeded "
+         "(seed 42) — disclosed; Refund_Reason is populated only for refund rows by design",
+         "disclosed"),
+    ]
+    pill_label = {"pass": "PASS", "review": "REVIEW", "gap": "KNOWN GAP", "disclosed": "DISCLOSED"}
+    rows = "".join(
+        f'<div class="dq-row"><div class="dq-check">{name}</div>'
+        f'<div class="dq-result">{result}</div>'
+        f'<span class="dq-pill {status}">{pill_label[status]}</span></div>'
+        for name, result, status in checks
+    )
+    st.markdown(f'<div class="dq-card">{rows}</div>', unsafe_allow_html=True)
+
+    st.markdown("**Column completeness**")
+    comp = (
+        pd.DataFrame({"Column": orders.columns, "Missing": missing.values})
+        .assign(**{"Complete %": lambda d: ((n - d["Missing"]) / n * 100).round(1)})
+        .sort_values("Complete %")
+    )
+    st.dataframe(comp, use_container_width=True, hide_index=True)
+    st.caption(
+        "Completeness is a property of the source delivery dataset (public) plus the disclosed "
+        "synthetic refund layer. Missing delivery fields are expected in the public data and are "
+        "documented, not imputed."
+    )
+
+
+@st.cache_data
+def _read_report_bytes(path: str) -> bytes | None:
+    from pathlib import Path as _P
+
+    p = _P(path)
+    if not p.exists():
+        return None
+    return p.read_bytes()
+
+
+def tab_reports() -> None:
+    """Reports page — the repo's generated evidence artifacts, downloadable."""
+    st.subheader("Reports & Evidence")
+    st.caption(
+        "Every report below is generated by a script in `scripts/` and pinned by a test in "
+        "`tests/` — the numbers regenerate from source data, they are not hand-written."
+    )
+
+    downloads = [
+        ("data/metrics.json", "metrics_semantic_layer.json",
+         "Semantic layer — the exact definition and pinned value of every KPI."),
+        ("reports/fraud_suspects.csv", "flagged_customers_full_dataset.csv",
+         "The 279 flagged customers (full dataset) with risk scores and tiers."),
+        ("reports/executive_summary.md", "executive_summary.md",
+         "One-page executive readout of the analysis."),
+        ("reports/data_quality_report.md", "data_quality_report.md",
+         "Full data-quality audit behind the Data Quality page."),
+        ("reports/methodology.md", "methodology.md",
+         "Risk-scoring methodology, thresholds and rationale."),
+        ("reports/FINAL_RELEASE_REPORT.md", "final_release_report.md",
+         "Release gate: tests, benchmarks and validation summary."),
+    ]
+    for src, fname, desc in downloads:
+        data = _read_report_bytes(str(_REPO_ROOT / src))
+        if data is None:
+            st.info(f"`{src}` is not packaged in this deployment — available in the GitHub repo.")
+            continue
+        with st.expander(f"📄 {fname} — {desc}"):
+            st.download_button(
+                f"⬇ Download {fname}",
+                data=data,
+                file_name=fname,
+                mime="text/markdown" if fname.endswith((".md", ".json")) else "text/csv",
             )
-        st.markdown(f'<div class="meter-card">{meters}</div>', unsafe_allow_html=True)
-        st.caption(
-            "Each bar shows how extreme one score factor is, compared to the 95th percentile "
-            "of flagged customers in the current view. The score is a simple weighted formula — "
-            "full details in docs/risk_scoring_methodology.md."
+
+    st.markdown("**All generated artifacts** (`reports/`)")
+    reports_dir = _REPO_ROOT / "reports"
+    if reports_dir.exists():
+        listing = sorted(
+            (
+                {"File": p.name, "Size (KB)": round(p.stat().st_size / 1024, 1)}
+                for p in reports_dir.iterdir() if p.is_file()
+            ),
+            key=lambda r: r["File"],
         )
+        st.dataframe(pd.DataFrame(listing), use_container_width=True, hide_index=True)
     else:
-        st.info("No customers match the current filters.")
+        st.info("The `reports/` directory is not packaged in this deployment.")
 
 
 def tab_operations(orders: pd.DataFrame) -> None:
@@ -1494,7 +1698,7 @@ def main() -> None:
             "in the README"
         )
 
-    app_header(orders_f)
+    app_header(orders_f, export_df=filtered)
 
     # ── Empty state: filters excluded everything ──
     if not len(orders_f):
@@ -1506,8 +1710,9 @@ def main() -> None:
         app_footer()
         return
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Executive Overview", "Refund Reasons", "Risk Investigation", "Operations Analysis", "Policy & Impact"]
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(
+        ["Executive Overview", "Refund Reasons", "Risk Investigation", "Operations Analysis",
+         "Policy & Impact", "AI Refund Analyst", "Data Quality", "Reports"]
     )
     with tab1:
         tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
@@ -1523,6 +1728,12 @@ def main() -> None:
         filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
                           "risk_tiers": risk_tiers, "last_order_date_range": selected_dates}
         tab_decision_value(filtered, filter_context)
+    with tab6:
+        tab_ai_analyst(filtered)
+    with tab7:
+        tab_data_quality(orders)
+    with tab8:
+        tab_reports()
 
     app_footer()
 
