@@ -192,12 +192,11 @@ def test_default_scope_equals_full_dataset_regression():
         at = AppTest.from_file(str(ROOT / "dashboard" / "app.py"), default_timeout=240)
         at.run()
         assert not at.exception, at.exception
-        labels = [m.label for m in at.metric]
-        orders_m = at.metric[labels.index("Delivery orders")]
-        assert orders_m.value == "45,584", (
-            f"default scope dropped data: rendered {orders_m.value}")
-        exposure_m = at.metric[labels.index("Refund exposure")]
-        assert "974,344" in exposure_m.value, f"exposure mismatch: {exposure_m.value}"
+        # The overview hero KPI row renders as markdown cards (Indian ₹ grouping).
+        text = "\n".join(m.value for m in at.markdown)
+        assert "45,584" in text, "default scope dropped data: order count mismatch"
+        assert "9,74,344" in text, "exposure mismatch in hero KPI row"
+        assert "279" in text, "flagged count mismatch"
     finally:
         os.chdir(cwd)
 

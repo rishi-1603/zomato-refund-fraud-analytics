@@ -46,6 +46,30 @@ RISK_WEIGHTS = {
     "Refunds_Per_Day": 0.20,
     "Avg_Reason_Length": 0.10,
 }
+
+
+def _inr(value: float, decimals: int = 0) -> str:
+    """Format a currency value with Indian digit grouping (₹9,74,344 style).
+
+    Counts stay in standard grouping; only currency uses lakh/crore grouping,
+    matching the project's ₹-denominated reporting convention.
+    """
+    negative = value < 0
+    text = f"{abs(value):.{decimals}f}"
+    whole, _, frac = text.partition(".")
+    if len(whole) > 3:
+        head, tail = whole[:-3], whole[-3:]
+        groups = []
+        while len(head) > 2:
+            groups.insert(0, head[-2:])
+            head = head[:-2]
+        if head:
+            groups.insert(0, head)
+        whole = ",".join(groups + [tail])
+    sign = "-" if negative else ""
+    return f"{sign}₹{whole}" + (f".{frac}" if frac else "")
+
+
 MIN_ORDERS_THRESHOLD = 5
 MIN_REFUND_RATE_PCT = 30
 
@@ -120,6 +144,59 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
   white-space: nowrap;
 }
 .ah-chip .live { color: var(--z-good); }
+
+/* ── Hero KPI cards (mockup style: icon chip · label · big value · context) ── */
+.kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 10px 0 2px; }
+.kpi-card {
+  background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 130%);
+  border: 1px solid var(--z-border); border-radius: 14px;
+  padding: 14px 14px 12px; min-width: 0;
+  box-shadow: 0 2px 10px rgba(2,6,23,0.35);
+}
+.kpi-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.kpi-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.kpi-icon.i-blue   { background: rgba(59,130,246,0.18); }
+.kpi-icon.i-red    { background: rgba(248,113,113,0.18); }
+.kpi-icon.i-amber  { background: rgba(251,191,36,0.18); }
+.kpi-icon.i-violet { background: rgba(139,92,246,0.18); }
+.kpi-icon.i-teal   { background: rgba(52,211,153,0.18); }
+.kpi-icon.i-rose   { background: rgba(244,114,182,0.18); }
+.kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--z-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-value { font-size: 22px; font-weight: 800; color: var(--z-text); font-variant-numeric: tabular-nums; letter-spacing: -0.4px; white-space: nowrap; }
+.kpi-sub { font-size: 11px; color: var(--z-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.kpi-sub .up { color: var(--z-good); font-weight: 700; }
+.kpi-sub .down { color: var(--z-bad); font-weight: 700; }
+@media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── Claim-behaviour stat chips (mockup "Claim Behaviour") ── */
+.claim-chip {
+  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
+  padding: 12px 14px; text-align: left; height: 100%;
+}
+.claim-chip .cc-v { font-size: 20px; font-weight: 800; color: var(--z-text); font-variant-numeric: tabular-nums; }
+.claim-chip .cc-l { font-size: 10.5px; font-weight: 600; color: var(--z-muted); margin-top: 3px; line-height: 1.35; }
+
+/* ── Sidebar brand (mockup: red Z mark) ── */
+.z-brand { display: flex; gap: 10px; align-items: center; padding: 2px 2px 10px; border-bottom: 1px solid var(--z-border); margin-bottom: 10px; }
+.z-mark {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, #E23744, #B91C1C);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 17px; color: #fff;
+  box-shadow: 0 0 16px rgba(226,55,68,0.4);
+}
+.z-brand .zb-t { font-size: 13.5px; font-weight: 800; color: var(--z-text); line-height: 1.2; }
+.z-brand .zb-s { font-size: 10.5px; color: var(--z-muted); margin-top: 2px; }
+.side-period {
+  font-size: 10.5px; color: var(--z-text2); background: rgba(255,255,255,0.04);
+  border: 1px solid var(--z-border); border-radius: 8px; padding: 6px 8px; margin-bottom: 10px;
+  line-height: 1.5;
+}
+.side-period b { color: #FCA5A5; }
 
 /* ── Sidebar product mark ── */
 .side-mark { padding: 2px 2px 10px; border-bottom: 1px solid var(--z-border); margin-bottom: 10px; }
@@ -512,50 +589,48 @@ def tab_overview(
                     st.markdown(insight_card_html(ins), unsafe_allow_html=True)
 
     # ── Executive KPI cards: value + direction + context ──
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
-    c1.metric(
-        "Delivery orders", f"{kpis['total_orders']:,}",
-        delta=(f"{mom['orders_delta_pct']:+.1f}%" if mom["orders_delta_pct"] is not None and not mom["partial_periods"] else None),
-        help=f"Month-over-month: {mom['prev_label']} → {mom['label']} on the current scope.",
-    )
-    c2.metric(
-        "Refund rate", f"{kpis['refund_rate_pct']:.1f}%",
-        delta=(
-            f"{mom['refund_rate_delta_pp']:+.1f} pp"
-            if mom["refund_rate_delta_pp"] is not None else None
-        ),
-        delta_color="inverse",
-        help="Refunds as a share of orders. Delta: percentage points, month-over-month.",
-    )
-    c3.metric(
-        "Refund exposure", f"₹{kpis['refund_exposure']:,.0f}",
-        delta=(
-            f"{mom['exposure_delta_pct']:+.1f}%"
-            if mom["exposure_delta_pct"] is not None and not mom["partial_periods"] else None
-        ),
-        delta_color="inverse",
-        help="Historical refund value — NOT a confirmed loss and NOT future revenue at risk.",
-    )
-    c4.metric(
-        "Flagged customers", f"{kpis['flagged_count']:,}",
-        delta=f"{kpis['flagged_exposure_share_pct']:.1f}% of exposure",
-        delta_color="off",
-        help="Eligibility: ≥5 orders AND refund rate >30%. A flag means investigate — never guilty.",
-    )
-    c5.metric(
-        "High-tier flags", f"{kpis['high_tier_count']}",
-        delta=(
-            f"{kpis['high_tier_precision_pct']:.0f}% precision"
-            if kpis["high_tier_precision_pct"] is not None else "n = 8"
-        ),
-        delta_color="off",
-        help="Precision vs the seeded ground truth (synthetic layer, disclosed). Small n — see docs.",
-    )
-    c6.metric(
-        "Below-baseline flags", f"{kpis['below_baseline_flagged']:,}",
-        delta=f"{kpis['below_baseline_share_pct']:.1f}% of flags",
-        delta_color="off",
-        help="Refund rate normal for their volume band — likely false positives; de-prioritise.",
+    # ── Hero KPI row — mockup style: icon chip · label · big value · context ──
+    refund_orders = kpis["refund_orders"]
+    refunders = int(orders.loc[orders["Refund_Requested"] == True, "Customer_ID"].nunique())  # noqa: E712
+    avg_refund = kpis["refund_exposure"] / refund_orders if refund_orders else 0.0
+    refunders_share = kpis["flagged_count"] / refunders * 100 if refunders else 0.0
+
+    def _mom_chip(delta, suffix="%", up_is_good=True):
+        if delta is None or mom.get("partial_periods"):
+            return ""
+        cls = "up" if (delta >= 0) == up_is_good else "down"
+        arrow = "▲" if delta >= 0 else "▼"
+        return f'<span class="{cls}">{arrow} {delta:+.1f}{suffix}</span> vs {mom["prev_label"]}'
+
+    kpi_cards = [
+        ("i-blue", "🛒", "Delivery orders", f"{kpis['total_orders']:,}",
+         _mom_chip(mom["orders_delta_pct"]),
+         "Month-over-month on the current scope."),
+        ("i-red", "↩", "Refund requests", f"{refund_orders:,}",
+         f"{kpis['refund_rate_pct']:.1f}% of orders", "A refund request is not a confirmed refund."),
+        ("i-amber", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
+         _mom_chip(mom["exposure_delta_pct"], up_is_good=False),
+         "Historical refund value — not a confirmed loss."),
+        ("i-violet", "🛡", "High-risk accounts", f"{kpis['flagged_count']:,}",
+         f"{refunders_share:.1f}% of refunders",
+         "Eligibility: ≥5 orders AND refund rate >30%. A flag means investigate — never guilty."),
+        ("i-teal", "⚠", "Potential leakage", _inr(kpis["flagged_exposure"]),
+         f"{kpis['flagged_exposure_share_pct']:.1f}% of refunds",
+         "Refund value held by the flagged pool."),
+        ("i-rose", "₹", "Avg refund amount", _inr(avg_refund),
+         "Per refund request", "Total refund amount ÷ refund requests."),
+    ]
+    st.markdown(
+        '<div class="kpi-row">' + "".join(
+            f'<div class="kpi-card"><div class="kpi-head">'
+            f'<div class="kpi-icon {icon}">{emoji}</div>'
+            f'<div class="kpi-label">{label}</div></div>'
+            f'<div class="kpi-value">{value}</div>'
+            f'<div class="kpi-sub">{sub}</div>'
+            f'<div class="kpi-sub" style="color:var(--z-muted)">{note}</div></div>'
+            for icon, emoji, label, value, sub, note in kpi_cards
+        ) + "</div>",
+        unsafe_allow_html=True,
     )
     st.caption(
         "Changes are month-over-month on the filtered data. The precision figure is checked "
@@ -650,6 +725,66 @@ def tab_overview(
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Orders")
         right.plotly_chart(fig, width="stretch")
 
+    # ── Risk-tier distribution + claim behaviour (mockup bottom row) ──
+    tier_left, tier_right = st.columns(2)
+    with tier_left:
+        tier_counts = (
+            suspects["Risk_Tier"].value_counts()
+            .reindex(["Low", "Medium", "High"]).fillna(0).astype(int)
+        )
+        tdf = tier_counts.rename_axis("Tier").reset_index(name="Flagged accounts")
+        fig = px.bar(
+            tdf, x="Tier", y="Flagged accounts", color="Tier",
+            category_orders={"Tier": ["Low", "Medium", "High"]},
+            color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#F87171"},
+            title="Flagged pool by risk tier",
+            text="Flagged accounts",
+        )
+        fig.update_layout(**PLOTLY_LAYOUT)
+        fig.update_traces(textposition="outside")
+        tier_left.plotly_chart(fig, width="stretch")
+        gt_note = ""
+        if truth is not None and truth["Planted_Risk"].notna().any():
+            gt_mix = truth["Planted_Risk"].value_counts(normalize=True) * 100
+            gt_note = (
+                f"Planted ground-truth mix across all {truth['Customer_ID'].nunique():,} customers "
+                f"(validation only, disclosed): Low {gt_mix.get('Low', 0):.0f}% · "
+                f"Medium {gt_mix.get('Medium', 0):.0f}% · High {gt_mix.get('High', 0):.0f}%."
+            )
+        st.caption(
+            "Tiers come from the documented risk score on the flagged pool — not from the planted labels. "
+            + gt_note
+        )
+
+    with tier_right:
+        refund_rows = orders[orders["Refund_Requested"] == True]  # noqa: E712
+        claims_per_refunder = refund_orders / refunders if refunders else 0.0
+        refunds_by_cust = refund_rows.groupby("Customer_ID").size()
+        repeat_claim_rate = (refunds_by_cust >= 2).mean() * 100 if len(refunds_by_cust) else 0.0
+        reason_words = refund_rows["Refund_Reason"].dropna().str.split().str.len().mean()
+        top_reason_share_val = (
+            refund_rows["Refund_Reason"].value_counts(normalize=True).iloc[0] * 100
+            if len(refund_rows) else 0.0
+        )
+        chips = [
+            (f"{claims_per_refunder:.1f}", "Avg. refund requests per refunding customer"),
+            (f"{repeat_claim_rate:.1f}%", "Refunding customers with repeat claims"),
+            (f"{reason_words:.1f}", "Avg. reason length (words)"),
+            (f"{top_reason_share_val:.1f}%", "Top reason's share of all refunds"),
+        ]
+        st.markdown("**Claim behaviour**")
+        cc1, cc2, cc3, cc4 = st.columns(4)
+        for col, (v, l) in zip((cc1, cc2, cc3, cc4), chips):
+            col.markdown(
+                f'<div class="claim-chip"><div class="cc-v">{v}</div>'
+                f'<div class="cc-l">{l}</div></div>',
+                unsafe_allow_html=True,
+            )
+        st.caption(
+            "Behavioural patterns of refund requests in the current scope. "
+            "Repeat claiming is an investigation signal, not proof of fraud."
+        )
+
     # ── Computed insight callouts
     top_reason = reasons.iloc[0]["Reason"]
     top_reason_share = reasons.iloc[0]["count"] / reasons["count"].sum() * 100
@@ -658,7 +793,7 @@ def tab_overview(
     st.markdown(
         f"""
 <div class="key-insight">
-  <div class="ki-eyebrow">Key insight — computed from the current scope</div>
+  <div class="ki-eyebrow">Financial impact &amp; actions — computed from the current scope</div>
   <div class="ki-main">“{top_reason}” is the most common refund reason ({top_reason_share:.1f}% of all refunds).
   Busiest month on record: <b>{busiest_month}</b>. Flagged customers ({len(suspects):,} accounts) hold
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
@@ -1269,10 +1404,22 @@ def main() -> None:
         metric_defs = None
 
 
-    # ── Sidebar: product mark + filters + scope status + reset + methodology ──
+    # ── Sidebar: brand mark + scope period + filters + reset + methodology ──
+    period_label = (
+        f"{orders['Order_Date'].min().strftime('%b %Y')} – "
+        f"{orders['Order_Date'].max().strftime('%d %b %Y')}"
+    )
+    n_refunds = int(orders["Refund_Requested"].sum())
     st.sidebar.markdown(
-        '<div class="side-mark"><div class="sm-t">Refund Risk &amp; Operations Analytics</div>'
-        '<div class="sm-s">Filters apply across all tabs</div></div>',
+        '<div class="z-brand"><div class="z-mark">Z</div><div>'
+        '<div class="zb-t">Zomato Analytics</div>'
+        '<div class="zb-s">Refund &amp; Trust Intelligence</div></div></div>',
+        unsafe_allow_html=True,
+    )
+    st.sidebar.markdown(
+        f'<div class="side-period">📅 <b>{period_label}</b><br>'
+        f'{len(orders):,} orders · {n_refunds:,} refunds<br>'
+        '<span style="color:#94A3B8">Synthetic refund layer — disclosed</span></div>',
         unsafe_allow_html=True,
     )
     st.sidebar.markdown("**Filters**")
@@ -1360,7 +1507,7 @@ def main() -> None:
         return
 
     tab1, tab2, tab3, tab4, tab5 = st.tabs(
-        ["Overview", "Refund Patterns", "Investigation", "Delivery Context", "Decision & Value"]
+        ["Executive Overview", "Refund Reasons", "Risk Investigation", "Operations Analysis", "Policy & Impact"]
     )
     with tab1:
         tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
