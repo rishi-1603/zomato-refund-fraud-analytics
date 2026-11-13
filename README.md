@@ -10,15 +10,15 @@ A refund-review case study built around one question: **which customer records d
 
 > **Data disclosure.** The delivery attributes come from a public dataset (45,584 orders). Customer IDs, refund events, amounts and risk labels are **synthetic and seeded**. No real fraud was detected and no real customer is implicated. This is an independent portfolio project, not an official Zomato product.
 
-## 1. Project overview
+## Overview
 
 An interactive Streamlit dashboard and reproducible Python/SQL analysis that help a refund-review team decide which customers to examine first. The project covers metric reconciliation, customer comparisons against order-volume baselines, a weighted review score, and a comparison of review policies at a fixed capacity.
 
-## 2. Business problem
+## The problem
 
 A high refund rate is easy to flag. Deciding whether it is unusual, and worth an analyst's time, is harder. Customers place different numbers of orders, investigations cost time, and a risk score cannot establish intent. A review team therefore needs three things: a fair comparison (rate against customers with similar order volume), a bounded queue, and an honest account of what a policy costs.
 
-## 3. Analytical objectives
+## What this project does
 
 1. Reconcile headline refund KPIs between pandas and SQL.
 2. Describe where refund value concentrates across customers, reasons and operating conditions.
@@ -29,7 +29,7 @@ A high refund rate is easy to flag. Deciding whether it is unusual, and worth an
 7. Monitor whether the score inputs drift over time.
 8. Report data-quality status and reproduce every metric from a single source of truth.
 
-## 4. Dataset source and context
+## Data
 
 | Item | Value | Provenance |
 |---|---|---|
@@ -44,7 +44,7 @@ The order history runs from February to **6 April 2022**. Partial months are fla
 
 Field-level provenance, generated columns and metric definitions: [data dictionary](data/DATA_DICTIONARY.md).
 
-## 5. Tech stack
+## Tech stack
 
 - **Application:** Streamlit (8 tabs, sidebar filters, downloads).
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
@@ -52,7 +52,7 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 - **Testing and CI:** pytest (188 tests) and GitHub Actions.
 - **Optional:** OpenAI or Gemini for narration. The app runs without any API key.
 
-## 6. Analytical methodology
+## Methodology
 
 - **Eligibility rule:** at least five orders and a refund rate above 30%. This defines the 279-customer review pool.
 - **Risk score:** a weighted formula: refund rate 40%, reason repetition 30%, refund frequency 20%, reason length 10%. The score ranks the pool. It is **uncalibrated**: a score of 70 is not a 70% probability of fraud. Details: [methodology](docs/risk_scoring_methodology.md).
@@ -62,7 +62,7 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 - **Drift monitor:** population stability index (PSI) on weekly score inputs.
 - **Ground truth:** synthetic planted risk labels exist for validation only and are disclosed as such on the dashboard.
 
-## 7. Dashboard
+## The dashboard
 
 Eight tabs, one set of sidebar filters (city type, customer volume band, last-order date, risk tier):
 
@@ -149,7 +149,7 @@ Live data-quality checks (pass / known gap / disclosed) and a completeness table
 
 Six downloadable artifacts, including metrics, the suspect list, and the executive summary.
 
-## 8. Results and findings
+## Results
 
 **Concentration.** The 279-customer pool holds 38.78% of refund value (₹377,892 of ₹974,344). This is a descriptive result.
 
@@ -175,7 +175,7 @@ On those assumptions the High + Medium policy returns the most modelled value, w
 
 Full findings: [executive summary](reports/executive_summary.md) and [executive findings](docs/EXECUTIVE_FINDINGS_REPORT.md).
 
-## 9. Installation
+## Running it locally
 
 Use Python 3.11, matching CI. From the repository root:
 
@@ -205,7 +205,7 @@ python scripts/external_validation.py
 
 The dashboard and evidence tools need no API key. Optional narration reads `OPENAI_API_KEY` or `GOOGLE_API_KEY` from environment variables. Keep credentials out of the repository. If the hosted app is asleep or unavailable, see the [local demo guide](docs/DEMO_FALLBACK_GUIDE.md).
 
-## 10. Project structure
+## Project structure
 
 | Path | Contents |
 |---|---|
@@ -218,7 +218,7 @@ The dashboard and evidence tools need no API key. Optional narration reads `OPEN
 | `tests/` | Data, analytical, dashboard and evidence-tool checks |
 | `reports/`, `docs/` | Findings, methodology and verification records |
 
-## 11. Limitations
+## Limitations
 
 - The refund layer is **synthetic**, and the risk labels are **planted**. Results describe the simulation, not real customers.
 - There are no confirmed investigation outcomes, so precision values measure agreement with planted labels only.
@@ -230,13 +230,13 @@ The dashboard and evidence tools need no API key. Optional narration reads `OPEN
 
 The full list is in [assumptions and limitations](reports/assumptions_and_limitations.md).
 
-## 12. What's next
+## What's next
 
 - Collect investigator outcomes to measure precision on real reviews, not planted labels.
 - Measure customer friction before any policy pilot.
 - Re-run and document the live LLM narration path with a key on a local machine.
 - Run a PostgreSQL pass of the SQL files.
 
-## 13. Links
+## Links
 
 [Assumptions](reports/assumptions_and_limitations.md) · [Rules versus models](reports/model_comparison.md) · [Decision workflow](docs/BUSINESS_VALUE_DECISION_ENGINE.md) · [Publication audit](docs/FINAL_RELEASE_AUDIT.md) · [Security audit](docs/SECURITY_AUDIT.md)
