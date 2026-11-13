@@ -6,7 +6,7 @@ A refund-review case study built around one question: **which customer records d
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
-![Refund analytics overview](docs/screenshots/publication_overview.png)
+![Refund analytics overview](docs/screenshots/v3_overview_hero.jpg)
 
 > **Data disclosure.** The delivery attributes come from a public dataset (45,584 orders). Customer IDs, refund events, amounts and risk labels are **synthetic and seeded**. No real fraud was detected and no real customer is implicated. This is an independent portfolio project, not an official Zomato product.
 
@@ -27,6 +27,7 @@ A high refund rate is easy to flag. Deciding whether it is unusual, and worth an
 5. Compare review policies under explicit cost and recovery assumptions.
 6. Check whether shared delivery attributes (riders, restaurants, drop cells) show a network pattern.
 7. Monitor whether the score inputs drift over time.
+8. Report data-quality status and reproduce every metric from a single source of truth.
 
 ## 4. Dataset source and context
 
@@ -45,7 +46,7 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 
 ## 5. Existing technical stack
 
-- **Application:** Streamlit (5 tabs, sidebar filters, downloads).
+- **Application:** Streamlit (8 tabs, sidebar filters, downloads).
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
 - **SQL:** queries in `sql/`, validated against pandas on SQLite; PostgreSQL-oriented files are included for database review.
 - **Testing and CI:** pytest (188 tests) and GitHub Actions.
@@ -59,22 +60,94 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 - **Policy economics:** three review policies are costed with an assumed ₹250 review cost, ₹100 false-positive friction and 50% recovery of a planted High customer's refund exposure. Sensitivity grid: [alert economics](reports/alert_economics.md).
 - **Network check:** shared delivery-person, restaurant-cell and drop-cell components, each scored against the dataset baseline.
 - **Drift monitor:** population stability index (PSI) on weekly score inputs.
+- **Ground truth:** synthetic planted risk labels exist for validation only and are disclosed as such on the dashboard.
 
 ## 7. Dashboard
 
-Five tabs, one set of sidebar filters (city type, customer volume band, last-order date, risk tier):
+Eight tabs, one set of sidebar filters (city type, customer volume band, last-order date, risk tier):
 
 | Tab | What it answers |
 |---|---|
-| Overview | Scope, headline metrics, and the highest-ranked records |
-| Refund Patterns | Where refund value concentrates, reasons, and customer-level patterns |
-| Investigation | Score components, volume-band context, and customer evidence |
-| Delivery Context | Delivery time, rider rating and other operating conditions |
-| Decision & Value | Capacity-limited review queue, cost and recovery scenarios, and a downloadable decision record |
+| Executive Overview | Scope, headline metrics, the highest-ranked records, and the investigation queue |
+| Refund Reasons | Where refund value concentrates, reasons, and customer-level patterns |
+| Risk Investigation | Score components, volume-band context, and customer evidence |
+| Operations Analysis | Delivery time, rider rating and other operating conditions |
+| Policy & Impact | Capacity-limited review queue, cost and recovery scenarios, and a downloadable decision record |
+| AI Refund Analyst | Deterministic evidence tool for questions about the data |
+| Data Quality | Data-quality checks, completeness, and reconciliation status |
+| Reports | Downloadable artifacts (metrics, suspects, executive summary, and more) |
 
-![Customer investigation view](docs/screenshots/publication_investigation.png)
+### Executive Overview
 
-The screenshots were captured before the most recent header change. The app's data and behaviour are unchanged, but the header differs slightly. A refreshed gallery is listed under future work.
+![Executive Overview hero KPIs](docs/screenshots/v3_overview_hero.jpg)
+
+Six hero KPI cards (orders, refund requests, refund value, flagged accounts, potential leakage, average refund) sit above the investigation queue and a dual-axis monthly trend. Every figure is recomputed from source data.
+
+![Investigation queue](docs/screenshots/v3_overview_queue.jpg)
+
+### Refund Reasons
+
+![Refund reasons metrics and Pareto](docs/screenshots/v3_refund_reasons_top.jpg)
+
+Concentration metrics and a Pareto/Lorenz view of where refund value sits, plus claim-behaviour chips (repeat-reason share, median repetition, velocity).
+
+![Pareto / Lorenz concentration](docs/screenshots/v3_refund_reasons_pareto.jpg)
+
+![Refund patterns](docs/screenshots/v3_refund_reasons_patterns.jpg)
+
+### Risk Investigation
+
+![Risk investigation KPIs](docs/screenshots/v3_risk_top.jpg)
+
+Flagged-account KPIs, the volume-band baseline comparison, and the review list.
+
+![Risk tier distribution and top scores](docs/screenshots/v3_risk_tier_charts.jpg)
+
+![Volume-band baseline](docs/screenshots/v3_risk_bands.jpg)
+
+![Review list](docs/screenshots/v3_risk_review_list.jpg)
+
+### Operations Analysis
+
+![Operations overview](docs/screenshots/v3_ops_top.jpg)
+
+Delivery time, rider rating, and operating conditions for flagged versus unflagged orders.
+
+![Operations charts](docs/screenshots/v3_ops_charts.jpg)
+
+![Delivery context](docs/screenshots/v3_ops_delivery.jpg)
+
+### Policy & Impact
+
+![Policy overview](docs/screenshots/v3_policy_top.jpg)
+
+Policy simulation, scenario costs, and modelled net value under explicit assumptions.
+
+![Policy simulation](docs/screenshots/v3_policy_sim.jpg)
+
+![Policy impact](docs/screenshots/v3_policy_impact.jpg)
+
+### AI Refund Analyst
+
+![AI Refund Analyst](docs/screenshots/v3_ai_analyst_top.jpg)
+
+A deterministic, no-LLM-required evidence tool that answers bounded questions about the data and refuses unanswerable ones.
+
+![AI Refund Analyst chat](docs/screenshots/v3_ai_analyst_chat.jpg)
+
+### Data Quality
+
+![Data quality checks](docs/screenshots/v3_data_quality.jpg)
+
+Live data-quality checks (pass / known gap / disclosed) and a completeness table.
+
+![Data completeness](docs/screenshots/v3_data_quality_completeness.jpg)
+
+### Reports
+
+![Reports tab](docs/screenshots/v3_reports.jpg)
+
+Six downloadable artifacts, including metrics, the suspect list, and the executive summary.
 
 ## 8. Results and findings
 
@@ -162,7 +235,6 @@ The full list is in [assumptions and limitations](reports/assumptions_and_limita
 - Collect investigator outcomes to measure precision on real reviews, not planted labels.
 - Measure customer friction before any policy pilot.
 - Re-run and document the live LLM narration path with a key on a local machine.
-- Refresh the screenshot gallery and add a before/after comparison of the interface.
 - Run a PostgreSQL pass of the SQL files.
 
 ## 13. Repository links

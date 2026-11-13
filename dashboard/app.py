@@ -146,7 +146,7 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 .ah-chip .live { color: var(--z-good); }
 
 /* ── Hero KPI cards (mockup style: icon chip · label · big value · context) ── */
-.kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 10px 0 2px; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 10px 0 2px; }
 .kpi-card {
   background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 130%);
   border: 1px solid var(--z-border); border-radius: 14px;
@@ -164,13 +164,11 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 .kpi-icon.i-violet { background: rgba(139,92,246,0.18); }
 .kpi-icon.i-teal   { background: rgba(52,211,153,0.18); }
 .kpi-icon.i-rose   { background: rgba(244,114,182,0.18); }
-.kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--z-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--z-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .kpi-value { font-size: 22px; font-weight: 800; color: var(--z-text); font-variant-numeric: tabular-nums; letter-spacing: -0.4px; white-space: nowrap; }
 .kpi-sub { font-size: 11px; color: var(--z-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
 .kpi-sub .up { color: var(--z-good); font-weight: 700; }
 .kpi-sub .down { color: var(--z-bad); font-weight: 700; }
-@media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 700px)  { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
 
 /* ── Claim-behaviour stat chips (mockup "Claim Behaviour") ── */
 .claim-chip {
@@ -221,10 +219,27 @@ section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14p
 [data-testid="stMetric"] label, [data-testid="stMetric"] > div > label {
   font-size: 10.5px !important; font-weight: 700; letter-spacing: 0.07em;
   text-transform: uppercase; color: var(--z-muted) !important; margin-bottom: 6px;
+  white-space: normal; overflow: visible; text-overflow: clip;
+}
+/* Streamlit wraps metric label/value text in a markdown container that ellipsizes — let it wrap so
+   long labels stay readable on narrow (≈1200px) laptop viewports instead of clipping to "FLAGGE…" */
+[data-testid="stMetric"] [data-testid="stMarkdownContainer"] {
+  white-space: normal; overflow: visible; text-overflow: clip;
+}
+[data-testid="stMetric"] [data-testid="stMarkdownContainer"] p {
+  white-space: normal; overflow: visible;
 }
 [data-testid="stMetric"] [data-testid="stMetricValue"] {
   font-size: 25px !important; font-weight: 800; color: var(--z-text);
   font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
+  white-space: nowrap; overflow: visible; text-overflow: clip;
+}
+@media (max-width: 1200px) {
+  [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 20px !important; }
+}
+@media (max-width: 900px) {
+  [data-testid="stMetric"] label, [data-testid="stMetric"] > div > label { font-size: 9px !important; letter-spacing: 0.04em; }
+  [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 18px !important; }
 }
 [data-testid="stMetric"] [data-testid="stMetricDelta"] {
   font-size: 12px !important; font-variant-numeric: tabular-nums;
@@ -1070,9 +1085,9 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
         tier_df = tier_counts.rename_axis("Tier").reset_index(name="count")
         fig = px.bar(
             tier_df, x="Tier", y="count", title="Risk tier distribution (all flagged)",
-            color="Tier", color_discrete_map=TIER_COLORS,
+            color="Tier", color_discrete_map=TIER_COLORS, text="count",
         )
-        fig.update_traces(text=tier_df["count"].astype(int), textposition="outside")
+        fig.update_traces(textposition="outside")
         fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
         left.plotly_chart(fig, width="stretch")
 
