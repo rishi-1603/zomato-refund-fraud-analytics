@@ -44,7 +44,7 @@ The order history runs from February to **6 April 2022**. Partial months are fla
 
 Field-level provenance, generated columns and metric definitions: [data dictionary](data/DATA_DICTIONARY.md).
 
-## 5. Existing technical stack
+## 5. Tech stack
 
 - **Application:** Streamlit (8 tabs, sidebar filters, downloads).
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
@@ -163,7 +163,7 @@ Six downloadable artifacts, including metrics, the suspect list, and the executi
 | High + Medium tiers | 115 | 87.8% | ₹92,125 |
 | All flagged customers | 279 | 46.9% | ₹65,006 |
 
-Under these assumptions the High + Medium policy returns the most modelled value. Break-even precision is 28.2%. These are modelled values, not realised savings. A real policy needs actual investigation costs and outcomes.
+On those assumptions the High + Medium policy returns the most modelled value, with a break-even precision of 28.2%. These are modelled values, not realised savings; a real rollout needs actual investigation costs and outcomes.
 
 **Network check.** The delivery-person permutation test gives p = 0.76, with no evidence of High-label clustering beyond chance. A 788-customer restaurant-cell component reflected a busy location, so the analysis ranks components by excess refund rate, not by size.
 
@@ -230,13 +230,13 @@ The dashboard and evidence tools need no API key. Optional narration reads `OPEN
 
 The full list is in [assumptions and limitations](reports/assumptions_and_limitations.md).
 
-## 12. Future improvements
+## 12. What's next
 
 - Collect investigator outcomes to measure precision on real reviews, not planted labels.
 - Measure customer friction before any policy pilot.
 - Re-run and document the live LLM narration path with a key on a local machine.
 - Run a PostgreSQL pass of the SQL files.
 
-## 13. Repository links
+## 13. Links
 
 [Assumptions](reports/assumptions_and_limitations.md) · [Rules versus models](reports/model_comparison.md) · [Decision workflow](docs/BUSINESS_VALUE_DECISION_ENGINE.md) · [Publication audit](docs/FINAL_RELEASE_AUDIT.md) · [Security audit](docs/SECURITY_AUDIT.md)
