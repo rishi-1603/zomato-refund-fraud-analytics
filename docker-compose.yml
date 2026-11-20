@@ -1,0 +1,40 @@
+# FoodTrust — local reproducibility stack (dashboard + Postgres)
+# Usage:
+#   docker compose up --build
+# Dashboard: http://localhost:8501
+# Postgres:  localhost:5432 (user/password/db as below — change before exposing)
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - FOODTRUST_DB_URL=postgresql://foodtrust:foodtrust@db:5432/foodtrust
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: foodtrust
+      POSTGRES_PASSWORD: foodtrust
+      POSTGRES_DB: foodtrust
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foodtrust -d foodtrust"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
