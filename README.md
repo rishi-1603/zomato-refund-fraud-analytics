@@ -1,14 +1,14 @@
-# Food-Delivery Refund Risk & Operations Analytics
+# FoodTrust — Food Delivery Fraud, Trust & Marketplace Risk Intelligence Platform
 
-A refund-review case study built around one question: **which customer records deserve a closer look, and what would a review policy cost?**
+A trust-and-risk intelligence case study built around one question: **which refund records deserve human review first, what does that review policy cost, and how do we avoid harming legitimate customers while doing it?**
 
-[Open the dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Executive findings](docs/EXECUTIVE_FINDINGS_REPORT.md) · [SQL queries](sql/fraud_queries.sql) · [Data dictionary](data/DATA_DICTIONARY.md) · [Evidence index](RESUME_EVIDENCE.md)
+[Open the dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Problem statement & business value](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Executive findings](docs/EXECUTIVE_FINDINGS_REPORT.md) · [SQL queries](sql/fraud_queries.sql) · [Data dictionary](data/DATA_DICTIONARY.md)
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
 ![Refund analytics overview](docs/screenshots/v3_overview_hero.jpg)
 
-> **Data disclosure.** The delivery attributes come from a public dataset (45,584 orders). Customer IDs, refund events, amounts and risk labels are **synthetic and seeded**. No real fraud was detected and no real customer is implicated. This is an independent portfolio project, not an official Zomato product.
+> **Data disclosure.** The delivery attributes come from a public dataset (45,584 orders). Customer IDs, refund events, amounts and risk labels are **synthetic and seeded**. No real fraud was detected and no real customer is implicated. FoodTrust is an independent portfolio platform inspired by food-delivery marketplace workflows — not an official Zomato product, with no access to internal Zomato data.
 
 ## Overview
 
@@ -239,4 +239,4 @@ The full list is in [assumptions and limitations](reports/assumptions_and_limita
 
 ## Links
 
-[Assumptions](reports/assumptions_and_limitations.md) · [Rules versus models](reports/model_comparison.md) · [Decision workflow](docs/BUSINESS_VALUE_DECISION_ENGINE.md) · [Publication audit](docs/FINAL_RELEASE_AUDIT.md) · [Security audit](docs/SECURITY_AUDIT.md)
+[Assumptions](reports/assumptions_and_limitations.md) · [Rules versus models](reports/model_comparison.md) · [Decision workflow](docs/BUSINESS_VALUE_DECISION_ENGINE.md) · [Problem statement](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Publication audit](docs/FINAL_RELEASE_AUDIT.md) · [Security audit](docs/SECURITY_AUDIT.md)
