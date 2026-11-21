@@ -2,7 +2,7 @@
 
 A trust-and-risk intelligence case study built around one question: **which refund records deserve human review first, what does that review policy cost, and how do we avoid harming legitimate customers while doing it?**
 
-[Open the dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Problem statement & business value](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Executive findings](docs/EXECUTIVE_FINDINGS_REPORT.md) · [SQL queries](sql/fraud_queries.sql) · [Data dictionary](data/DATA_DICTIONARY.md)
+[Open the dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Project report (PDF)](reports/FoodTrust_Project_Report.pdf) · [Problem statement & business value](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Executive findings](docs/EXECUTIVE_FINDINGS_REPORT.md) · [SQL queries](sql/fraud_queries.sql) · [Data dictionary](data/DATA_DICTIONARY.md)
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
