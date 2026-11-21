@@ -325,36 +325,6 @@ button:hover{
 }
 button:active{transform:translateY(0)}
 
-/* ===== TABS ===== */
-.tabs{
-  display:flex;
-  gap:4px;
-  flex-wrap:wrap;
-  margin:28px 0 20px;
-  border-bottom:1px solid var(--border);
-  padding-bottom:0;
-}
-.tabs button{
-  background:transparent;
-  color:var(--muted);
-  border:none;
-  border-bottom:2px solid transparent;
-  padding:10px 18px;
-  border-radius:0;
-  cursor:pointer;
-  font-weight:500;
-  font-size:13px;
-  transition:all .2s ease;
-  margin-bottom:-1px;
-}
-.tabs button:hover{color:var(--text);background:rgba(255,255,255,.03)}
-.tabs button[aria-selected=true]{
-  color:var(--accent);
-  border-bottom-color:var(--accent);
-  font-weight:600;
-  background:transparent;
-}
-
 /* ===== KPI CARDS ===== */
 .kpis{
   display:grid;
@@ -861,7 +831,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         st.subheader("Review queue — highest priority first")
         st.caption(
             "The highest risk scores in the current view. A flag means look closer — never a guilt verdict. "
-            "The full list, baselines and per-customer details are in the Risk Review tab."
+            "The full list, baselines and per-customer details are on the Risk Review page."
         )
         st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
 
@@ -883,6 +853,8 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     fig.update_yaxes(title_text="Orders", secondary_y=False)
     fig.update_yaxes(title_text="Refund rate (%)", secondary_y=True)
     st.plotly_chart(fig, width="stretch")
+    st.caption("February starts on the 11th and April ends on the 6th, so the first and last bars cover "
+               "partial months. The line shows observed refund rate, not a trend forecast.")
 
     # Bottom row: Reasons + City
     left, right = st.columns(2)
@@ -982,7 +954,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
   <div style="font-size:12px;line-height:1.5;margin-top:8px;color:#9ca3af;">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
-  <div style="font-size:12px;margin-top:10px;color:#e8edf5;"><b>Investigate next:</b> open the Risk Review tab and start with the High tier
+  <div style="font-size:12px;margin-top:10px;color:#e8edf5;"><b>Investigate next:</b> open the Risk Review page and start with the High tier
   ({n_high_tier} accounts) — each carries the strongest evidence.</div>
 </div>
 """, unsafe_allow_html=True)
