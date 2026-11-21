@@ -1703,7 +1703,7 @@ def main():
     # Navigation
     page = st.radio(
         "Navigation",
-        ["1. Executive Overview", "2. Refund Patterns", "3. Risk Review", "4. Operations", "5. Data Quality"],
+        ["1. Executive Overview", "2. Refund Patterns", "3. Risk Review", "4. Operations"],
         horizontal=True, label_visibility="collapsed", key="Navigation",
     )
 
@@ -1715,8 +1715,6 @@ def main():
         page_risk_review(orders_f, suspects_scope, filtered)
     elif page == "4. Operations":
         page_operations(orders_f, filtered, city_subset, band_subset, risk_tiers)
-    elif page == "5. Data Quality":
-        page_data_quality(orders_f)
 
     ft_footer()
     st.caption(
