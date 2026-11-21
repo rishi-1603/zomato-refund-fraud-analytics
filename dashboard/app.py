@@ -754,6 +754,8 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     if "partial_periods" not in mom:
         st.warning("Analytics modules are refreshing. Please reload this page.")
         return
+    if mom.get("partial_periods"):
+        st.warning(mom["coverage_note"])
 
     # Hero KPI row
     refund_orders = kpis["refund_orders"]
