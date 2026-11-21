@@ -77,18 +77,18 @@ C_ACCENT_2 = "#0D9488"    # teal
 TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
 
 PLOTLY_LAYOUT = dict(
-    template="plotly_white",
+    template="plotly_dark",
     height=420,
     margin=dict(l=56, r=32, t=62, b=52),
-    title_font=dict(size=15, color="#253247", family="'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif"),
-    font=dict(family="'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", size=12, color="#4B5563"),
+    title_font=dict(size=15, color="#F1F5F9", family="'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif"),
+    font=dict(family="'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", size=12, color="#CBD5E1"),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    hoverlabel=dict(bgcolor="#FFFFFF", font_size=12, font_color="#253247", bordercolor="#E2E5EA"),
+    hoverlabel=dict(bgcolor="#141D31", font_size=12, font_color="#E8ECF4", bordercolor="#26375C"),
     hovermode="closest",
-    xaxis=dict(gridcolor="#E2E5EA", zerolinecolor="#D1D5DB", showgrid=True, title_font=dict(color="#4B5563"), tickfont=dict(color="#4B5563")),
-    yaxis=dict(gridcolor="#E2E5EA", zerolinecolor="#D1D5DB", showgrid=True, title_font=dict(color="#4B5563"), tickfont=dict(color="#4B5563")),
-    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#E2E5EA", borderwidth=1, font=dict(color="#4B5563")),
+    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True, title_font=dict(color="#CBD5E1")),
+    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True, title_font=dict(color="#CBD5E1")),
+    legend=dict(bgcolor="rgba(20,29,49,0.85)", bordercolor="#26375C", borderwidth=1, font=dict(color="#CBD5E1")),
 )
 
 
@@ -116,25 +116,25 @@ def inject_css() -> None:
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root{
-  --bg:#F5F6F8;
-  --bg-2:#F0F1F3;
-  --panel:#FFFFFF;
-  --panel-2:#F8F9FB;
-  --panel-3:#EEF0F4;
-  --border:#E2E5EA;
-  --border-light:#D1D5DB;
-  --text:#253247;
-  --text-2:#4B5563;
-  --muted:#6B7280;
-  --accent:#258F80;
-  --accent-glow:rgba(37, 143, 128,.15);
+  --bg:#0a0f1e;
+  --bg-2:#0f1629;
+  --panel:#131d33;
+  --panel-2:#1a2744;
+  --panel-3:#213052;
+  --border:#1e3a5f;
+  --border-light:#2a4a73;
+  --text:#e8edf5;
+  --text-2:#c5cdd9;
+  --muted:#6b7a99;
+  --accent:#10b981;
+  --accent-glow:rgba(16,185,129,.15);
   --accent-2:#3b82f6;
   --accent-3:#8b5cf6;
   --warn:#f59e0b;
   --danger:#ef4444;
-  --success:#258F80;
-  --gradient-1:linear-gradient(135deg,#F5F6F8 0%,#FFFFFF 50%,#F0F1F3 100%);
-  --gradient-accent:linear-gradient(135deg,#258F80 0%,#3b82f6 100%);
+  --success:#10b981;
+  --gradient-1:linear-gradient(135deg,#0a0f1e 0%,#131d33 50%,#0f1629 100%);
+  --gradient-accent:linear-gradient(135deg,#10b981 0%,#3b82f6 100%);
   --shadow-sm:0 2px 8px rgba(0,0,0,.2);
   --shadow-md:0 8px 24px rgba(0,0,0,.3);
   --shadow-lg:0 16px 48px rgba(0,0,0,.4);
@@ -160,7 +160,7 @@ body::before{
   position:fixed;
   top:0;left:0;right:0;bottom:0;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(37, 143, 128,.08),transparent),
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(16,185,129,.08),transparent),
     radial-gradient(ellipse 60% 40% at 80% 80%,rgba(59,130,246,.05),transparent);
   pointer-events:none;
   z-index:0;
@@ -176,7 +176,7 @@ header{
   margin:0 auto;
   padding:48px 40px 32px;
   border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(37, 143, 128,.03) 0%,transparent 100%);
+  background:linear-gradient(180deg,rgba(16,185,129,.03) 0%,transparent 100%);
 }
 
 .eyebrow{
@@ -203,7 +203,7 @@ h1{
   line-height:1.15;
   margin:0 0 8px;
   font-weight:800;
-  background:linear-gradient(135deg,#253247 0%,#4B5563 100%);
+  background:linear-gradient(135deg,#fff 0%,#a0aec0 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
@@ -320,7 +320,7 @@ button{
 }
 button:hover{
   background:var(--accent);
-  color:#FFFFFF;
+  color:#071a13;
   border-color:var(--accent);
   transform:translateY(-1px);
   box-shadow:0 4px 12px var(--accent-glow);
@@ -370,7 +370,7 @@ button:active{transform:translateY(0)}
   line-height:1.1;
   font-weight:800;
   margin:8px 0 4px;
-  color:#253247;
+  color:#fff;
   letter-spacing:-.02em;
 }
 .kpi small{
@@ -449,14 +449,14 @@ td{
   white-space:nowrap;
   color:var(--text);
 }
-tbody tr:hover{background:rgba(37, 143, 128,.04)}
+tbody tr:hover{background:rgba(16,185,129,.04)}
 tbody tr:last-child td{border-bottom:none}
 
 /* ===== SUMMARY / INSIGHT ===== */
 .summary{
   padding:18px 22px;
-  border:1px solid rgba(37, 143, 128,.2);
-  background:linear-gradient(135deg,rgba(37, 143, 128,.06) 0%,rgba(59,130,246,.04) 100%);
+  border:1px solid rgba(16,185,129,.2);
+  background:linear-gradient(135deg,rgba(16,185,129,.06) 0%,rgba(59,130,246,.04) 100%);
   border-radius:var(--radius-md);
   margin:20px 0;
   font-size:13px;
@@ -566,7 +566,7 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
     <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
       background:linear-gradient(135deg,#3B82F6,#7C3AED);
       display:flex;align-items:center;justify-content:center;
-      font-weight:800;font-size:15px;letter-spacing:.5px;color:#253247;">FT</div>
+      font-weight:800;font-size:15px;letter-spacing:.5px;color:#fff;">FT</div>
     <div>
       <div style="font-size:18px;font-weight:800;letter-spacing:-0.2px;color:var(--text);">FoodTrust — Refund Risk & Marketplace Intelligence</div>
       <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">Zomato case study — refund patterns, customer comparisons and evidence for human review</div>
@@ -575,7 +575,7 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
       color:var(--muted);background:var(--bg);border:1px solid var(--border);
-      border-radius:999px;padding:5px 11px;white-space:nowrap;"><span style="color:#258F80;margin-right:4px;">●</span>&nbsp; Historical dataset · Interactive analysis · Synthetic refund layer</span>
+      border-radius:999px;padding:5px 11px;white-space:nowrap;"><span style="color:#10b981;margin-right:4px;">●</span>&nbsp; Historical dataset · Interactive analysis · Synthetic refund layer</span>
     <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
       color:var(--muted);background:var(--bg);border:1px solid var(--border);
       border-radius:999px;padding:5px 11px;white-space:nowrap;">{n:,} orders in scope · {period}</span>
@@ -782,7 +782,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         ("#8B5CF6", "🛡", "Accounts flagged for review", f"{kpis['flagged_count']:,}",
          f"{refunders_share:.1f}% of refunders",
          "Eligibility: ≥5 orders AND refund rate >30%. A flag means review — never a guilt verdict."),
-        ("#258F80", "⚠", "Potential exposure", _inr(kpis["flagged_exposure"]),
+        ("#10B981", "⚠", "Potential exposure", _inr(kpis["flagged_exposure"]),
          f"{kpis['flagged_exposure_share_pct']:.1f}% of refunds",
          "Refund value held by the flagged pool."),
         ("#EC4899", "₹", "Avg refund amount", _inr(avg_refund),
@@ -790,13 +790,13 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     ]
     st.markdown(
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:8px 0 4px;">' + "".join(
-            f'<div style="background:#FFFFFF;border:1px solid #E2E5EA;border-left:3px solid {color};border-radius:12px;padding:14px 14px 12px;min-width:0;box-shadow:0 1px 4px rgba(0,0,0,.06);">'
+            f'<div style="background:#131d33;border:1px solid #1e3a5f;border-left:3px solid {color};border-radius:12px;padding:14px 14px 12px;min-width:0;box-shadow:0 1px 4px rgba(0,0,0,.06);">'
             f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
             f'<div style="width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(59,130,246,.15);color:{color};">{emoji}</div>'
-            f'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">{label}</div></div>'
-            f'<div style="font-size:22px;font-weight:800;color:#253247;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;line-height:1.2;">{value}</div>'
-            f'<div style="font-size:11px;color:#6B7280;margin-top:3px;font-variant-numeric:tabular-nums;line-height:1.4;">{sub}</div>'
-            f'<div style="font-size:11px;color:#6B7280;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.4;">{note}</div></div>'
+            f'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7a99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">{label}</div></div>'
+            f'<div style="font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;line-height:1.2;">{value}</div>'
+            f'<div style="font-size:11px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;line-height:1.4;">{sub}</div>'
+            f'<div style="font-size:11px;color:#6b7a99;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.4;">{note}</div></div>'
             for color, emoji, label, value, sub, note in kpi_cards
         ) + "</div>",
         unsafe_allow_html=True,
@@ -821,15 +821,15 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
             rows += (
                 f'<div style="display:flex;align-items:center;gap:12px;padding:8px 4px;'
                 f'border-bottom:1px solid rgba(38,55,92,.5);font-size:12.5px;'
-                f'background:#FFFFFF;border:1px solid #E2E5EA;border-radius:12px;padding:6px 14px;margin-top:6px;">'
+                f'background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">'
                 f'<span style="font-size:10px;font-weight:800;letter-spacing:.07em;border-radius:999px;'
                 f'padding:2px 9px;flex-shrink:0;'
                 f'{"color:#EF4444;background:rgba(248,113,113,.13);border:1px solid rgba(248,113,113,.4);" if tier=="High" else "color:#FBBF24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);" if tier=="Medium" else "color:#34D399;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.4);"}">{tier.upper()}</span>'
-                f'<span style="color:#253247;font-weight:700;font-variant-numeric:tabular-nums;width:92px;">#{r["Customer_ID"]}</span>'
-                f'<span style="color:#4B5563;font-variant-numeric:tabular-nums;white-space:nowrap;"><b>{r["Fraud_Risk_Score"]:.1f}</b> risk score</span>'
-                f'<span style="color:#4B5563;font-variant-numeric:tabular-nums;white-space:nowrap;">{r["Refund_Rate"]:.0f}% refund rate · {int(r["Total_Refunds"])}/{int(r["Total_Orders"])} orders</span>'
+                f'<span style="color:#e8edf5;font-weight:700;font-variant-numeric:tabular-nums;width:92px;">#{r["Customer_ID"]}</span>'
+                f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;white-space:nowrap;"><b>{r["Fraud_Risk_Score"]:.1f}</b> risk score</span>'
+                f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;white-space:nowrap;">{r["Refund_Rate"]:.0f}% refund rate · {int(r["Total_Refunds"])}/{int(r["Total_Orders"])} orders</span>'
                 f'<span style="flex:1;"></span>'
-                f'<span style="color:#4B5563;font-variant-numeric:tabular-nums;"><b>₹{r["Total_Refund_Amount"]:,.0f}</b> exposure</span>'
+                f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;"><b>₹{r["Total_Refund_Amount"]:,.0f}</b> exposure</span>'
                 f'</div>'
             )
         st.subheader("Review queue — highest priority first")
@@ -837,7 +837,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
             "The highest review priority scores in the current view. A flag means look closer — never a guilt verdict. "
             "The full list, baselines and per-customer details are on the Customer Risk Review page."
         )
-        st.markdown(f'<div style="background:#FFFFFF;border:1px solid #E2E5EA;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
 
     # Monthly trend: dual-axis
     m = (
@@ -854,7 +854,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
                 text=m["orders"], textposition="outside", textfont=dict(size=10))
     fig.add_scatter(x=m["Order_Date"], y=m["refund_rate"], name="Refund rate (%)",
                     mode="lines+markers", line=dict(color="#F87171", width=3),
-                    marker=dict(size=8, color="#F87171", line=dict(color="#F5F6F8", width=1)),
+                    marker=dict(size=8, color="#F87171", line=dict(color="#0A0F1E", width=1)),
                     secondary_y=True)
     # Annotate the month with the highest refund rate
     if len(m):
@@ -951,9 +951,9 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         cc1, cc2, cc3, cc4 = st.columns(4)
         for col, (v, l) in zip((cc1, cc2, cc3, cc4), chips):
             col.markdown(
-                f'<div style="background:#FFFFFF;border:1px solid #E2E5EA;border-radius:10px;padding:10px 12px;text-align:left;height:100%;">'
-                f'<div style="font-size:19px;font-weight:800;color:#253247;font-variant-numeric:tabular-nums;">{v}</div>'
-                f'<div style="font-size:10px;font-weight:600;color:#6B7280;margin-top:2px;line-height:1.35;">{l}</div></div>',
+                f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;text-align:left;height:100%;">'
+                f'<div style="font-size:19px;font-weight:800;color:#e8edf5;font-variant-numeric:tabular-nums;">{v}</div>'
+                f'<div style="font-size:10px;font-weight:600;color:#6b7a99;margin-top:2px;line-height:1.35;">{l}</div></div>',
                 unsafe_allow_html=True)
         st.caption("Behavioural patterns of refund requests in the current scope. Repeat claiming is an investigation signal, not proof of fraud.")
 
@@ -964,14 +964,14 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     n_high_tier = int((suspects["Risk_Tier"] == "High").sum()) if len(suspects) else 0
     st.markdown(
         f"""
-<div style="background:#FFFFFF;border:1px solid #E2E5EA;border-radius:10px;padding:16px 20px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:16px 20px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
   <div style="font-size:10px;font-weight:700;letter-spacing:.09em;color:#60a5fa;text-transform:uppercase;">Financial impact & actions — computed from the current scope</div>
-  <div style="font-size:13.5px;line-height:1.55;margin-top:6px;color:#253247;">"{top_reason}" is the most common refund reason ({top_reason_share:.1f}% of all refunds).
+  <div style="font-size:13.5px;line-height:1.55;margin-top:6px;color:#e8edf5;">"{top_reason}" is the most common refund reason ({top_reason_share:.1f}% of all refunds).
   Busiest month on record: <b>{busiest_month}</b>. Flagged customers ({len(suspects):,} accounts) hold
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
   <div style="font-size:12px;line-height:1.5;margin-top:8px;color:#9ca3af;">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
-  <div style="font-size:12px;margin-top:10px;color:#253247;"><b>Investigate next:</b> open the Customer Risk Review page and start with the High tier
+  <div style="font-size:12px;margin-top:10px;color:#e8edf5;"><b>Investigate next:</b> open the Customer Risk Review page and start with the High tier
   ({n_high_tier} accounts) — each carries the strongest evidence.</div>
 </div>
 """, unsafe_allow_html=True)
@@ -1122,15 +1122,15 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
             meters += (
                 f'<div style="margin:10px 0;">'
                 f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#9ca3af;margin-bottom:4px;">'
-                f'<span>{name} <span style="color:#6B7280;">· weight {weight:.0%}</span></span>'
+                f'<span>{name} <span style="color:#6b7a99;">· weight {weight:.0%}</span></span>'
                 f'<b>{text}</b></div>'
-                f'<div style="height:7px;border-radius:999px;background:#E2E5EA;overflow:hidden;">'
+                f'<div style="height:7px;border-radius:999px;background:#1e3a5f;overflow:hidden;">'
                 f'<div class="meter-fill {fill}" style="height:100%;border-radius:999px;background:#3B82F6;'
                 f'{"background:linear-gradient(90deg,#F59E0B,#EF4444);" if over else ""} width:{pct:.0f}%"></div></div>'
-                f'<div style="font-size:10px;color:#6B7280;margin-top:3px;font-variant-numeric:tabular-nums;">{note}</div>'
+                f'<div style="font-size:10px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;">{note}</div>'
                 f'</div>'
             )
-        st.markdown(f'<div style="background:#FFFFFF;border:1px solid #E2E5EA;border-radius:10px;padding:14px 16px;">{meters}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:14px 16px;">{meters}</div>', unsafe_allow_html=True)
         st.caption(
             "Each bar shows how extreme one score factor is, compared to the 95th percentile "
             "of flagged customers in the current view. The score is a simple weighted formula — "
@@ -1522,24 +1522,24 @@ def main():
     n_refunds = int(orders["Refund_Requested"].sum())
     st.sidebar.markdown(
         """
-<div style="display:flex;gap:10px;align-items:center;padding:4px 4px 12px;border-bottom:1px solid #E2E5EA;margin-bottom:12px;">
+<div style="display:flex;gap:10px;align-items:center;padding:4px 4px 12px;border-bottom:1px solid #1e3a5f;margin-bottom:12px;">
   <div style="width:40px;height:40px;border-radius:10px;flex-shrink:0;
     background:linear-gradient(135deg,#E23744,#B91C1C);
     display:flex;align-items:center;justify-content:center;
-    font-weight:900;font-size:18px;color:#253247;
+    font-weight:900;font-size:18px;color:#fff;
     box-shadow:0 0 16px rgba(226,55,68,.35);">FT</div>
   <div>
-    <div style="font-size:14px;font-weight:800;color:#253247;line-height:1.2;">FoodTrust</div>
-    <div style="font-size:11px;color:#6B7280;margin-top:2px;">Refund & Trust Intelligence</div>
+    <div style="font-size:14px;font-weight:800;color:#e8edf5;line-height:1.2;">FoodTrust</div>
+    <div style="font-size:11px;color:#6b7a99;margin-top:2px;">Refund & Trust Intelligence</div>
   </div>
 </div>
 """, unsafe_allow_html=True)
     st.sidebar.markdown(
         f"""
-<div style="font-size:11px;color:#6B7280;background:#F5F6F8;border:1px solid #E2E5EA;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5;">
+<div style="font-size:11px;color:#6b7a99;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5;">
   📅 <b>{period_label}</b><br>
   {len(orders):,} orders · {n_refunds:,} refunds<br>
-  <span style="color:#6B7280">Synthetic refund layer — disclosed</span></div>
+  <span style="color:#6b7a99">Synthetic refund layer — disclosed</span></div>
 """, unsafe_allow_html=True)
 
     st.sidebar.markdown("**Filters**")
@@ -1584,8 +1584,8 @@ def main():
     if len(risk_tiers) < 3:
         chips.append(f"Tier: {', '.join(risk_tiers) if risk_tiers else 'none'}")
     html = "".join(f'<span style="font-size:11px;font-weight:600;color:#3B82F6;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:999px;padding:3px 10px;">{c}</span>' for c in chips) if chips else \
-        '<span style="font-size:11px;color:#6B7280;">No filters active — full dataset in scope</span>'
-    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#6B7280;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;">{html}</div></div>', unsafe_allow_html=True)
+        '<span style="font-size:11px;color:#6b7a99;">No filters active — full dataset in scope</span>'
+    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#6b7a99;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;">{html}</div></div>', unsafe_allow_html=True)
 
     if st.sidebar.button("↺ Reset all filters", help="Restore the full dataset into scope.", use_container_width=True):
         for _k in ("f_city", "f_band", "f_tier", "f_date"):
