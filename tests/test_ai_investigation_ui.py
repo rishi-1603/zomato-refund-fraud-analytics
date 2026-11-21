@@ -59,14 +59,17 @@ def test_ai_investigation_button_works_in_streamlit_runtime():
         at.run()
         assert not at.exception, f"dashboard raised: {at.exception}"
 
-        # The AI assistant lives in the Investigation tab; AppTest sees all
-        # tab content, so drive it directly by key.
-        sb = at.selectbox(key="inv_customer")
+        # Navigate to "3. Risk Review" page where AI investigation lives
+        at.radio(key="Navigation").set_value("3. Risk Review").run()
+        assert not at.exception, f"dashboard raised after page switch: {at.exception}"
+
+        # The AI investigation lives in an expander on the Risk Review page
+        sb = at.selectbox(key="ai_inv_customer")
         assert "CUST09534" in sb.options, "known suspect missing from picker"
         sb.set_value("CUST09534").run()
         assert not at.exception, at.exception
 
-        at.button(key="inv_run").click().run()
+        at.button(key="ai_inv_run").click().run()
         assert not at.exception, f"AI investigation raised: {at.exception}"
 
         info_texts = [i.value for i in at.info]
@@ -75,7 +78,6 @@ def test_ai_investigation_button_works_in_streamlit_runtime():
         assert not at.error, [e.value for e in at.error]
 
         # Evidence rendered with dataset-verified values for CUST09534
-        # (cross-checked against data/processed + reports/fraud_suspects.csv)
         md = "\n".join(m.value for m in at.markdown)
         assert "**Risk Score:** 56.66" in md, "evidence block did not render"
         assert "**Tier:** Medium" in md, "tier mismatch"
@@ -112,6 +114,10 @@ def test_baseline_section_renders_in_streamlit_runtime():
         info_texts = [i.value for i in at.info]
         assert not any("Baseline normalization unavailable" in t
                        for t in info_texts), info_texts
+
+        # Navigate to "3. Risk Review" page (radio button index 2)
+        at.radio(key="Navigation").set_value("3. Risk Review").run()
+        assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 
         labels = [m.label for m in at.metric]
         above_m = at.metric[labels.index("Flagged above band baseline")]

@@ -5,13 +5,47 @@ APP=Path(__file__).resolve().parents[1]/'dashboard/app.py'
 
 
 def button(app,label):
-    return next(b for b in app.button if b.label==label)
+    # Check regular buttons first
+    for b in app.button:
+        if b.label == label:
+            return b
+    # Check all widgets in the tree recursively
+    def find_in_tree(tree):
+        if isinstance(tree, dict):
+            for key, value in tree.items():
+                if hasattr(value, 'label') and value.label == label:
+                    return value
+                if hasattr(value, 'children'):
+                    result = find_in_tree(value.children)
+                    if result:
+                        return result
+                if hasattr(value, '__iter__') and not isinstance(value, (str, bytes)):
+                    result = find_in_tree(value)
+                    if result:
+                        return result
+        elif isinstance(tree, (list, tuple, set)):
+            for item in tree:
+                if hasattr(item, 'label') and item.label == label:
+                    return item
+                if hasattr(item, 'children'):
+                    result = find_in_tree(item.children)
+                    if result:
+                        return result
+        return None
+    
+    result = find_in_tree(app._tree)
+    if result:
+        return result
+    raise StopIteration(f"Button with label '{label}' not found")
 
 
 def test_decision_workflow_uses_filtered_queue_and_clears_on_scope_change(monkeypatch):
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     monkeypatch.delenv('GOOGLE_API_KEY',raising=False)
     app=AppTest.from_file(str(APP)).run(timeout=90)
+    assert not app.exception
+    # Navigate to "4. Operations" page
+    app.radio(key="Navigation").set_value("4. Operations").run(timeout=90)
     assert not app.exception
     button(app,'Build review decision').click().run(timeout=90)
     assert not app.exception
@@ -32,6 +66,9 @@ def test_history_add_snapshot_and_followup_are_user_entered(monkeypatch):
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     monkeypatch.delenv('GOOGLE_API_KEY',raising=False)
     app=AppTest.from_file(str(APP)).run(timeout=90)
+    # Navigate to "4. Operations" page
+    app.radio(key="Navigation").set_value("4. Operations").run(timeout=90)
+    assert not app.exception
     button(app,'Build review decision').click().run(timeout=90)
     button(app,'Add current snapshot to history').click().run(timeout=90)
     assert not app.exception
@@ -51,6 +88,9 @@ def test_copilot_refuses_out_of_scope_and_clears_after_filter_change(monkeypatch
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     monkeypatch.delenv('GOOGLE_API_KEY',raising=False)
     app=AppTest.from_file(str(APP)).run(timeout=90)
+    # Navigate to "4. Operations" page
+    app.radio(key="Navigation").set_value("4. Operations").run(timeout=90)
+    assert not app.exception
     app.text_input(key='refund_copilot_question').set_value('How many flagged customers?')
     button(app,'Calculate queue answer').click().run(timeout=90)
     assert not app.exception

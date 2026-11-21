@@ -1,14 +1,17 @@
-"""Streamlit dashboard for the Zomato refund fraud risk analysis.
+"""FoodTrust — Zomato Refund Risk & Operations Analytics
+Professional minimalist BI dashboard (light theme).
 
-A professional multi-tab BI dashboard — every figure is computed live from
-the dataset (45,584 delivery orders). No hardcoded metrics anywhere.
+Five analytical pages:
+1. Executive Overview    — Primary KPIs, trends, business attention points
+2. Refund Patterns       — Customer volume bands, city comparisons, trends
+3. Risk Review           — Risk rules, investigation queue, account-level evidence
+4. Operations            — Review prioritization, analyst workflow, reports
+5. Data Quality          — Lineage, definitions, validation, limitations
 
-Run with: streamlit run dashboard/app.py
-Tabs: Overview · Refund Patterns · Investigation · Delivery Context
+Run: streamlit run dashboard/app.py
 """
 
 from pathlib import Path
-
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -17,28 +20,35 @@ from plotly.subplots import make_subplots
 import streamlit as st
 from sklearn.preprocessing import MinMaxScaler
 
-# Paths are resolved from this file, so the app runs from any working directory.
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = str(_REPO_ROOT / "data" / "processed" / "zomato_with_refunds.csv")
 TRUTH_PATH = str(_REPO_ROOT / "data" / "processed" / "ground_truth_customer_risk.csv")
 METRICS_PATH = str(_REPO_ROOT / "data" / "metrics.json")
 
-try:  # executed by Streamlit — the script dir is on sys.path
-    from kpi_engine import (  # noqa: E402
+try:
+    from kpi_engine import (
         BAND_LABELS,
         apply_global_filters,
         compute_kpis,
         load_metric_definitions,
         volume_band,
     )
-except ImportError:  # imported as a module from the repo root (tests)
-    from dashboard.kpi_engine import (  # noqa: E402
+except ImportError:
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from dashboard.kpi_engine import (
         BAND_LABELS,
         apply_global_filters,
         compute_kpis,
         load_metric_definitions,
         volume_band,
     )
+
+try:
+    from decision_history import render_history
+except ImportError:
+    from dashboard.decision_history import render_history
 
 RISK_WEIGHTS = {
     "Refund_Rate": 0.40,
@@ -47,13 +57,45 @@ RISK_WEIGHTS = {
     "Avg_Reason_Length": 0.10,
 }
 
+MIN_ORDERS_THRESHOLD = 5
+MIN_REFUND_RATE_PCT = 30
+
+# ─── Professional Light Theme Palette ───
+C_PRIMARY = "#E23744"      # Zomato red
+C_PRIMARY_LIGHT = "#FEF2F2"
+C_TEAL = "#0D9488"
+C_TEAL_LIGHT = "#F0FDFA"
+C_AMBER = "#D97706"
+C_AMBER_LIGHT = "#FFFBEB"
+C_BLUE = "#2563EB"
+C_BLUE_LIGHT = "#EFF6FF"
+C_GREEN = "#16A34A"
+C_GREEN_LIGHT = "#F0FDF4"
+C_TEXT = "#111827"
+C_TEXT_MUTED = "#6B7280"
+C_TEXT_LIGHT = "#9CA3AF"
+C_BORDER = "#E5E7EB"
+C_CARD_BG = "#FFFFFF"
+C_PAGE_BG = "#F9FAFB"
+C_SIDEBAR_BG = "#FFFFFF"
+
+PLOTLY_LAYOUT = dict(
+    template="plotly_white",
+    height=360,
+    margin=dict(l=50, r=30, t=60, b=45),
+    title_font=dict(size=15, color=C_TEXT, family="Inter, 'Segoe UI', sans-serif"),
+    font=dict(family="Inter, 'Segoe UI', system-ui, sans-serif", size=12, color=C_TEXT),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    hoverlabel=dict(bgcolor="#FFFFFF", font_size=12, font_color=C_TEXT, bordercolor=C_BORDER),
+    xaxis=dict(gridcolor=C_BORDER, zerolinecolor=C_BORDER, showgrid=True),
+    yaxis=dict(gridcolor=C_BORDER, zerolinecolor=C_BORDER, showgrid=True),
+    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor=C_BORDER, borderwidth=1),
+)
+
 
 def _inr(value: float, decimals: int = 0) -> str:
-    """Format a currency value with Indian digit grouping (₹9,74,344 style).
-
-    Counts stay in standard grouping; only currency uses lakh/crore grouping,
-    matching the project's ₹-denominated reporting convention.
-    """
+    """Format currency with Indian digit grouping (₹9,74,344)."""
     negative = value < 0
     text = f"{abs(value):.{decimals}f}"
     whole, _, frac = text.partition(".")
@@ -70,428 +112,371 @@ def _inr(value: float, decimals: int = 0) -> str:
     return f"{sign}₹{whole}" + (f".{frac}" if frac else "")
 
 
-MIN_ORDERS_THRESHOLD = 5
-MIN_REFUND_RATE_PCT = 30
-
-# ── Consistent professional palette (dark-console variants: brightened for
-#    contrast on the dark background; meaning unchanged) ──────────────────────
-C_PRIMARY = "#3B82F6"   # blue
-C_ACCENT = "#A78BFA"    # violet
-C_GOOD = "#34D399"      # green
-C_WARN = "#FBBF24"      # amber
-C_BAD = "#F87171"       # red
-C_NEUTRAL = "#94A3B8"   # slate
-TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
-PLOTLY_LAYOUT = dict(
-    template="plotly_dark",
-    height=380,
-    margin=dict(l=40, r=30, t=56, b=40),
-    title_font=dict(size=15, color="#F1F5F9"),
-    font=dict(family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif",
-              size=12.5, color="#CBD5E1"),
-    paper_bgcolor="rgba(0,0,0,0)",
-    plot_bgcolor="rgba(0,0,0,0)",
-    hoverlabel=dict(bgcolor="#141D31", font_size=12.5, font_color="#E8ECF4",
-                    bordercolor="#26375C"),
-    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
-    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
-)
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# DESIGN SYSTEM — light "risk-operations console" identity.
-# Presentation only: every number still comes from the kpi_engine.
-# ════════════════════════════════════════════════════════════════════════════
-
 def inject_css() -> None:
-    st.markdown("""
+    st.markdown(f"""
 <style>
-/* White selected-tag text needs WCAG AA contrast on the blue background. */
-[data-tag], [data-baseweb="tag"] { background-color: #2563EB !important; }
-:root {
-  --z-bg:#0A0F1E; --z-card:#141D31; --z-card2:#18233C; --z-border:#26375C; --z-border2:#334155;
-  --z-text:#F1F5F9; --z-text2:#CBD5E1; --z-muted:#94A3B8;
-  --z-primary:#3B82F6; --z-good:#34D399; --z-warn:#FBBF24; --z-bad:#F87171;
-}
-html, body, [class*="css"], .stApp { font-family: Inter, 'Segoe UI', system-ui, -apple-system, sans-serif; }
-section[data-testid="stSidebar"] { border-right: 1px solid var(--z-border); }
-section[data-testid="stSidebar"] * { font-size: 13px; }
-section[data-testid="stSidebar"] hr { border-color: var(--z-border); margin: 14px 0 10px; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ── Header band ── */
-.app-header {
-  display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  background: linear-gradient(90deg, #0D1526 0%, #16283F 100%);
-  border: 1px solid var(--z-border); border-radius: 14px;
-  padding: 16px 22px; margin-bottom: 4px; color: #F8FAFC; flex-wrap: wrap;
-  box-shadow: 0 0 0 1px rgba(59,130,246,0.08), 0 8px 24px rgba(2,6,23,0.45);
-}
-.ah-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.ah-mark {
+:root {{
+  --ft-bg: {C_PAGE_BG};
+  --ft-card: {C_CARD_BG};
+  --ft-border: {C_BORDER};
+  --ft-text: {C_TEXT};
+  --ft-text-muted: {C_TEXT_MUTED};
+  --ft-text-light: {C_TEXT_LIGHT};
+  --ft-primary: {C_PRIMARY};
+  --ft-primary-light: {C_PRIMARY_LIGHT};
+  --ft-teal: {C_TEAL};
+  --ft-teal-light: {C_TEAL_LIGHT};
+  --ft-amber: {C_AMBER};
+  --ft-amber-light: {C_AMBER_LIGHT};
+  --ft-blue: {C_BLUE};
+  --ft-blue-light: {C_BLUE_LIGHT};
+  --ft-green: {C_GREEN};
+  --ft-green-light: {C_GREEN_LIGHT};
+}}
+
+html, body, [class*="css"], .stApp {{
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+  background-color: var(--ft-bg) !important;
+  color: var(--ft-text) !important;
+}}
+
+.stApp > header {{ display: none; }}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {{
+  background-color: var(--ft-card) !important;
+  border-right: 1px solid var(--ft-border) !important;
+}}
+section[data-testid="stSidebar"] * {{ font-size: 13px !important; }}
+section[data-testid="stSidebar"] hr {{ border-color: var(--ft-border) !important; margin: 14px 0 10px !important; }}
+
+/* Main content area */
+.main .block-container {{
+  padding-top: 1.5rem !important;
+  padding-bottom: 2rem !important;
+  max-width: 1400px !important;
+}}
+
+/* Sidebar brand mark */
+.ft-brand {{
+  display: flex; gap: 10px; align-items: center;
+  padding: 4px 4px 12px; border-bottom: 1px solid var(--ft-border);
+  margin-bottom: 12px;
+}}
+.ft-mark {{
   width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  background: linear-gradient(135deg, {C_PRIMARY}, #B91C1C);
   display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 14px; letter-spacing: 0.5px; color: #fff;
-  box-shadow: 0 0 18px rgba(59,130,246,0.35);
-}
-.ah-title { font-size: 19px; font-weight: 800; letter-spacing: -0.2px; }
-.ah-sub { font-size: 12px; color: var(--z-muted); margin-top: 1px; }
-.ah-right { display: flex; gap: 8px; flex-wrap: wrap; }
-.ah-chip {
-  font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
-  color: var(--z-text2); background: rgba(255,255,255,0.05);
-  border: 1px solid var(--z-border); border-radius: 999px; padding: 5px 11px;
-  white-space: nowrap;
-}
-.ah-chip .live { color: var(--z-good); }
+  font-weight: 900; font-size: 18px; color: #fff;
+  box-shadow: 0 0 16px rgba(226,55,68,0.35);
+}}
+.ft-brand .ft-title {{ font-size: 14px; font-weight: 800; color: var(--ft-text); line-height: 1.2; }}
+.ft-brand .ft-sub {{ font-size: 11px; color: var(--ft-text-muted); margin-top: 2px; }}
 
-/* ── Hero KPI cards (mockup style: icon chip · label · big value · context) ── */
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 10px 0 2px; }
-.kpi-card {
-  background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 130%);
-  border: 1px solid var(--z-border); border-radius: 14px;
-  padding: 14px 14px 12px; min-width: 0;
-  box-shadow: 0 2px 10px rgba(2,6,23,0.35);
-}
-.kpi-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.kpi-icon {
-  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 14px;
-}
-.kpi-icon.i-blue   { background: rgba(59,130,246,0.18); }
-.kpi-icon.i-red    { background: rgba(248,113,113,0.18); }
-.kpi-icon.i-amber  { background: rgba(251,191,36,0.18); }
-.kpi-icon.i-violet { background: rgba(139,92,246,0.18); }
-.kpi-icon.i-teal   { background: rgba(52,211,153,0.18); }
-.kpi-icon.i-rose   { background: rgba(244,114,182,0.18); }
-.kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--z-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.kpi-value { font-size: 22px; font-weight: 800; color: var(--z-text); font-variant-numeric: tabular-nums; letter-spacing: -0.4px; white-space: nowrap; }
-.kpi-sub { font-size: 11px; color: var(--z-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
-.kpi-sub .up { color: var(--z-good); font-weight: 700; }
-.kpi-sub .down { color: var(--z-bad); font-weight: 700; }
-
-/* ── Claim-behaviour stat chips (mockup "Claim Behaviour") ── */
-.claim-chip {
-  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
-  padding: 12px 14px; text-align: left; height: 100%;
-}
-.claim-chip .cc-v { font-size: 20px; font-weight: 800; color: var(--z-text); font-variant-numeric: tabular-nums; }
-.claim-chip .cc-l { font-size: 10.5px; font-weight: 600; color: var(--z-muted); margin-top: 3px; line-height: 1.35; }
-
-/* ── Sidebar brand (mockup: red Z mark) ── */
-.z-brand { display: flex; gap: 10px; align-items: center; padding: 2px 2px 10px; border-bottom: 1px solid var(--z-border); margin-bottom: 10px; }
-.z-mark {
-  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-  background: linear-gradient(135deg, #E23744, #B91C1C);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 17px; color: #fff;
-  box-shadow: 0 0 16px rgba(226,55,68,0.4);
-}
-.z-brand .zb-t { font-size: 13.5px; font-weight: 800; color: var(--z-text); line-height: 1.2; }
-.z-brand .zb-s { font-size: 10.5px; color: var(--z-muted); margin-top: 2px; }
-.side-period {
-  font-size: 10.5px; color: var(--z-text2); background: rgba(255,255,255,0.04);
-  border: 1px solid var(--z-border); border-radius: 8px; padding: 6px 8px; margin-bottom: 10px;
+/* Sidebar period */
+.ft-period {{
+  font-size: 11px; color: var(--ft-text-muted);
+  background: var(--ft-bg); border: 1px solid var(--ft-border);
+  border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;
   line-height: 1.5;
-}
-.side-period b { color: #FCA5A5; }
+}}
+.ft-period b {{ color: var(--ft-text); }}
 
-/* ── Sidebar product mark ── */
-.side-mark { padding: 2px 2px 10px; border-bottom: 1px solid var(--z-border); margin-bottom: 10px; }
-.side-mark .sm-t { font-size: 13px; font-weight: 800; color: var(--z-text); }
-.side-mark .sm-s { font-size: 11px; color: var(--z-muted); margin-top: 1px; }
-
-/* ── Filter status chips ── */
-.fchips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
-.fchip {
-  font-size: 11px; font-weight: 600; color: #93C5FD;
-  background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4);
+/* Active filter chips */
+.ft-filter-chips {{ display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }}
+.ft-chip {{
+  font-size: 11px; font-weight: 600; color: {C_BLUE};
+  background: {C_BLUE_LIGHT}; border: 1px solid rgba(37,99,235,0.3);
   border-radius: 999px; padding: 3px 10px;
-}
-.fnone { font-size: 11.5px; color: var(--z-muted); }
+}}
+.ft-chip-none {{ font-size: 11px; color: var(--ft-text-muted); }}
 
-/* ── KPI cards (st.metric, restyled — values/deltas untouched) ── */
-[data-testid="stMetric"] {
-  background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 130%);
-  border: 1px solid var(--z-border); border-radius: 12px;
-  padding: 14px 16px 12px; box-shadow: 0 2px 10px rgba(2,6,23,0.35);
-}
-[data-testid="stMetric"] label, [data-testid="stMetric"] > div > label {
-  font-size: 10.5px !important; font-weight: 700; letter-spacing: 0.07em;
-  text-transform: uppercase; color: var(--z-muted) !important; margin-bottom: 6px;
-  white-space: normal; overflow: visible; text-overflow: clip;
-}
-/* Streamlit wraps metric label/value text in a markdown container that ellipsizes — let it wrap so
-   long labels stay readable on narrow (≈1200px) laptop viewports instead of clipping to "FLAGGE…" */
-[data-testid="stMetric"] [data-testid="stMarkdownContainer"] {
-  white-space: normal; overflow: visible; text-overflow: clip;
-}
-[data-testid="stMetric"] [data-testid="stMarkdownContainer"] p {
-  white-space: normal; overflow: visible;
-}
-[data-testid="stMetric"] [data-testid="stMetricValue"] {
-  font-size: 25px !important; font-weight: 800; color: var(--z-text);
-  font-variant-numeric: tabular-nums; letter-spacing: -0.5px;
-  white-space: nowrap; overflow: visible; text-overflow: clip;
-}
-@media (max-width: 1200px) {
-  [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 20px !important; }
-}
-@media (max-width: 900px) {
-  [data-testid="stMetric"] label, [data-testid="stMetric"] > div > label { font-size: 9px !important; letter-spacing: 0.04em; }
-  [data-testid="stMetric"] [data-testid="stMetricValue"] { font-size: 18px !important; }
-}
-[data-testid="stMetric"] [data-testid="stMetricDelta"] {
-  font-size: 12px !important; font-variant-numeric: tabular-nums;
-}
+/* Header band */
+.ft-header {{
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  background: var(--ft-card); border: 1px solid var(--ft-border);
+  border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
+  flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}}
+.ft-hleft {{ display: flex; align-items: center; gap: 14px; min-width: 0; }}
+.ft-hmark {{
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  background: linear-gradient(135deg, {C_PRIMARY}, #B91C1C);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px; letter-spacing: 0.5px; color: #fff;
+}}
+.ft-htitle {{ font-size: 18px; font-weight: 800; letter-spacing: -0.2px; color: var(--ft-text); }}
+.ft-hsub {{ font-size: 11.5px; color: var(--ft-text-muted); margin-top: 1px; }}
+.ft-hright {{ display: flex; gap: 8px; flex-wrap: wrap; }}
+.ft-hchip {{
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em;
+  color: var(--ft-text-muted);
+  background: var(--ft-bg); border: 1px solid var(--ft-border);
+  border-radius: 999px; padding: 5px 11px; white-space: nowrap;
+}}
+.ft-hchip .live {{ color: {C_GREEN}; margin-right: 4px; }}
 
-/* ── Section headers (st.subheader) ── */
-.main .stMarkdown h3 {
-  font-size: 15px; font-weight: 800; color: var(--z-text); letter-spacing: -0.1px;
-  border-left: 3px solid var(--z-primary); padding-left: 10px; margin: 10px 0 2px;
-}
+/* Section headers */
+.main .stMarkdown h3 {{
+  font-size: 15px !important; font-weight: 700 !important; color: var(--ft-text) !important;
+  letter-spacing: -0.1px !important; margin: 8px 0 4px !important;
+  padding-bottom: 6px !important; border-bottom: 1px solid var(--ft-border) !important;
+}}
+.main .stMarkdown h4 {{
+  font-size: 13.5px !important; font-weight: 700 !important; color: var(--ft-text) !important;
+  margin: 6px 0 2px !important;
+}}
 
-/* ── Insight cards (What changed? / Key insight) ── */
-.ins-card {
-  background: var(--z-card); border: 1px solid var(--z-border);
-  border-left: 4px solid var(--z-primary); border-radius: 10px;
+/* KPI Cards - Hero row */
+.ft-kpi-row {{
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px; margin: 8px 0 4px;
+}}
+.ft-kpi-card {{
+  background: var(--ft-card); border: 1px solid var(--ft-border);
+  border-radius: 12px; padding: 14px 14px 12px; min-width: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}}
+.ft-kpi-head {{ display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }}
+.ft-kpi-icon {{
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+}}
+.ft-kpi-icon.blue   {{ background: {C_BLUE_LIGHT}; color: {C_BLUE}; }}
+.ft-kpi-icon.red    {{ background: {C_PRIMARY_LIGHT}; color: {C_PRIMARY}; }}
+.ft-kpi-icon.amber  {{ background: {C_AMBER_LIGHT}; color: {C_AMBER}; }}
+.ft-kpi-icon.violet {{ background: #F5F0FF; color: #7C3AED; }}
+.ft-kpi-icon.teal   {{ background: {C_TEAL_LIGHT}; color: {C_TEAL}; }}
+.ft-kpi-icon.rose   {{ background: #FFF1F2; color: #E11D48; }}
+.ft-kpi-label {{
+  font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--ft-text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}}
+.ft-kpi-value {{
+  font-size: 22px; font-weight: 800; color: var(--ft-text);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.4px;
+  white-space: nowrap; line-height: 1.2;
+}}
+.ft-kpi-sub {{
+  font-size: 11px; color: var(--ft-text-muted); margin-top: 3px;
+  font-variant-numeric: tabular-nums; line-height: 1.4;
+}}
+.ft-kpi-sub .up {{ color: {C_GREEN}; font-weight: 700; }}
+.ft-kpi-sub .down {{ color: {C_PRIMARY}; font-weight: 700; }}
+
+/* Claim behaviour chips */
+.ft-claim-chip {{
+  background: var(--ft-card); border: 1px solid var(--ft-border);
+  border-radius: 10px; padding: 10px 12px; text-align: left; height: 100%;
+}}
+.ft-claim-chip .cc-v {{ font-size: 19px; font-weight: 800; color: var(--ft-text); font-variant-numeric: tabular-nums; }}
+.ft-claim-chip .cc-l {{ font-size: 10px; font-weight: 600; color: var(--ft-text-muted); margin-top: 2px; line-height: 1.35; }}
+
+/* Metric cards (st.metric override) */
+[data-testid="stMetric"] {{
+  background: var(--ft-card) !important; border: 1px solid var(--ft-border) !important;
+  border-radius: 10px !important; padding: 12px 14px 10px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}}
+[data-testid="stMetric"] label, [data-testid="stMetric"] > div > label {{
+  font-size: 10px !important; font-weight: 700 !important; letter-spacing: 0.07em !important;
+  text-transform: uppercase !important; color: var(--ft-text-muted) !important;
+  margin-bottom: 5px !important; white-space: normal !important; overflow: visible !important;
+}}
+[data-testid="stMetric"] [data-testid="stMarkdownContainer"] {{ white-space: normal; overflow: visible; }}
+[data-testid="stMetric"] [data-testid="stMarkdownContainer"] p {{ white-space: normal; overflow: visible; }}
+[data-testid="stMetric"] [data-testid="stMetricValue"] {{
+  font-size: 22px !important; font-weight: 800 !important; color: var(--ft-text) !important;
+  font-variant-numeric: tabular-nums !important; letter-spacing: -0.4px !important;
+  white-space: nowrap !important; overflow: visible !important;
+}}
+@media (max-width: 1200px) {{ [data-testid="stMetric"] [data-testid="stMetricValue"] {{ font-size: 18px !important; }} }}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {{
+  gap: 2px; border-bottom: 1px solid var(--ft-border);
+  background: var(--ft-bg); padding: 0 4px; border-radius: 8px 8px 0 0;
+}}
+.stTabs [data-baseweb="tab"] {{
+  font-size: 13px !important; font-weight: 600 !important; color: var(--ft-text-muted) !important;
+  padding: 10px 18px !important; background: transparent !important;
+  border: 1px solid transparent !important; border-radius: 8px 8px 0 0 !important;
+  margin-bottom: -1px !important; min-height: 42px !important;
+}}
+.stTabs [data-baseweb="tab"]:hover {{ color: var(--ft-text) !important; background: var(--ft-bg) !important; }}
+.stTabs [aria-selected="true"] {{
+  color: {C_PRIMARY} !important; font-weight: 700 !important;
+  background: var(--ft-card) !important; border-color: var(--ft-border) !important;
+  border-bottom-color: var(--ft-bg) !important;
+}}
+.stTabs [data-baseweb="tab-highlight"] {{ display: none !important; }}
+
+/* Tables */
+[data-testid="stDataFrame"] {{ font-size: 12px !important; }}
+[data-testid="stDataFrame"] table {{ font-variant-numeric: tabular-nums; }}
+
+/* Empty state */
+.ft-empty {{
+  background: var(--ft-card); border: 1px dashed var(--ft-border);
+  border-radius: 12px; padding: 40px 20px; text-align: center; margin-top: 16px;
+}}
+.ft-empty-icon {{ font-size: 28px; }}
+.ft-empty-title {{ font-size: 14px; font-weight: 700; color: var(--ft-text); margin-top: 8px; }}
+.ft-empty-sub {{ font-size: 12px; color: var(--ft-text-muted); margin-top: 4px; }}
+
+/* Insight card */
+.ft-insight {{
+  background: var(--ft-card); border: 1px solid var(--ft-border);
+  border-left: 4px solid var(--ft-primary); border-radius: 10px;
   padding: 12px 14px; height: 100%;
-}
-.ins-head { font-size: 13px; font-weight: 750; color: var(--z-text); display: flex; gap: 8px; align-items: baseline; }
-.ins-detail { font-size: 12.5px; color: var(--z-text2); line-height: 1.5; margin-top: 5px; }
-.ins-ev { font-size: 11px; color: var(--z-muted); margin-top: 8px; font-variant-numeric: tabular-nums; }
-.key-insight {
-  background: linear-gradient(90deg, #0D1526 0%, #14213A 100%);
-  border: 1px solid var(--z-border); border-radius: 12px; padding: 16px 20px;
-  color: var(--z-text2); margin-top: 6px;
-  box-shadow: 0 8px 24px rgba(2,6,23,0.4);
-}
-.ki-eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; color: #7DD3FC; text-transform: uppercase; }
-.ki-main { font-size: 14px; line-height: 1.55; margin-top: 6px; color: #F1F5F9; }
-.ki-why { font-size: 12.5px; line-height: 1.5; margin-top: 8px; color: var(--z-muted); }
-.ki-next { font-size: 12.5px; margin-top: 10px; color: var(--z-text2); }
-.ki-next b { color: #FCD34D; }
+}}
+.ft-ins-head {{ font-size: 12.5px; font-weight: 700; color: var(--ft-text); display: flex; gap: 8px; align-items: baseline; }}
+.ft-ins-detail {{ font-size: 12px; color: var(--ft-text-muted); line-height: 1.5; margin-top: 4px; }}
 
-/* ── Tabs: dark pills ── */
-.stTabs [data-baseweb="tab-list"] { gap: 4px; border-bottom: 1px solid var(--z-border); }
-.stTabs [data-baseweb="tab"] {
-  font-size: 13.5px; font-weight: 600; color: var(--z-muted); padding: 9px 16px;
-  background: transparent; border: 1px solid transparent; border-radius: 10px 10px 0 0;
-}
-.stTabs [data-baseweb="tab"]:hover { color: var(--z-text); background: rgba(255,255,255,0.04); }
-.stTabs [aria-selected="true"] { color: #93C5FD !important; font-weight: 750; }
-.stTabs [data-baseweb="tab-highlight"] { background-color: var(--z-primary) !important; height: 3px; }
+/* Key insight banner */
+.ft-key-banner {{
+  background: var(--ft-card); border: 1px solid var(--ft-border);
+  border-radius: 10px; padding: 16px 20px; margin-top: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}}
+.ft-ki-eyebrow {{ font-size: 10px; font-weight: 700; letter-spacing: 0.09em; color: {C_BLUE}; text-transform: uppercase; }}
+.ft-ki-main {{ font-size: 13.5px; line-height: 1.55; margin-top: 6px; color: var(--ft-text); }}
+.ft-ki-why {{ font-size: 12px; line-height: 1.5; margin-top: 8px; color: var(--ft-text-muted); }}
+.ft-ki-next {{ font-size: 12px; margin-top: 10px; color: var(--ft-text); }}
+.ft-ki-next b {{ color: {C_AMBER}; }}
 
-/* ── Tables ── */
-[data-testid="stDataFrame"] { font-size: 12.5px; }
-[data-testid="stDataFrame"] table { font-variant-numeric: tabular-nums; }
+/* Meter cards (Explain a flag) */
+.ft-meter-card {{ background: var(--ft-card); border: 1px solid var(--ft-border); border-radius: 10px; padding: 14px 16px; }}
+.ft-meter-row {{ margin: 10px 0; }}
+.ft-meter-head {{ display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ft-text-muted); margin-bottom: 4px; }}
+.ft-meter-head b {{ color: var(--ft-text); font-variant-numeric: tabular-nums; }}
+.ft-meter-track {{ height: 7px; border-radius: 999px; background: var(--ft-border); overflow: hidden; }}
+.ft-meter-fill {{ height: 100%; border-radius: 999px; background: var(--ft-primary); }}
+.ft-meter-fill.over {{ background: linear-gradient(90deg, {C_AMBER}, {C_PRIMARY}); }}
+.ft-meter-note {{ font-size: 10px; color: var(--ft-text-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }}
 
-/* ── Empty state ── */
-.empty-state {
-  background: var(--z-card); border: 1px dashed var(--z-border2); border-radius: 14px;
-  padding: 48px 24px; text-align: center; margin-top: 14px;
-}
-.es-icon { font-size: 30px; }
-.es-title { font-size: 15.5px; font-weight: 750; color: var(--z-text); margin-top: 8px; }
-.es-sub { font-size: 12.5px; color: var(--z-muted); margin-top: 4px; }
+/* Data Quality rows */
+.ft-dq-card {{ background: var(--ft-card); border: 1px solid var(--ft-border); border-radius: 10px; padding: 4px 12px; margin-bottom: 6px; }}
+.ft-dq-row {{ display: flex; align-items: center; gap: 14px; padding: 8px 4px; border-bottom: 1px solid var(--ft-border); font-size: 12px; }}
+.ft-dq-row:last-child {{ border-bottom: none; }}
+.ft-dq-check {{ color: var(--ft-text); font-weight: 600; width: 200px; flex-shrink: 0; }}
+.ft-dq-result {{ color: var(--ft-text-muted); flex: 1; line-height: 1.45; }}
+.ft-dq-pill {{
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.07em; border-radius: 999px;
+  padding: 2px 8px; flex-shrink: 0;
+}}
+.ft-dq-pill.pass {{ color: {C_GREEN}; background: {C_GREEN_LIGHT}; border: 1px solid {C_GREEN}; }}
+.ft-dq-pill.gap {{ color: {C_AMBER}; background: {C_AMBER_LIGHT}; border: 1px solid {C_AMBER}; }}
+.ft-dq-pill.disclosed {{ color: {C_BLUE}; background: {C_BLUE_LIGHT}; border: 1px solid {C_BLUE}; }}
+.ft-dq-pill.review {{ color: {C_PRIMARY}; background: {C_PRIMARY_LIGHT}; border: 1px solid {C_PRIMARY}; }}
 
-/* ── Footer ── */
-.app-footer {
-  border-top: 1px solid var(--z-border); margin-top: 22px; padding: 12px 2px 4px;
-  font-size: 11.5px; color: var(--z-muted); line-height: 1.6;
-}
-.app-footer b { color: var(--z-text2); }
+/* Footer */
+.ft-footer {{
+  border-top: 1px solid var(--ft-border); margin-top: 24px; padding: 12px 4px 4px;
+  font-size: 11px; color: var(--ft-text-muted); line-height: 1.6;
+}}
+.ft-footer b {{ color: var(--ft-text); }}
 
-/* ── Investigation queue (Overview) ── */
-.queue-card {
-  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
-  padding: 6px 14px; margin-top: 6px;
-}
-.sus-row {
-  display: flex; align-items: center; gap: 12px; padding: 8px 4px;
-  border-bottom: 1px solid rgba(38,55,92,0.5); font-size: 12.5px;
-}
-.sus-row:last-child { border-bottom: none; }
-.sus-row.high { border-left: 3px solid var(--z-bad); padding-left: 10px; }
-.sus-row.medium { border-left: 3px solid var(--z-warn); padding-left: 10px; }
-.sus-row.low { border-left: 3px solid var(--z-good); padding-left: 10px; }
-.tier-pill {
-  font-size: 10px; font-weight: 800; letter-spacing: 0.07em; border-radius: 999px;
-  padding: 2px 9px; flex-shrink: 0;
-}
-.tier-pill.high { color: var(--z-bad); background: rgba(248,113,113,0.13); border: 1px solid rgba(248,113,113,0.4); }
-.tier-pill.medium { color: var(--z-warn); background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4); }
-.tier-pill.low { color: var(--z-good); background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4); }
-.sus-id { color: var(--z-text); font-weight: 700; font-variant-numeric: tabular-nums; width: 92px; }
-.sus-metric { color: var(--z-text2); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.sus-metric b { color: var(--z-text); }
-.sus-fill { flex: 1; }
+/* Buttons */
+.stButton > button {{
+  border-radius: 8px !important; border: 1px solid var(--ft-border) !important;
+  font-weight: 600 !important; font-size: 12.5px !important;
+  background: var(--ft-card) !important; color: var(--ft-text) !important;
+}}
+.stButton > button[kind="primary"] {{ background: var(--ft-primary) !important; border-color: var(--ft-primary) !important; color: #fff !important; }}
+.stDownloadButton > button {{
+  border-radius: 8px !important; border: 1px solid var(--ft-border) !important;
+  font-weight: 600 !important; font-size: 12px !important;
+  background: {C_BLUE_LIGHT} !important; color: {C_BLUE} !important;
+}}
 
-/* ── Signal meters (Explain a flag) ── */
-.meter-card { background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px; padding: 14px 16px; }
-.meter-row { margin: 10px 0; }
-.meter-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--z-text2); margin-bottom: 4px; }
-.meter-head b { color: var(--z-text); font-variant-numeric: tabular-nums; }
-.meter-track { height: 8px; border-radius: 999px; background: rgba(38,55,92,0.45); overflow: hidden; }
-.meter-fill { height: 100%; border-radius: 999px; background: var(--z-primary); }
-.meter-fill.over { background: linear-gradient(90deg, #F59E0B, var(--z-bad)); }
-.meter-note { font-size: 10.5px; color: var(--z-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+/* Expander */
+div[data-testid="stExpander"] {{
+  background: var(--ft-card) !important; border: 1px solid var(--ft-border) !important; border-radius: 8px !important;
+}}
+div[data-testid="stExpander"] summary {{ font-weight: 600 !important; }}
 
-/* ── Buttons / expanders polish ── */
-.stButton > button {
-  border-radius: 8px; border: 1px solid var(--z-border2); font-weight: 600; font-size: 13px;
-}
-.stButton > button[kind="primary"] { background: var(--z-primary); border-color: var(--z-primary); }
-div[data-testid="stExpander"] {
-  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 10px;
-}
-div[data-testid="stDownloadButton"] > button {
-  border-radius: 8px; border: 1px solid var(--z-border2); font-weight: 600; font-size: 12.5px;
-  background: rgba(59,130,246,0.12); color: #93C5FD;
-}
+/* Selectbox / multiselect */
+.stSelectbox > div > div, .stMultiSelect > div > div {{ border-radius: 8px !important; border-color: var(--ft-border) !important; }}
 
-/* ── AI Refund Analyst page head (mockup: sparkles + Beta chip) ── */
-.ai-head {
-  display: flex; align-items: center; gap: 12px;
-  background: linear-gradient(160deg, var(--z-card) 0%, var(--z-card2) 140%);
-  border: 1px solid var(--z-border); border-radius: 14px; padding: 14px 18px; margin-bottom: 10px;
-}
-.ai-spark {
-  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
-  background: rgba(139,92,246,0.18); display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-}
-.ai-title { font-size: 16px; font-weight: 800; color: var(--z-text); }
-.ai-sub { font-size: 11.5px; color: var(--z-muted); margin-top: 2px; }
-.beta-chip {
-  margin-left: auto; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
-  color: #C4B5FD; background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.4);
-  border-radius: 999px; padding: 3px 10px; flex-shrink: 0;
-}
+/* Number input / date input */
+.stNumberInput > div > div > input, .stDateInput > div > div > input {{ border-radius: 8px !important; border-color: var(--ft-border) !important; }}
 
-/* ── Data Quality check rows ── */
-.dq-card {
-  background: var(--z-card); border: 1px solid var(--z-border); border-radius: 12px;
-  padding: 4px 14px; margin-bottom: 8px;
-}
-.dq-row {
-  display: flex; align-items: center; gap: 14px; padding: 10px 4px;
-  border-bottom: 1px solid rgba(38,55,92,0.5); font-size: 12.5px;
-}
-.dq-row:last-child { border-bottom: none; }
-.dq-check { color: var(--z-text); font-weight: 700; width: 210px; flex-shrink: 0; }
-.dq-result { color: var(--z-text2); flex: 1; line-height: 1.45; }
-.dq-pill {
-  font-size: 10px; font-weight: 800; letter-spacing: 0.07em; border-radius: 999px;
-  padding: 2px 9px; flex-shrink: 0;
-}
-.dq-pill.pass { color: var(--z-good); background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.4); }
-.dq-pill.gap { color: var(--z-warn); background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.4); }
-.dq-pill.disclosed { color: #93C5FD; background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.4); }
-.dq-pill.review { color: var(--z-bad); background: rgba(248,113,113,0.13); border: 1px solid rgba(248,113,113,0.4); }
+/* Hide streamlit default footer/menu */
+#MainMenu {{ visibility: hidden; }}
+footer {{ visibility: hidden; }}
+
+/* Scrollbar */
+::-webkit-scrollbar {{ width: 8px; height: 8px; }}
+::-webkit-scrollbar-track {{ background: transparent; }}
+::-webkit-scrollbar-thumb {{ background: var(--ft-border); border-radius: 4px; }}
+::-webkit-scrollbar-thumb:hover {{ background: var(--ft-text-muted); }}
 </style>
 """, unsafe_allow_html=True)
 
 
-def app_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> None:
-    """Product header band — every value computed from the live dataset.
-
-    `export_df` (optional) is the flagged queue for the current scope; when
-    given, a mockup-style export button sits in the header's right slot.
-    """
+def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> None:
     n = len(orders)
     period = (
         f"{orders['Order_Date'].min():%b %Y} – {orders['Order_Date'].max():%b %Y}"
         if n else "no data in scope"
     )
-    head_col, act_col = st.columns([0.86, 0.14])
+    head_col, act_col = st.columns([0.85, 0.15])
     with head_col:
         st.markdown(
             f"""
-<div class="app-header">
-  <div class="ah-left">
-    <div class="ah-mark">RR</div>
+<div class="ft-header">
+  <div class="ft-hleft">
+    <div class="ft-hmark">RR</div>
     <div>
-      <div class="ah-title">Refund Risk &amp; Operations Analytics</div>
-      <div class="ah-sub">Refund patterns, customer comparisons and evidence for human review</div>
+      <div class="ft-htitle">Zomato Refund Risk & Operations Analytics</div>
+      <div class="ft-hsub">Refund patterns, customer comparisons and evidence for human review</div>
     </div>
   </div>
-  <div class="ah-right">
-    <span class="ah-chip"><span class="live">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
-    <span class="ah-chip">{n:,} orders in scope · {period}</span>
-    <span class="ah-chip">Delivery data: public · Refund layer: synthetic</span>
-    <span class="ah-chip">Risk score ≠ proof of fraud</span>
+  <div class="ft-hright">
+    <span class="ft-hchip"><span class="live">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
+    <span class="ft-hchip">{n:,} orders in scope · {period}</span>
+    <span class="ft-hchip">Delivery data: public · Refund layer: synthetic</span>
+    <span class="ft-hchip">Risk score ≠ proof of fraud</span>
   </div>
 </div>
-""",
-            unsafe_allow_html=True,
-        )
+""", unsafe_allow_html=True)
     with act_col:
-        if export_df is not None:
+        if export_df is not None and len(export_df):
             st.download_button(
-                "⬇ Export",
-                data=export_df.to_csv(index=False).encode("utf-8"),
-                file_name="flagged_queue_current_scope.csv",
-                mime="text/csv",
+                "⬇ Export queue", data=export_df.to_csv(index=False).encode("utf-8"),
+                file_name="flagged_queue_current_scope.csv", mime="text/csv",
                 help="Download the flagged investigation queue for the current filter scope.",
                 use_container_width=True,
             )
 
 
-def insight_card_html(ins: dict) -> str:
-    """One 'What changed?' card — headline/detail/evidence straight from kpi_engine."""
-    color = {"ok": C_GOOD, "info": C_PRIMARY, "watch": C_WARN, "alert": C_BAD}.get(ins["level"], C_PRIMARY)
-    return (
-        f'<div class="ins-card" style="border-left-color:{color};">'
-        f'<div class="ins-head">{ins["headline"]}</div>'
-        f'<div class="ins-detail">{ins["detail"]}</div>'
-        f'<div class="ins-ev">Evidence: {ins["evidence"]}</div>'
-        f"</div>"
-    )
-
-
-def render_filter_status(
-    selected_cities, all_cities, selected_bands, all_bands, risk_tiers, all_tiers,
-) -> None:
-    """Active-filter chips in the sidebar — the analyst always sees the scope."""
-    chips = []
-    if len(selected_cities) < len(all_cities):
-        chips.append(f"City: {', '.join(selected_cities) if selected_cities else 'none'}")
-    if len(selected_bands) < len(all_bands):
-        chips.append(f"Volume band: {', '.join(selected_bands) if selected_bands else 'none'}")
-    if len(risk_tiers) < len(all_tiers):
-        chips.append(f"Tier: {', '.join(risk_tiers) if risk_tiers else 'none'}")
-    html = "".join(f'<span class="fchip">{c}</span>' for c in chips) if chips else \
-        '<span class="fnone">No filters active — full dataset in scope</span>'
-    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10.5px;font-weight:700;letter-spacing:0.07em;color:#94A3B8;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div class="fchips">{html}</div></div>', unsafe_allow_html=True)
-
-
-def empty_state_html() -> None:
+def ft_empty_state() -> None:
     st.markdown(
         """
-<div class="empty-state">
-  <div class="es-icon">🔎</div>
-  <div class="es-title">No records match the selected filters</div>
-  <div class="es-sub">Reset the filters to bring the full dataset back into scope.</div>
+<div class="ft-empty">
+  <div class="ft-empty-icon">🔎</div>
+  <div class="ft-empty-title">No records match the selected filters</div>
+  <div class="ft-empty-sub">Reset the filters to bring the full dataset back into scope.</div>
 </div>
-""",
-        unsafe_allow_html=True,
-    )
+""", unsafe_allow_html=True)
 
 
-def app_footer() -> None:
+def ft_footer() -> None:
     st.markdown(
-        """
-<div class="app-footer">
+        f"""
+<div class="ft-footer">
   <b>How to read this:</b> Refund rate = refunded orders ÷ total orders in the current view.
-  A customer is flagged at ≥5 orders AND refund rate &gt; 30% — a flag means <i>investigate</i>, never guilty.
-  The score is a simple weighted formula (docs/risk_scoring_methodology.md), checked against known
-  test cases in this synthetic dataset. The data is seeded/synthetic — disclosed in the README and
-  data dictionary. Changes are month-over-month on the filtered data.
+  A customer is flagged at ≥5 orders AND refund rate > 30% — a flag means <i>investigate</i>, never guilty.
+  The score is a simple weighted formula (refund rate 40% · reason repetition 30% · refunds/day 20% · reason length 10%),
+  checked against known test cases in this synthetic dataset.
+  The data is seeded/synthetic — disclosed in the README and data dictionary.
+  Changes are month-over-month on the filtered data.
 </div>
-""",
-        unsafe_allow_html=True,
-    )
+""", unsafe_allow_html=True)
 
 
 @st.cache_data
@@ -503,10 +488,7 @@ def load_orders(path: str) -> pd.DataFrame:
 
 @st.cache_data
 def load_truth(path: str):
-    """Seeded ground-truth labels — validation only (disclosed synthetic layer).
-    Returns None when the file is absent so the app degrades gracefully."""
     from pathlib import Path as _P
-
     p = _P(path)
     if not p.exists():
         return None
@@ -514,10 +496,6 @@ def load_truth(path: str):
 
 
 def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
-    """Reproduces the risk-scoring methodology from notebooks/03_fraud_detection.ipynb.
-
-    See docs/risk_scoring_methodology.md for the formula and threshold rationale.
-    """
     customer_stats = orders.groupby("Customer_ID").agg(
         Total_Orders=("ID", "count"),
         Total_Refunds=("Refund_Requested", "sum"),
@@ -532,7 +510,7 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
         & (customer_stats["Refund_Rate"] > MIN_REFUND_RATE_PCT)
     ].copy()
 
-    refund_df = orders[orders["Refund_Requested"] == True].copy()  # noqa: E712
+    refund_df = orders[orders["Refund_Requested"] == True].copy()
     refund_df["Reason_Length"] = refund_df["Refund_Reason"].str.len()
 
     def top_reason_rate(group: pd.DataFrame) -> float:
@@ -563,8 +541,7 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
     flagged = flagged.merge(avg_reason_length, on="Customer_ID", how="left")
     flagged = flagged.merge(
         timeline[["Customer_ID", "Days_Span", "Refunds_Per_Day"]],
-        on="Customer_ID",
-        how="left",
+        on="Customer_ID", how="left",
     )
     flagged[list(RISK_WEIGHTS)] = flagged[list(RISK_WEIGHTS)].fillna(0)
 
@@ -591,7 +568,7 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
     return flagged.sort_values("Fraud_Risk_Score", ascending=False).reset_index(drop=True)
 
 
-# ── Chart helpers (consistent styling) ──────────────────────────────────────
+# ─── Chart helpers ───
 def bar_chart(df, x, y, title, color=C_PRIMARY, horizontal=False, text_fmt=None):
     orientation = "h" if horizontal else "v"
     fig = px.bar(df, x=x, y=y, orientation=orientation, title=title)
@@ -603,7 +580,6 @@ def bar_chart(df, x, y, title, color=C_PRIMARY, horizontal=False, text_fmt=None)
 
 
 def rate_by_column(orders: pd.DataFrame, col: str, title: str):
-    """Refund rate (%) grouped by a categorical column — the analyst's cut."""
     g = (
         orders.groupby(col)
         .agg(orders=("ID", "count"), refunds=("Refund_Requested", "sum"))
@@ -617,39 +593,40 @@ def rate_by_column(orders: pd.DataFrame, col: str, title: str):
     return fig
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# TABS
-# ════════════════════════════════════════════════════════════════════════════
+def concentration_curve(orders: pd.DataFrame):
+    total = float(orders["Refund_Amount"].sum())
+    cust = orders.groupby("Customer_ID")["Refund_Amount"].sum().sort_values(ascending=False)
+    n = len(cust)
+    cum = (cust.cumsum() / total * 100).values
+    x = np.arange(1, n + 1) / n * 100
+    k50 = int(np.searchsorted(cum, 50) + 1)
+    k80 = int(np.searchsorted(cum, 80) + 1)
+    k10 = max(1, int(np.ceil(n * 0.10)))
+    return x, cum, n, total, k50, k80, float(cum[k10 - 1])
 
-def tab_overview(
-    orders: pd.DataFrame,
-    suspects: pd.DataFrame,
-    truth: pd.DataFrame | None = None,
-    metric_defs: dict | None = None,
-) -> None:
+
+# ─── Pages ───
+
+def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataFrame | None, metric_defs: dict | None):
     refund_amount = orders["Refund_Amount"].sum()
     flagged_exposure = suspects["Total_Refund_Amount"].sum()
     exposure_share = flagged_exposure / refund_amount * 100 if refund_amount else 0
 
     kpis = compute_kpis(orders, suspects, truth)
     mom = kpis["mom"]
-    # Streamlit can retain imported modules during a rolling source refresh.
-    # Reload this stateless analytics module only when its result schema is stale.
-    import importlib
-    import sys
+    import importlib, sys
     engine = sys.modules[compute_kpis.__module__]
     if "partial_periods" not in mom:
         engine = importlib.reload(engine)
         kpis = engine.compute_kpis(orders, suspects, truth)
         mom = kpis["mom"]
     if "partial_periods" not in mom:
-        st.warning("Analytics modules are refreshing. Please reload this page; "
-                   "if this persists, the app owner should reboot the Streamlit app.")
+        st.warning("Analytics modules are refreshing. Please reload this page.")
         return
     if mom.get("partial_periods"):
         st.warning(mom["coverage_note"])
 
-    # ── "What changed?" — computed from data. No LLM, no hardcoding. ──
+    # What changed?
     insights = engine.what_changed(orders, suspects, truth)
     if insights:
         st.subheader("What changed?")
@@ -657,16 +634,27 @@ def tab_overview(
         cols = st.columns(min(3, len(insights)))
         for i, ins in enumerate(insights[:3]):
             with cols[i]:
-                st.markdown(insight_card_html(ins), unsafe_allow_html=True)
+                color = {"ok": C_GREEN, "info": C_BLUE, "watch": C_AMBER, "alert": C_PRIMARY}.get(ins["level"], C_BLUE)
+                st.markdown(
+                    f'<div class="ft-insight" style="border-left-color:{color};">'
+                    f'<div class="ft-ins-head">{ins["headline"]}</div>'
+                    f'<div class="ft-ins-detail">{ins["detail"]}</div>'
+                    f'<div class="ft-ins-ev">Evidence: {ins["evidence"]}</div></div>',
+                    unsafe_allow_html=True)
         if len(insights) > 3:
             with st.expander(f"More signals ({len(insights) - 3})"):
                 for ins in insights[3:]:
-                    st.markdown(insight_card_html(ins), unsafe_allow_html=True)
+                    color = {"ok": C_GREEN, "info": C_BLUE, "watch": C_AMBER, "alert": C_PRIMARY}.get(ins["level"], C_BLUE)
+                    st.markdown(
+                        f'<div class="ft-insight" style="border-left-color:{color};">'
+                        f'<div class="ft-ins-head">{ins["headline"]}</div>'
+                        f'<div class="ft-ins-detail">{ins["detail"]}</div>'
+                        f'<div class="ft-ins-ev">Evidence: {ins["evidence"]}</div></div>',
+                        unsafe_allow_html=True)
 
-    # ── Executive KPI cards: value + direction + context ──
-    # ── Hero KPI row — mockup style: icon chip · label · big value · context ──
+    # Hero KPI row
     refund_orders = kpis["refund_orders"]
-    refunders = int(orders.loc[orders["Refund_Requested"] == True, "Customer_ID"].nunique())  # noqa: E712
+    refunders = int(orders.loc[orders["Refund_Requested"] == True, "Customer_ID"].nunique())
     avg_refund = kpis["refund_exposure"] / refund_orders if refund_orders else 0.0
     refunders_share = kpis["flagged_count"] / refunders * 100 if refunders else 0.0
 
@@ -678,31 +666,30 @@ def tab_overview(
         return f'<span class="{cls}">{arrow} {delta:+.1f}{suffix}</span> vs {mom["prev_label"]}'
 
     kpi_cards = [
-        ("i-blue", "🛒", "Delivery orders", f"{kpis['total_orders']:,}",
-         _mom_chip(mom["orders_delta_pct"]),
-         "Month-over-month on the current scope."),
-        ("i-red", "↩", "Refund requests", f"{refund_orders:,}",
+        ("blue", "🛒", "Delivery orders", f"{kpis['total_orders']:,}",
+         _mom_chip(mom["orders_delta_pct"]), "Month-over-month on the current scope."),
+        ("red", "↩", "Refund requests", f"{refund_orders:,}",
          f"{kpis['refund_rate_pct']:.1f}% of orders", "A refund request is not a confirmed refund."),
-        ("i-amber", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
+        ("amber", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
          _mom_chip(mom["exposure_delta_pct"], up_is_good=False),
          "Historical refund value — not a confirmed loss."),
-        ("i-violet", "🛡", "High-risk accounts", f"{kpis['flagged_count']:,}",
+        ("violet", "🛡", "High-risk accounts", f"{kpis['flagged_count']:,}",
          f"{refunders_share:.1f}% of refunders",
          "Eligibility: ≥5 orders AND refund rate >30%. A flag means investigate — never guilty."),
-        ("i-teal", "⚠", "Potential leakage", _inr(kpis["flagged_exposure"]),
+        ("teal", "⚠", "Potential exposure", _inr(kpis["flagged_exposure"]),
          f"{kpis['flagged_exposure_share_pct']:.1f}% of refunds",
          "Refund value held by the flagged pool."),
-        ("i-rose", "₹", "Avg refund amount", _inr(avg_refund),
+        ("rose", "₹", "Avg refund amount", _inr(avg_refund),
          "Per refund request", "Total refund amount ÷ refund requests."),
     ]
     st.markdown(
-        '<div class="kpi-row">' + "".join(
-            f'<div class="kpi-card"><div class="kpi-head">'
-            f'<div class="kpi-icon {icon}">{emoji}</div>'
-            f'<div class="kpi-label">{label}</div></div>'
-            f'<div class="kpi-value">{value}</div>'
-            f'<div class="kpi-sub">{sub}</div>'
-            f'<div class="kpi-sub" style="color:var(--z-muted)">{note}</div></div>'
+        '<div class="ft-kpi-row">' + "".join(
+            f'<div class="ft-kpi-card"><div class="ft-kpi-head">'
+            f'<div class="ft-kpi-icon {icon}">{emoji}</div>'
+            f'<div class="ft-kpi-label">{label}</div></div>'
+            f'<div class="ft-kpi-value">{value}</div>'
+            f'<div class="ft-kpi-sub">{sub}</div>'
+            f'<div class="ft-kpi-sub" style="color:var(--ft-text-muted)">{note}</div></div>'
             for icon, emoji, label, value, sub, note in kpi_cards
         ) + "</div>",
         unsafe_allow_html=True,
@@ -712,13 +699,13 @@ def tab_overview(
         "against known test cases (the data is synthetic — disclosed). A risk score is not proof of fraud."
     )
 
-    # ── KPI definitions — one file (data/metrics.json) that every number cites ──
+    # KPI definitions expander
     if metric_defs:
-        with st.expander("📖 KPI definitions (what each number means)"):
+        with st.expander("📖 KPI definitions"):
             for _key, _m in metric_defs["metrics"].items():
                 st.markdown(f"**{_key.replace('_', ' ').title()}** — {_m['definition']}")
 
-    # ── Top suspects — the investigation queue (fraud-console lead) ──
+    # Top suspects queue
     if len(suspects):
         top_n = min(8, len(suspects))
         rows = ""
@@ -737,11 +724,11 @@ def tab_overview(
         st.subheader("Top suspects — investigation queue")
         st.caption(
             "The highest risk scores in the current view. A flag means look closer — never guilty. "
-            "The full list, baselines and per-customer details are in the Investigation tab."
+            "The full list, baselines and per-customer details are in the Risk Review tab."
         )
         st.markdown(f'<div class="queue-card">{rows}</div>', unsafe_allow_html=True)
 
-    # ── Monthly trend: order volume (bars) + refund rate (line, secondary axis)
+    # Monthly trend: dual-axis
     m = (
         orders.groupby(orders["Order_Date"].dt.to_period("M"))
         .agg(orders=("ID", "count"), refunds=("Refund_Requested", "sum"))
@@ -751,35 +738,25 @@ def tab_overview(
     m["refund_rate"] = (m["refunds"] / m["orders"] * 100).round(2)
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_bar(
-        x=m["Order_Date"], y=m["orders"], name="Orders",
-        marker_color="#7FB0F5", opacity=0.9,
-    )
-    fig.add_scatter(
-        x=m["Order_Date"], y=m["refund_rate"], name="Refund rate (%)",
-        mode="lines+markers", line=dict(color=C_BAD, width=3),
-        secondary_y=True,
-    )
-    fig.update_layout(
-        title="Monthly order volume vs refund rate (observed data)", **PLOTLY_LAYOUT
-    )
+    fig.add_bar(x=m["Order_Date"], y=m["orders"], name="Orders",
+                marker_color="#7FB0F5", opacity=0.9)
+    fig.add_scatter(x=m["Order_Date"], y=m["refund_rate"], name="Refund rate (%)",
+                    mode="lines+markers", line=dict(color=C_PRIMARY, width=3), secondary_y=True)
+    fig.update_layout(title="Monthly order volume vs refund rate (observed data)", **PLOTLY_LAYOUT)
     fig.update_yaxes(title_text="Orders", secondary_y=False)
     fig.update_yaxes(title_text="Refund rate (%)", secondary_y=True)
     st.plotly_chart(fig, width="stretch")
 
+    # Bottom row: Reasons + City
     left, right = st.columns(2)
     with left:
         reasons = (
-            orders[orders["Refund_Requested"] == True]["Refund_Reason"]  # noqa: E712
-            .value_counts()
-            .rename_axis("Reason")
-            .reset_index(name="count")
+            orders[orders["Refund_Requested"] == True]["Refund_Reason"]
+            .value_counts().rename_axis("Reason").reset_index(name="count")
         )
-        fig = px.bar(
-            reasons, y="Reason", x="count", orientation="h",
-            title="Refund reasons, ranked",
-        )
-        fig.update_traces(marker_color=C_ACCENT, text=reasons["count"], textposition="outside")
+        fig = px.bar(reasons, y="Reason", x="count", orientation="h",
+                     title="Refund reasons, ranked")
+        fig.update_traces(marker_color="#7C3AED", text=reasons["count"], textposition="outside")
         fig.update_layout(**PLOTLY_LAYOUT)
         left.plotly_chart(fig, width="stretch")
 
@@ -791,16 +768,14 @@ def tab_overview(
         )
         city["refund_rate"] = (city["refunds"] / city["orders"] * 100).round(2)
         city = city.sort_values("orders", ascending=False)
-        fig = px.bar(
-            city, x="City", y="orders", color="refund_rate",
-            color_continuous_scale=["#1E3A8A", "#3B82F6", "#93C5FD"],
-            title="Orders by city type (colour = refund rate)",
-            hover_data=["refunds", "refund_rate"],
-        )
+        fig = px.bar(city, x="City", y="orders", color="refund_rate",
+                     color_continuous_scale=["#1E3A8A", C_PRIMARY, "#FCA5A5"],
+                     title="Orders by city type (colour = refund rate)",
+                     hover_data=["refunds", "refund_rate"])
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Orders")
         right.plotly_chart(fig, width="stretch")
 
-    # ── Risk-tier distribution + claim behaviour (mockup bottom row) ──
+    # Risk tier distribution + Claim behaviour
     tier_left, tier_right = st.columns(2)
     with tier_left:
         tier_counts = (
@@ -808,13 +783,10 @@ def tab_overview(
             .reindex(["Low", "Medium", "High"]).fillna(0).astype(int)
         )
         tdf = tier_counts.rename_axis("Tier").reset_index(name="Flagged accounts")
-        fig = px.bar(
-            tdf, x="Tier", y="Flagged accounts", color="Tier",
-            category_orders={"Tier": ["Low", "Medium", "High"]},
-            color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#F87171"},
-            title="Flagged pool by risk tier",
-            text="Flagged accounts",
-        )
+        fig = px.bar(tdf, x="Tier", y="Flagged accounts", color="Tier",
+                     category_orders={"Tier": ["Low", "Medium", "High"]},
+                     color_discrete_map={"Low": C_GREEN, "Medium": C_AMBER, "High": C_PRIMARY},
+                     title="Flagged pool by risk tier", text="Flagged accounts")
         fig.update_layout(**PLOTLY_LAYOUT)
         fig.update_traces(textposition="outside")
         tier_left.plotly_chart(fig, width="stretch")
@@ -832,7 +804,7 @@ def tab_overview(
         )
 
     with tier_right:
-        refund_rows = orders[orders["Refund_Requested"] == True]  # noqa: E712
+        refund_rows = orders[orders["Refund_Requested"] == True]
         claims_per_refunder = refund_orders / refunders if refunders else 0.0
         refunds_by_cust = refund_rows.groupby("Customer_ID").size()
         repeat_claim_rate = (refunds_by_cust >= 2).mean() * 100 if len(refunds_by_cust) else 0.0
@@ -851,85 +823,58 @@ def tab_overview(
         cc1, cc2, cc3, cc4 = st.columns(4)
         for col, (v, l) in zip((cc1, cc2, cc3, cc4), chips):
             col.markdown(
-                f'<div class="claim-chip"><div class="cc-v">{v}</div>'
-                f'<div class="cc-l">{l}</div></div>',
-                unsafe_allow_html=True,
-            )
-        st.caption(
-            "Behavioural patterns of refund requests in the current scope. "
-            "Repeat claiming is an investigation signal, not proof of fraud."
-        )
+                f'<div class="ft-claim-chip"><div class="cc-v">{v}</div>'
+                f'<div class="cc-l">{l}</div></div>', unsafe_allow_html=True)
+        st.caption("Behavioural patterns of refund requests in the current scope. Repeat claiming is an investigation signal, not proof of fraud.")
 
-    # ── Computed insight callouts
+    # Key insight banner
     top_reason = reasons.iloc[0]["Reason"]
     top_reason_share = reasons.iloc[0]["count"] / reasons["count"].sum() * 100
     busiest_month = m.loc[m["orders"].idxmax(), "Order_Date"].strftime("%b %Y")
     n_high_tier = int((suspects["Risk_Tier"] == "High").sum()) if len(suspects) else 0
     st.markdown(
         f"""
-<div class="key-insight">
-  <div class="ki-eyebrow">Financial impact &amp; actions — computed from the current scope</div>
-  <div class="ki-main">“{top_reason}” is the most common refund reason ({top_reason_share:.1f}% of all refunds).
+<div class="ft-key-banner">
+  <div class="ft-ki-eyebrow">Financial impact & actions — computed from the current scope</div>
+  <div class="ft-ki-main">"{top_reason}" is the most common refund reason ({top_reason_share:.1f}% of all refunds).
   Busiest month on record: <b>{busiest_month}</b>. Flagged customers ({len(suspects):,} accounts) hold
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
-  <div class="ki-why">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
+  <div class="ft-ki-why">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
-  <div class="ki-next"><b>Investigate next:</b> open the Investigation tab and start with the High tier
+  <div class="ft-ki-next"><b>Investigate next:</b> open the Risk Review tab and start with the High tier
   ({n_high_tier} accounts) — each carries the strongest evidence.</div>
 </div>
-""",
-        unsafe_allow_html=True,
-    )
+""", unsafe_allow_html=True)
 
 
-def concentration_curve(orders: pd.DataFrame):
-    """Pareto cuts + cumulative curve — mirrors scripts/pareto_analysis.py."""
-    total = float(orders["Refund_Amount"].sum())
-    cust = orders.groupby("Customer_ID")["Refund_Amount"].sum().sort_values(ascending=False)
-    n = len(cust)
-    cum = (cust.cumsum() / total * 100).values
-    x = np.arange(1, n + 1) / n * 100
-    k50 = int(np.searchsorted(cum, 50) + 1)
-    k80 = int(np.searchsorted(cum, 80) + 1)
-    k10 = max(1, int(np.ceil(n * 0.10)))
-    return x, cum, n, total, k50, k80, float(cum[k10 - 1])
+def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
+    refunds = orders[orders["Refund_Requested"] == True].copy()
 
-
-def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
-    refunds = orders[orders["Refund_Requested"] == True].copy()  # noqa: E712
-
-    # ---- Phase 1: refund exposure concentration (Pareto) ----
+    # Pareto concentration
     x, cum, n_cust, total_val, k50, k80, top10_share = concentration_curve(orders)
 
     p1, p2, p3, p4 = st.columns(4)
-    p1.metric("Refund exposure, all customers", f"₹{total_val:,.0f}")
-    p2.metric("Customers", f"{n_cust:,}")
+    p1.metric("Total refund exposure", f"₹{total_val:,.0f}")
+    p2.metric("Refunding customers", f"{n_cust:,}")
     p3.metric("Top 10% hold", f"{top10_share:.1f}% of exposure")
-    p4.metric("Half of exposure", f"top {k50:,} customers")
+    p4.metric("Half of exposure in", f"top {k50:,} customers")
 
     st.subheader("Where the refund money concentrates")
     st.caption(
         "How refund money is spread across customers — this tells you how big the review "
         "queue needs to be. Concentration is a reason to prioritize, never evidence "
-        "that any individual customer is fraudulent. Full analysis: "
-        "reports/pareto_analysis.md"
+        "that any individual customer is fraudulent. Full analysis: reports/pareto_analysis.md"
     )
     fig = go.Figure()
-    fig.add_scatter(
-        x=x, y=cum, mode="lines", name="Cumulative share of refund value",
-        line=dict(color=C_PRIMARY, width=3),
-    )
-    fig.add_trace(go.Scatter(
-        x=[0, 100], y=[0, 100], mode="lines", name="Perfect equality (y = x)",
-        line=dict(color=C_NEUTRAL, dash="dash", width=1.5),
-    ))
-    fig.add_hline(y=80, line_dash="dot", line_color=C_WARN, opacity=0.7)
-    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color=C_WARN, opacity=0.7)
-    fig.update_layout(
-        **PLOTLY_LAYOUT,
+    fig.add_scatter(x=x, y=cum, mode="lines", name="Cumulative share of refund value",
+                    line=dict(color=C_PRIMARY, width=3))
+    fig.add_trace(go.Scatter(x=[0, 100], y=[0, 100], mode="lines", name="Perfect equality (y = x)",
+                    line=dict(color=C_BORDER, dash="dash", width=1.5)))
+    fig.add_hline(y=80, line_dash="dot", line_color=C_AMBER, opacity=0.7)
+    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color=C_AMBER, opacity=0.7)
+    fig.update_layout(**PLOTLY_LAYOUT,
         xaxis_title="Customers (% — ranked by refund value, highest first)",
-        yaxis_title="Cumulative share of refund value (%)",
-    )
+        yaxis_title="Cumulative share of refund value (%)")
     st.plotly_chart(fig, width="stretch")
 
     r1, r2, r3 = st.columns(3)
@@ -937,41 +882,25 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
     r2.metric("Largest refund", f"₹{refunds['Refund_Amount'].max():,.0f}")
     r3.metric("Refunds per month", f"{len(refunds) / 36:,.0f}")
 
-    # ── Fraud-behaviour signals: what flagged accounts look like ──
+    # Flagged behaviour patterns
     if len(suspects):
         reps = suspects["Reason_Repetition_Rate"].dropna()
         vel = suspects["Refunds_Per_Day"].dropna()
         st.subheader("Patterns among flagged customers")
-        st.caption(
-            "What flagged customers have in common, in the current view: repeating the same "
-            "refund reason, and refunding faster than normal ordering would explain."
-        )
+        st.caption("What flagged customers have in common in the current view: repeating the same refund reason, and refunding faster than normal ordering would explain.")
         s1, s2, s3 = st.columns(3)
-        s1.metric(
-            "Repeat same reason (≥50%)",
-            f"{(reps >= 50).mean() * 100:.1f}%",
-            delta=f"{int((reps >= 50).sum())} of {len(reps)} flagged",
-            delta_color="off",
-            help="Share of flagged customers whose most common refund reason covers at least half of their refunds.",
-        )
-        s2.metric(
-            "Median reason-repetition",
-            f"{reps.median():.0f}%",
-            help="Median share of refunds going to each flagged customer's top reason.",
-        )
-        s3.metric(
-            "Median refund velocity",
-            f"{vel.median():.2f}/day",
-            help="Median refunds per day across the flagged customers' refund window.",
-        )
+        s1.metric("Repeat same reason (≥50%)", f"{(reps >= 50).mean() * 100:.1f}%",
+                  delta=f"{int((reps >= 50).sum())} of {len(reps)} flagged", delta_color="off",
+                  help="Share of flagged customers whose most common refund reason covers at least half of their refunds.")
+        s2.metric("Median reason-repetition", f"{reps.median():.0f}%",
+                  help="Median share of refunds going to each flagged customer's top reason.")
+        s3.metric("Median refund velocity", f"{vel.median():.2f}/day",
+                  help="Median refunds per day across the flagged customers' refund window.")
 
     left, right = st.columns(2)
     with left:
-        fig = px.histogram(
-            refunds, x="Refund_Amount", nbins=40,
-            title="Refund amount distribution",
-            color_discrete_sequence=[C_PRIMARY],
-        )
+        fig = px.histogram(refunds, x="Refund_Amount", nbins=40,
+                           title="Refund amount distribution", color_discrete_sequence=[C_PRIMARY])
         fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Refund amount (₹)")
         left.plotly_chart(fig, width="stretch")
 
@@ -981,58 +910,60 @@ def tab_refunds(orders: pd.DataFrame, suspects: pd.DataFrame) -> None:
             .sort_values(ascending=False).round(0).rename_axis("Reason")
             .reset_index(name="avg_amount")
         )
-        fig = bar_chart(
-            avg_reason, x="Reason", y="avg_amount",
-            title="Avg refund amount by reason", color=C_ACCENT,
-            text_fmt=lambda v: f"₹{v:,.0f}",
-        )
+        fig = bar_chart(avg_reason, x="Reason", y="avg_amount",
+                        title="Avg refund amount by reason", color="#7C3AED",
+                        text_fmt=lambda v: f"₹{v:,.0f}")
         right.plotly_chart(fig, width="stretch")
 
+    # Refund rate by conditions
     st.subheader("Refund rate by operating conditions")
     st.caption(
-        "Refund rates across delivery conditions — the first cut an ops analyst would "
-        "run. (On this synthetic dataset rates are roughly flat by design: refunds were "
+        "Refund rates across delivery conditions — the first cut an ops analyst would run. "
+        "(On this synthetic dataset rates are roughly flat by design: refunds were "
         "generated independently of conditions.)"
     )
     c1, c2 = st.columns(2)
     with c1:
-        c1.plotly_chart(
-            rate_by_column(orders, "Weather_conditions", "By weather condition"),
-            width="stretch",
-        )
-        c1.plotly_chart(
-            rate_by_column(orders, "Type_of_order", "By order type"),
-            width="stretch",
-        )
+        c1.plotly_chart(rate_by_column(orders, "Weather_conditions", "By weather condition"), width="stretch")
+        c1.plotly_chart(rate_by_column(orders, "Type_of_order", "By order type"), width="stretch")
     with c2:
-        c2.plotly_chart(
-            rate_by_column(orders, "Road_traffic_density", "By road traffic density"),
-            width="stretch",
-        )
-        c2.plotly_chart(
-            rate_by_column(orders, "Festival", "By festival period"),
-            width="stretch",
-        )
+        c2.plotly_chart(rate_by_column(orders, "Road_traffic_density", "By road traffic density"), width="stretch")
+        c2.plotly_chart(rate_by_column(orders, "Festival", "By festival period"), width="stretch")
+
+    # Volume-band refund rates
+    st.subheader("Refund rate by customer volume band")
+    st.caption("Customers are compared with peers who order similar amounts — this prevents high-volume customers from being flagged purely for volume.")
+    band_refunds = orders[orders["Refund_Requested"] == True].copy()
+    band_refunds["Volume_Band"] = band_refunds["Customer_ID"].apply(
+        lambda cid: volume_band(orders[orders["Customer_ID"] == cid].shape[0])
+    )
+    band_rates = (
+        band_refunds.groupby("Volume_Band")
+        .agg(refunds=("Refund_Requested", "sum"), orders=("ID", "count"))
+        .reset_index()
+    )
+    band_rates["refund_rate"] = (band_rates["refunds"] / band_rates["orders"] * 100).round(2)
+    band_rates = band_rates.set_index("Volume_Band").reindex(BAND_LABELS).reset_index()
+    fig = px.bar(band_rates, x="Volume_Band", y="refund_rate", title="Refund rate by customer volume band",
+                 color="refund_rate", color_continuous_scale=["#1E3A8A", C_PRIMARY, "#FCA5A5"],
+                 text="refund_rate", hover_data=["orders", "refunds"])
+    fig.update_traces(textposition="outside")
+    fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Refund rate (%)")
+    st.plotly_chart(fig, width="stretch")
 
 
-def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> None:
+def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered: pd.DataFrame):
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Flagged customers", len(filtered))
-    c2.metric("Refund exposure, flagged customers", f"₹{filtered['Total_Refund_Amount'].sum():,.0f}")
-    c3.metric(
-        "Avg risk score",
-        f"{filtered['Fraud_Risk_Score'].mean():.1f}" if len(filtered) else "—",
-    )
+    c2.metric("Refund exposure", f"₹{filtered['Total_Refund_Amount'].sum():,.0f}")
+    c3.metric("Avg risk score", f"{filtered['Fraud_Risk_Score'].mean():.1f}" if len(filtered) else "—")
     c4.metric("High risk tier", int((filtered["Risk_Tier"] == "High").sum()))
 
-    left, right = st.columns([1, 2])
-    # ---- Phase 2: baseline normalization (volume-band comparison) ----
     st.subheader("Is the refund rate abnormal for the customer's order volume?")
     st.caption(
         "A flat 30% cutoff doesn't ask 'compared to what?' This section compares each "
         "flagged customer with others who order similar amounts. Above the normal range "
-        "≠ fraudulent — it means unusual for their volume. Full analysis: "
-        "reports/baseline_normalization.md"
+        "≠ fraudulent — it means unusual for their volume. Full analysis: reports/baseline_normalization.md"
     )
     try:
         import sys as _sys
@@ -1049,25 +980,18 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
 
         b1, b2, b3 = st.columns(3)
         b1.metric("Flagged above band baseline", f"{len(_above):,}",
-                   f"{len(_above)/len(_flagged)*100:.0f}% of flagged")
+                  f"{len(_above)/len(_flagged)*100:.0f}% of flagged")
         b2.metric("Flagged but within band norms", f"{len(_below):,}",
-                  f"{len(_below)/len(_flagged)*100:.0f}% — review context, not an error label",
-                  delta_color="inverse")
+                  f"{len(_below)/len(_flagged)*100:.0f}% — review context, not an error label", delta_color="inverse")
         b3.metric("Above baseline (all customers)", f"{int(_cust['above_baseline'].sum()):,}")
 
-        # volume-band reference chart
         fig = go.Figure()
         for _, b in _bands.iterrows():
-            fig.add_trace(go.Bar(
-                x=[b["band"]], y=[b["p95"]], name=b["band"],
+            fig.add_trace(go.Bar(x=[b["band"]], y=[b["p95"]], name=b["band"],
                 marker_color=C_PRIMARY, text=f"P95: {b['p95']:.1f}%",
-                textposition="outside", showlegend=False,
-            ))
-        fig.update_layout(
-            **{**PLOTLY_LAYOUT, "height": 320},
-            xaxis_title="Order-volume band",
-            yaxis_title="P95 refund rate (%)",
-        )
+                textposition="outside", showlegend=False))
+        fig.update_layout(**{**PLOTLY_LAYOUT, "height": 320},
+            xaxis_title="Order-volume band", yaxis_title="P95 refund rate (%)")
         st.plotly_chart(fig, width="stretch")
         st.caption(
             "Normal refund rate (95th percentile) by order volume — what counts as "
@@ -1079,29 +1003,20 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
 
     left, right = st.columns([1, 2])
     with left:
-        tier_counts = (
-            all_suspects["Risk_Tier"].value_counts().reindex(["Low", "Medium", "High"]).fillna(0)
-        )
+        tier_counts = all_suspects["Risk_Tier"].value_counts().reindex(["Low", "Medium", "High"]).fillna(0)
         tier_df = tier_counts.rename_axis("Tier").reset_index(name="count")
-        fig = px.bar(
-            tier_df, x="Tier", y="count", title="Risk tier distribution (all flagged)",
-            color="Tier", color_discrete_map=TIER_COLORS, text="count",
-        )
+        fig = px.bar(tier_df, x="Tier", y="count", title="Risk tier distribution (all flagged)",
+                     color="Tier", color_discrete_map={"Low": C_GREEN, "Medium": C_AMBER, "High": C_PRIMARY},
+                     text="count")
         fig.update_traces(textposition="outside")
         fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
         left.plotly_chart(fig, width="stretch")
 
-        rep = (
-            filtered.groupby("City")["Customer_ID"].count()
-            .sort_values(ascending=False).rename_axis("City").reset_index(name="flagged")
-        )
+        rep = filtered.groupby("City")["Customer_ID"].count().sort_values(ascending=False).rename_axis("City").reset_index(name="flagged")
         if len(rep):
-            fig = px.bar(
-                rep.iloc[::-1], x="flagged", y="City", orientation="h",
-                title="Flagged customers by city type",
-                color_discrete_sequence=[C_PRIMARY],
-                text="flagged",
-            )
+            fig = px.bar(rep.iloc[::-1], x="flagged", y="City", orientation="h",
+                         title="Flagged customers by city type",
+                         color_discrete_sequence=[C_PRIMARY], text="flagged")
             fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Flagged customers")
             left.plotly_chart(fig, width="stretch")
@@ -1109,104 +1024,83 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     with right:
         top20 = filtered.head(20).iloc[::-1]
         if len(top20):
-            fig = px.bar(
-                top20, y="Customer_ID", x="Fraud_Risk_Score",
-                orientation="h", title="Top 20 by fraud risk score",
-                color="Risk_Tier", color_discrete_map=TIER_COLORS,
-                hover_data=["Total_Orders", "Total_Refunds", "Refund_Rate"],
-            )
+            fig = px.bar(top20, y="Customer_ID", x="Fraud_Risk_Score",
+                         orientation="h", title="Top 20 by fraud risk score",
+                         color="Risk_Tier", color_discrete_map={"Low": C_GREEN, "Medium": C_AMBER, "High": C_PRIMARY},
+                         hover_data=["Total_Orders", "Total_Refunds", "Refund_Rate"])
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
             right.plotly_chart(fig, width="stretch")
 
-        st.subheader("Flagged customers — review list")
-        if not len(filtered):
-            st.info("No flagged customers match the current filters.")
-        else:
-            tbl = filtered[
-                [
-                    "Customer_ID", "City", "Risk_Tier", "Fraud_Risk_Score",
-                    "Total_Orders", "Total_Refunds", "Refund_Rate",
-                    "Reason_Repetition_Rate", "Total_Refund_Amount", "Last_Order_Date",
-                ]
-            ].copy()
-            _status_map = {"High": "Investigate first", "Medium": "Watchlist", "Low": "Routine review"}
-            tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
+    # Investigation table
+    st.subheader("Flagged customers — review list")
+    if not len(filtered):
+        st.info("No flagged customers match the current filters.")
+    else:
+        tbl = filtered[[
+            "Customer_ID", "City", "Risk_Tier", "Fraud_Risk_Score",
+            "Total_Orders", "Total_Refunds", "Refund_Rate",
+            "Reason_Repetition_Rate", "Total_Refund_Amount", "Last_Order_Date",
+        ]].copy()
+        _status_map = {"High": "Investigate first", "Medium": "Watchlist", "Low": "Routine review"}
+        tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
 
-            def _tier_badge(val):
-                if val in ("High", "Investigate first"):
-                    return f"background: rgba(248,113,113,0.13); color: {C_BAD}; font-weight: 700"
-                if val in ("Medium", "Watchlist"):
-                    return f"background: rgba(251,191,36,0.12); color: {C_WARN}; font-weight: 700"
-                if val in ("Low", "Routine review"):
-                    return f"background: rgba(52,211,153,0.12); color: {C_GOOD}; font-weight: 700"
-                return f"color: {C_NEUTRAL}"
+        def _tier_badge(val):
+            if val in ("High", "Investigate first"):
+                return f"background: rgba(248,113,113,0.13); color: {C_PRIMARY}; font-weight: 700"
+            if val in ("Medium", "Watchlist"):
+                return f"background: rgba(251,191,36,0.12); color: {C_AMBER}; font-weight: 700"
+            if val in ("Low", "Routine review"):
+                return f"background: rgba(52,211,153,0.12); color: {C_GREEN}; font-weight: 700"
+            return f"color: {C_TEXT_MUTED}"
 
-            styler = (
-                tbl.style
-                .map(_tier_badge, subset=["Risk_Tier"])
-                .map(_tier_badge, subset=["Status"])
-                .format(
-                    {
-                        "Fraud_Risk_Score": "{:.1f}",
-                        "Refund_Rate": "{:.1f}%",
-                        "Reason_Repetition_Rate": "{:.0f}%",
-                        "Total_Refund_Amount": "₹{:,.0f}",
-                        "Last_Order_Date": lambda d: d.strftime("%d %b %Y"),
-                    }
-                )
-            )
-            st.dataframe(styler, width="stretch", hide_index=True)
+        styler = (
+            tbl.style
+            .map(_tier_badge, subset=["Risk_Tier"])
+            .map(_tier_badge, subset=["Status"])
+            .format({
+                "Fraud_Risk_Score": "{:.1f}", "Refund_Rate": "{:.1f}%",
+                "Reason_Repetition_Rate": "{:.0f}%", "Total_Refund_Amount": "₹{:,.0f}",
+                "Last_Order_Date": lambda d: d.strftime("%d %b %Y"),
+            })
+        )
+        st.dataframe(styler, width="stretch", hide_index=True)
 
-            _csv = tbl.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "⬇ Download investigation list (CSV)",
-                _csv,
-                file_name="zomato_flagged_investigation_list.csv",
-                mime="text/csv",
-                help="The current filtered scope — ready for the review workflow.",
-            )
+        _csv = tbl.to_csv(index=False).encode("utf-8")
+        st.download_button("⬇ Download investigation list (CSV)", _csv,
+                           file_name="zomato_flagged_investigation_list.csv",
+                           mime="text/csv", help="The current filtered scope — ready for the review workflow.")
 
+    # Explain a flag
     st.subheader("Explain a flag")
     customer_options = filtered["Customer_ID"].tolist()
     if customer_options:
-        chosen = st.selectbox("Select a customer", customer_options)
+        chosen = st.selectbox("Select a customer", customer_options, key="inv_customer")
         row = filtered[filtered["Customer_ID"] == chosen].iloc[0]
-        st.write(
-            f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})"
-        )
+        st.write(f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})")
         signals = [
             ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
-            ("Reason repetition", row["Reason_Repetition_Rate"],
-             f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
-            ("Refund velocity", row["Refunds_Per_Day"],
-             f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
-            ("Reason length", row["Avg_Reason_Length"],
-             f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
+            ("Reason repetition", row["Reason_Repetition_Rate"], f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
+            ("Refund velocity", row["Refunds_Per_Day"], f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
+            ("Reason length", row["Avg_Reason_Length"], f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
         ]
-        pop = all_suspects  # P95 reference: the flagged population, current scope
+        pop = all_suspects
         meters = ""
         for name, value, text, weight in signals:
-            col_name = {
-                "Refund rate": "Refund_Rate",
-                "Reason repetition": "Reason_Repetition_Rate",
-                "Refund velocity": "Refunds_Per_Day",
-                "Reason length": "Avg_Reason_Length",
-            }[name]
+            col_name = {"Refund rate": "Refund_Rate", "Reason repetition": "Reason_Repetition_Rate",
+                        "Refund velocity": "Refunds_Per_Day", "Reason length": "Avg_Reason_Length"}[name]
             p95 = float(pop[col_name].quantile(0.95)) if len(pop) else 0.0
             pct = min(100.0, (value / p95 * 100)) if p95 > 0 else 0.0
             over = value >= p95 and p95 > 0
             fill = "over" if over else ""
-            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over
-                    else f"P95 of flagged: {p95:.1f}")
+            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over else f"P95 of flagged: {p95:.1f}")
             meters += (
-                f'<div class="meter-row">'
-                f'<div class="meter-head"><span>{name} <span style="color:var(--z-muted);">· weight {weight:.0%}</span></span>'
+                f'<div class="ft-meter-row">'
+                f'<div class="ft-meter-head"><span>{name} <span style="color:var(--ft-text-muted);">· weight {weight:.0%}</span></span>'
                 f'<b>{text}</b></div>'
-                f'<div class="meter-track"><div class="meter-fill {fill}" style="width:{pct:.0f}%"></div></div>'
-                f'<div class="meter-note">{note}</div>'
-                f'</div>'
+                f'<div class="ft-meter-track"><div class="ft-meter-fill {fill}" style="width:{pct:.0f}%"></div></div>'
+                f'<div class="ft-meter-note">{note}</div></div>'
             )
-        st.markdown(f'<div class="meter-card">{meters}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="ft-meter-card">{meters}</div>', unsafe_allow_html=True)
         st.caption(
             "Each bar shows how extreme one score factor is, compared to the 95th percentile "
             "of flagged customers in the current view. The score is a simple weighted formula — "
@@ -1215,86 +1109,234 @@ def tab_customer_risk(filtered: pd.DataFrame, all_suspects: pd.DataFrame) -> Non
     else:
         st.info("No customers match the current filters.")
 
-
-def tab_ai_analyst(filtered: pd.DataFrame) -> None:
-    """AI Refund Analyst page — evidence-grounded investigation assistant.
-
-    The numeric evidence is always deterministic (computed by the tools); the
-    optional LLM narration is clearly separated and flagged for human review.
-    """
-    st.markdown(
-        '<div class="ai-head"><span class="ai-spark">✨</span>'
-        '<div><div class="ai-title">AI Refund Analyst</div>'
-        '<div class="ai-sub">Deterministic evidence tools · optional AI narration · human review required</div></div>'
-        '<span class="beta-chip">BETA</span></div>',
-        unsafe_allow_html=True,
-    )
-    st.caption(
-        "Retrieve a customer's risk signals, refund history and volume-band comparison. "
-        "The numeric evidence is computed by the tools; optional AI narration is not validated and needs human review. "
-        "A flag is not a fraud determination."
-    )
-    inv_customer = st.selectbox(
-        "Select customer to investigate",
-        filtered["Customer_ID"].tolist() if len(filtered) else [],
-        key="inv_customer",
-    )
-    if inv_customer and st.button("Run AI Investigation", key="inv_run"):
-        try:
-            try:  # executed by Streamlit — the script dir is on sys.path
-                from ai_investigator import investigate_with_llm
-            except ImportError:  # imported as a module from the repo root
-                from dashboard.ai_investigator import investigate_with_llm
-            with st.spinner("Pulling the customer's numbers..."):
-                result = investigate_with_llm(inv_customer)
-            if not result.get("ok"):
-                st.error(result.get("error", "Investigation failed."))
-            else:
-                ev = result["evidence"]
-                # Display evidence (always shown — deterministic)
-                e1, e2, e3 = st.columns(3)
-                with e1:
-                    st.markdown(f"**Risk Score:** {ev['risk']['risk_score']}")
-                    st.markdown(f"**Tier:** {ev['risk']['risk_tier']}")
-                    st.markdown(f"**Refund Rate:** {ev['risk']['refund_rate_pct']}%")
-                with e2:
-                    st.markdown(f"**Refunds:** {ev['history']['refund_count']}")
-                    st.markdown(f"**Top Reason:** {ev['history'].get('most_repeated_reason', 'N/A')}")
-                    st.markdown(f"**Total Exposure:** ₹{ev['history']['total_refund_amount']:,.0f}")
-                with e3:
-                    st.markdown(f"**Volume Band:** {ev['baseline']['volume_band']}")
-                    st.markdown(f"**Above Baseline:** {'Yes' if ev['baseline']['above_baseline'] else 'No'}")
-                    st.markdown(f"**Band P95:** {ev['baseline']['band_p95_threshold']}%")
-
-                # LLM explanation (if available)
-                explanation = result.get("explanation")
-                if explanation:
-                    st.markdown("#### AI Investigation Summary")
-                    st.markdown(explanation)
+    # ─── AI Investigation (deterministic evidence + optional LLM narration) ───
+    with st.expander("🤖 AI Investigation — evidence-grounded customer analysis", expanded=False):
+        st.caption(
+            "Retrieve a customer's risk signals, refund history and volume-band comparison. "
+            "The numeric evidence is computed by the tools; optional AI narration is not validated and needs human review. "
+            "A flag is not a fraud determination."
+        )
+        inv_customer = st.selectbox(
+            "Select customer to investigate",
+            filtered["Customer_ID"].tolist() if len(filtered) else [],
+            key="ai_inv_customer",
+        )
+        if inv_customer and st.button("Run AI Investigation", key="ai_inv_run"):
+            try:
+                try:
+                    from ai_investigator import investigate_with_llm
+                except ImportError:
+                    from dashboard.ai_investigator import investigate_with_llm
+                with st.spinner("Pulling the customer's numbers..."):
+                    result = investigate_with_llm(inv_customer)
+                if not result.get("ok"):
+                    st.error(result.get("error", "Investigation failed."))
                 else:
-                    if result.get("llm_error"):
-                        st.warning("Optional AI narration unavailable; deterministic evidence remains available.")
-                    if result.get("note"):
-                        st.info("No AI key set — showing the raw numbers only. "
-                               "Set OPENAI_API_KEY or GOOGLE_API_KEY to get the AI-written summary.")
-                    # Show structured evidence as fallback
-                    st.markdown("#### The raw numbers behind this")
-                    st.json(ev["risk"], expanded=False)
-                    st.json(ev["history"], expanded=False)
-                    st.json(ev["baseline"], expanded=False)
-        except ImportError:
-            st.info("AI investigation module not available.")
-        except Exception:
-            st.error("Investigation could not complete. Review the data and try again.")
+                    ev = result["evidence"]
+                    e1, e2, e3 = st.columns(3)
+                    with e1:
+                        st.markdown(f"**Risk Score:** {ev['risk']['risk_score']}")
+                        st.markdown(f"**Tier:** {ev['risk']['risk_tier']}")
+                        st.markdown(f"**Refund Rate:** {ev['risk']['refund_rate_pct']}%")
+                    with e2:
+                        st.markdown(f"**Refunds:** {ev['history']['refund_count']}")
+                        st.markdown(f"**Top Reason:** {ev['history'].get('most_repeated_reason', 'N/A')}")
+                        st.markdown(f"**Total Exposure:** ₹{ev['history']['total_refund_amount']:,.0f}")
+                    with e3:
+                        st.markdown(f"**Volume Band:** {ev['baseline']['volume_band']}")
+                        st.markdown(f"**Above Baseline:** {'Yes' if ev['baseline']['above_baseline'] else 'No'}")
+                        st.markdown(f"**Band P95:** {ev['baseline']['band_p95_threshold']}%")
+
+                    explanation = result.get("explanation")
+                    if explanation:
+                        st.markdown("#### AI Investigation Summary")
+                        st.markdown(explanation)
+                    else:
+                        if result.get("llm_error"):
+                            st.warning("Optional AI narration unavailable; deterministic evidence remains available.")
+                        if result.get("note"):
+                            st.info("No AI key set — showing the raw numbers only. "
+                                   "Set OPENAI_API_KEY or GOOGLE_API_KEY to get the AI-written summary.")
+                        st.markdown("#### The raw numbers behind this")
+                        st.json(ev["risk"], expanded=False)
+                        st.json(ev["history"], expanded=False)
+                        st.json(ev["baseline"], expanded=False)
+            except ImportError:
+                st.info("AI investigation module not available.")
+            except Exception:
+                st.error("Investigation could not complete. Review the data and try again.")
 
 
-def tab_data_quality(orders: pd.DataFrame) -> None:
-    """Data Quality page — computed live from the loaded dataset.
+def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=None, band_subset=None, risk_tiers=None):
+    avg_time = orders["Time_taken (min)"].mean()
+    avg_rating = orders["Delivery_person_Ratings"].mean()
 
-    Describes the SOURCE dataset (not the filter scope): completeness,
-    consistency checks and provenance. The full audit lives in
-    reports/data_quality_report.md.
-    """
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Avg delivery time", f"{avg_time:.1f} min")
+    c2.metric("Median delivery time", f"{orders['Time_taken (min)'].median():.0f} min")
+    c3.metric("Avg rider rating", f"{avg_rating:.2f} / 5")
+    c4.metric("Slowest (90th pct)", f"{orders['Time_taken (min)'].quantile(0.9):.0f} min")
+
+    left, right = st.columns(2)
+    with left:
+        fig = px.histogram(orders, x="Time_taken (min)", nbins=45, title="Delivery time distribution",
+                           color_discrete_sequence=[C_PRIMARY])
+        fig.add_vline(x=avg_time, line_dash="dash", line_color=C_PRIMARY,
+                      annotation_text=f"mean {avg_time:.1f} min")
+        fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Minutes")
+        left.plotly_chart(fig, width="stretch")
+
+    with right:
+        fig = px.box(orders, x="Road_traffic_density", y="Time_taken (min)",
+                     title="Delivery time by traffic density", points=False,
+                     color="Road_traffic_density",
+                     color_discrete_sequence=["#93C5FD", "#60A5FA", "#3B82F6", "#2563EB"])
+        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
+        right.plotly_chart(fig, width="stretch")
+
+    c3_, c4_ = st.columns(2)
+    with c3_:
+        fig = px.box(orders, x="Weather_conditions", y="Time_taken (min)",
+                     title="Delivery time by weather", points=False,
+                     color="Weather_conditions",
+                     color_discrete_sequence=["#DDD6FE", "#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6"])
+        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
+        c3_.plotly_chart(fig, width="stretch")
+
+    with c4_:
+        type_counts = orders["Type_of_order"].value_counts().rename_axis("Type").reset_index(name="count")
+        fig = px.bar(type_counts.iloc[::-1], x="count", y="Type", orientation="h",
+                     title="Order mix by type (orders)", color_discrete_sequence=[C_PRIMARY], text="count")
+        fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
+        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Orders")
+        c4_.plotly_chart(fig, width="stretch")
+
+    # Rider view
+    riders = orders.groupby("Delivery_person_ID").agg(
+        orders=("ID", "count"), avg_rating=("Delivery_person_Ratings", "mean"),
+        avg_time=("Time_taken (min)", "mean")).reset_index()
+    r1, r2 = st.columns(2)
+    with r1:
+        fig = px.histogram(riders, x="avg_rating", nbins=25,
+                           title="Rider ratings — distribution of rider averages",
+                           color_discrete_sequence=[C_GREEN])
+        fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Average rating (per rider)")
+        r1.plotly_chart(fig, width="stretch")
+    with r2:
+        top_riders = riders.nlargest(10, "orders").iloc[::-1]
+        fig = px.bar(top_riders, y="Delivery_person_ID", x="orders", orientation="h",
+                     title="Top 10 riders by order volume", hover_data=["avg_rating", "avg_time"])
+        fig.update_traces(marker_color=C_TEXT_MUTED)
+        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
+        r2.plotly_chart(fig, width="stretch")
+
+    # Decision & value
+    st.divider()
+    st.subheader("Review queue & capacity")
+    st.caption("Select cases from the filtered eligible queue. Customer scores and exposures use full source history; date filtering is on last order.")
+
+    try:
+        import json
+        from decision_engine import plan_reviews
+    except ImportError:
+        from dashboard.decision_engine import plan_reviews
+
+    filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
+                  "risk_tiers": risk_tiers, "last_order_date_range": None}
+    scope_id = str(hash(str(filter_context)))
+    if st.session_state.get("refund_decision_scope") != scope_id:
+        st.session_state["refund_decision_scope"] = scope_id
+        st.session_state.pop("refund_decision_record", None)
+        st.session_state.pop("refund_decision_queue", None)
+
+    try:
+        scope, _ = plan_reviews(filtered, capacity=0, review_cost=0, recoverable_fraction=0, filter_context=filter_context)
+    except ValueError as error:
+        st.warning("Decision planning is blocked: " + str(error))
+        return
+
+    st.metric("Eligible customers in queue", len(filtered))
+
+    with st.form("refund_decision_form"):
+        c1, c2, c3 = st.columns(3)
+        capacity = c1.number_input("Investigation capacity (customers)", min_value=0, max_value=1000000, value=50, step=1, key="dec_capacity")
+        review_cost = c2.number_input("Assumed review cost per customer (₹)", min_value=0.0, max_value=10000000.0, value=250.0, step=50.0, key="dec_cost")
+        recovery_pct = c3.number_input("Assumed recoverable exposure (%)", min_value=0.0, max_value=100.0, value=10.0, step=1.0, key="dec_recovery")
+        action = st.text_input("Proposed action", value="Review cases with human oversight", max_chars=500, key="dec_action")
+        metric = st.text_input("Follow-up KPI", value="Verified review outcomes and customer friction", max_chars=500, key="dec_metric")
+        follow_up = st.text_input("Validation plan", value="Compare reviewed outcomes with a documented baseline", max_chars=500, key="dec_follow")
+        status = st.selectbox("Decision status", ["proposed", "approved", "deferred"], key="dec_status")
+        observed = st.text_input("Optional observed follow-up note (user-entered, unverified)", max_chars=500, key="dec_observed")
+        submit = st.form_submit_button("Build review decision", type="primary")
+
+    if submit:
+        try:
+            record, queue = plan_reviews(filtered, capacity, review_cost, recovery_pct / 100,
+                                          action=action, success_metric=metric, follow_up=follow_up,
+                                          observed_note=observed, status=status, filter_context=filter_context)
+            st.session_state["refund_decision_record"] = record
+            st.session_state["refund_decision_queue"] = queue
+        except ValueError as error:
+            st.session_state.pop("refund_decision_record", None)
+            st.session_state.pop("refund_decision_queue", None)
+            st.error(str(error))
+
+    record = st.session_state.get("refund_decision_record")
+    if record:
+        st.caption("Snapshot reflects the submitted assumptions. Changing the filtered queue clears it. User-entered follow-up is unverified.")
+        c1, c2 = st.columns(2)
+        c1.metric("Selected for review", record['scope']['selected_customers'])
+        c2.metric("Selected exposure", f"₹{record['evidence']['selected_historical_exposure_inr']:,.2f}")
+        st.caption("Selected queue count, refund count and historical exposure: SQLite/pandas reconciliation PASS. Assumed recovery and costs are not validated by that check.")
+        scenarios = pd.DataFrame([{'scenario': name, **record['scenarios'][name]} for name in ('low', 'base', 'high')])
+        st.dataframe(scenarios, hide_index=True, width="stretch")
+        threshold = record['scenarios']['break_even_recovery_fraction']
+        st.caption("Break-even assumed recoverable share: " + (f"{threshold:.1%}" if threshold is not None else "not available: selected exposure is zero"))
+        st.dataframe(st.session_state["refund_decision_queue"], hide_index=True, width="stretch")
+        b1, b2 = st.columns(2)
+        b1.download_button("⬇ Download decision record (JSON)", json.dumps(record, indent=2, allow_nan=False).encode('utf-8'),
+                           f"refund_decision_{record['scope']['scope_id'][:8]}.json", "application/json", key="dec_download_record")
+        b2.download_button("⬇ Download review queue (CSV)", st.session_state["refund_decision_queue"].to_csv(index=False).encode('utf-8'),
+                           f"refund_queue_{record['scope']['scope_id'][:8]}.csv", "text/csv", key="dec_download_queue")
+        st.caption("The JSON is an aggregate snapshot; the queue CSV includes synthetic customer IDs. Use no sensitive notes. Neither file is server-side case management.")
+
+    # ─── Deterministic Copilot (no LLM) ───
+    # Track filter context to clear copilot answer when scope changes
+    filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
+                      "risk_tiers": risk_tiers, "last_order_date_range": None}
+    scope_id = str(hash(str(filter_context)))
+    if st.session_state.get("refund_copilot_scope") != scope_id:
+        st.session_state["refund_copilot_scope"] = scope_id
+        st.session_state.pop("refund_copilot_answer", None)
+
+    with st.expander("🤖 Ask the queue (deterministic)", expanded=False):
+        st.caption("Try: 'How many flagged customers?' or 'What is the refund rate for CUST07704?' One supported metric at a time; no LLM or external provider is used.")
+        with st.form("refund_copilot_form"):
+            question = st.text_input("Queue question", max_chars=300, key="refund_copilot_question")
+            asked = st.form_submit_button("Calculate queue answer")
+        if asked:
+            try:
+                try:
+                    from decision_copilot import ask
+                except ImportError:
+                    from dashboard.decision_copilot import ask
+                st.session_state["refund_copilot_answer"] = ask(filtered, question)
+            except Exception:
+                st.session_state["refund_copilot_answer"] = {"ok": False, "text": "Could not answer. Try a simpler question."}
+        answer = st.session_state.get("refund_copilot_answer")
+        if answer:
+            if answer['ok']:
+                st.success(f"{answer['value']:,.2f} {answer['unit']}")
+                st.caption(f"Formula: {answer['formula']} · Scope: {answer['scope_customers']} customers · Sources: {', '.join(answer['source_columns'])} · SQLite/pandas queue check: {answer['reconciliation']}.")
+                st.caption(answer['warnings'][0])
+            else:
+                st.info(answer['text'])
+
+    # ─── Decision History ───
+    render_history("refund_risk", record, "refund")
+
+
+def page_data_quality(orders: pd.DataFrame):
     st.subheader("Data Quality")
     st.caption(
         "Computed live from `data/processed/zomato_with_refunds.csv` (45,584 orders). "
@@ -1309,49 +1351,33 @@ def tab_data_quality(orders: pd.DataFrame) -> None:
     span_min, span_max = orders["Order_Date"].min(), orders["Order_Date"].max()
 
     checks = [
-        ("Order ID uniqueness", f"{dup_ids} duplicate ID(s) across {n:,} rows",
-         "pass" if dup_ids == 0 else "review"),
-        ("Refund amount consistency",
-         f"{int((req & (orders['Refund_Amount'] <= 0)).sum())} refund request(s) with amount ≤ 0",
+        ("Order ID uniqueness", f"{dup_ids} duplicate ID(s) across {n:,} rows", "pass" if dup_ids == 0 else "review"),
+        ("Refund amount consistency", f"{int((req & (orders['Refund_Amount'] <= 0)).sum())} refund request(s) with amount ≤ 0",
          "pass" if int((req & (orders["Refund_Amount"] <= 0)).sum()) == 0 else "review"),
-        ("Refund reason coverage",
-         f"{int((req & orders['Refund_Reason'].isna()).sum())} refund request(s) missing a reason",
+        ("Refund reason coverage", f"{int((req & orders['Refund_Reason'].isna()).sum())} refund request(s) missing a reason",
          "pass" if int((req & orders["Refund_Reason"].isna()).sum()) == 0 else "review"),
-        ("No amount without a request",
-         f"{int((~req & (orders['Refund_Amount'] > 0)).sum())} rows carry refund value without a request",
+        ("No amount without a request", f"{int((~req & (orders['Refund_Amount'] > 0)).sum())} rows carry refund value without a request",
          "pass" if int((~req & (orders["Refund_Amount"] > 0)).sum()) == 0 else "review"),
-        ("Date window sanity",
-         f"All orders inside {span_min:%d %b %Y} → {span_max:%d %b %Y}",
-         "pass"),
-        ("City coverage",
-         f"{int(missing['City']):,} orders ({missing['City'] / n * 100:.1f}%) have no City value — "
-         "kept in scope by the default filters (NaN-safe)",
-         "gap"),
+        ("Date window sanity", f"All orders inside {span_min:%d %b %Y} → {span_max:%d %b %Y}", "pass"),
+        ("City coverage", f"{int(missing['City']):,} orders ({missing['City'] / n * 100:.1f}%) have no City value — kept in scope by default filters (NaN-safe)", "gap"),
         ("Delivery-person fields",
          f"Age missing on {int(missing['Delivery_person_Age']):,} ({missing['Delivery_person_Age'] / n * 100:.1f}%) · "
-         f"ratings missing on {int(missing['Delivery_person_Ratings']):,} "
-         f"({missing['Delivery_person_Ratings'] / n * 100:.1f}%) — retained, never imputed",
-         "gap"),
-        ("Refund layer provenance",
-         "Customer IDs, refund events, amounts and ground-truth labels are synthetic and seeded "
-         "(seed 42) — disclosed; Refund_Reason is populated only for refund rows by design",
-         "disclosed"),
+         f"ratings missing on {int(missing['Delivery_person_Ratings']):,} ({missing['Delivery_person_Ratings'] / n * 100:.1f}%) — retained, never imputed", "gap"),
+        ("Refund layer provenance", "Customer IDs, refund events, amounts and ground-truth labels are synthetic and seeded (seed 42) — disclosed; Refund_Reason is populated only for refund rows by design", "disclosed"),
     ]
     pill_label = {"pass": "PASS", "review": "REVIEW", "gap": "KNOWN GAP", "disclosed": "DISCLOSED"}
     rows = "".join(
-        f'<div class="dq-row"><div class="dq-check">{name}</div>'
-        f'<div class="dq-result">{result}</div>'
-        f'<span class="dq-pill {status}">{pill_label[status]}</span></div>'
+        f'<div class="ft-dq-row"><div class="ft-dq-check">{name}</div>'
+        f'<div class="ft-dq-result">{result}</div>'
+        f'<span class="ft-dq-pill {status}">{pill_label[status]}</span></div>'
         for name, result, status in checks
     )
-    st.markdown(f'<div class="dq-card">{rows}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="ft-dq-card">{rows}</div>', unsafe_allow_html=True)
 
     st.markdown("**Column completeness**")
-    comp = (
-        pd.DataFrame({"Column": orders.columns, "Missing": missing.values})
-        .assign(**{"Complete %": lambda d: ((n - d["Missing"]) / n * 100).round(1)})
-        .sort_values("Complete %")
-    )
+    comp = (pd.DataFrame({"Column": orders.columns, "Missing": missing.values})
+            .assign(**{"Complete %": lambda d: ((n - d["Missing"]) / n * 100).round(1)})
+            .sort_values("Complete %"))
     st.dataframe(comp, use_container_width=True, hide_index=True)
     st.caption(
         "Completeness is a property of the source delivery dataset (public) plus the disclosed "
@@ -1359,256 +1385,24 @@ def tab_data_quality(orders: pd.DataFrame) -> None:
         "documented, not imputed."
     )
 
-
-@st.cache_data
-def _read_report_bytes(path: str) -> bytes | None:
-    from pathlib import Path as _P
-
-    p = _P(path)
-    if not p.exists():
-        return None
-    return p.read_bytes()
-
-
-def tab_reports() -> None:
-    """Reports page — the repo's generated evidence artifacts, downloadable."""
-    st.subheader("Reports & Evidence")
-    st.caption(
-        "Every report below is generated by a script in `scripts/` and pinned by a test in "
-        "`tests/` — the numbers regenerate from source data, they are not hand-written."
-    )
-
-    downloads = [
-        ("data/metrics.json", "metrics_semantic_layer.json",
-         "Semantic layer — the exact definition and pinned value of every KPI."),
-        ("reports/fraud_suspects.csv", "flagged_customers_full_dataset.csv",
-         "The 279 flagged customers (full dataset) with risk scores and tiers."),
-        ("reports/executive_summary.md", "executive_summary.md",
-         "One-page executive readout of the analysis."),
-        ("reports/data_quality_report.md", "data_quality_report.md",
-         "Full data-quality audit behind the Data Quality page."),
-        ("reports/methodology.md", "methodology.md",
-         "Risk-scoring methodology, thresholds and rationale."),
-        ("reports/FINAL_RELEASE_REPORT.md", "final_release_report.md",
-         "Release gate: tests, benchmarks and validation summary."),
-    ]
-    for src, fname, desc in downloads:
-        data = _read_report_bytes(str(_REPO_ROOT / src))
-        if data is None:
-            st.info(f"`{src}` is not packaged in this deployment — available in the GitHub repo.")
-            continue
-        with st.expander(f"📄 {fname} — {desc}"):
-            st.download_button(
-                f"⬇ Download {fname}",
-                data=data,
-                file_name=fname,
-                mime="text/markdown" if fname.endswith((".md", ".json")) else "text/csv",
-            )
-
-    st.markdown("**All generated artifacts** (`reports/`)")
-    reports_dir = _REPO_ROOT / "reports"
-    if reports_dir.exists():
-        listing = sorted(
-            (
-                {"File": p.name, "Size (KB)": round(p.stat().st_size / 1024, 1)}
-                for p in reports_dir.iterdir() if p.is_file()
-            ),
-            key=lambda r: r["File"],
-        )
-        st.dataframe(pd.DataFrame(listing), use_container_width=True, hide_index=True)
-    else:
-        st.info("The `reports/` directory is not packaged in this deployment.")
-
-
-def tab_operations(orders: pd.DataFrame) -> None:
-    avg_time = orders["Time_taken (min)"].mean()
-    avg_rating = orders["Delivery_person_Ratings"].mean()
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Avg delivery time", f"{avg_time:.1f} min")
-    c2.metric("Median delivery time", f"{orders['Time_taken (min)'].median():.0f} min")
-    c3.metric("Avg rider rating", f"{avg_rating:.2f} / 5")
-    c4.metric("Slowest deliveries (90th pct)", f"{orders['Time_taken (min)'].quantile(0.9):.0f} min")
-
-    left, right = st.columns(2)
-    with left:
-        fig = px.histogram(
-            orders, x="Time_taken (min)", nbins=45,
-            title="Delivery time distribution",
-            color_discrete_sequence=[C_PRIMARY],
-        )
-        fig.add_vline(
-            x=avg_time, line_dash="dash", line_color=C_BAD,
-            annotation_text=f"mean {avg_time:.1f} min",
-        )
-        fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Minutes")
-        left.plotly_chart(fig, width="stretch")
-
-    with right:
-        fig = px.box(
-            orders, x="Road_traffic_density", y="Time_taken (min)",
-            title="Delivery time by traffic density", points=False,
-            color="Road_traffic_density",
-            color_discrete_sequence=["#93C5FD", "#60A5FA", "#3B82F6", "#2563EB"],
-        )
-        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
-        right.plotly_chart(fig, width="stretch")
-
-    c3_, c4_ = st.columns(2)
-    with c3_:
-        fig = px.box(
-            orders, x="Weather_conditions", y="Time_taken (min)",
-            title="Delivery time by weather", points=False,
-            color="Weather_conditions",
-            color_discrete_sequence=["#DDD6FE", "#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6"],
-        )
-        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
-        c3_.plotly_chart(fig, width="stretch")
-
-    with c4_:
-        type_counts = (
-            orders["Type_of_order"].value_counts().rename_axis("Type").reset_index(name="count")
-        )
-        fig = px.bar(
-            type_counts.iloc[::-1], x="count", y="Type", orientation="h",
-            title="Order mix by type (orders)",
-            color_discrete_sequence=[C_PRIMARY],
-            text="count",
-        )
-        fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
-        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Orders")
-        c4_.plotly_chart(fig, width="stretch")
-
-    # ── Rider-level view: top riders by volume + rating
-    riders = (
-        orders.groupby("Delivery_person_ID")
-        .agg(orders=("ID", "count"), avg_rating=("Delivery_person_Ratings", "mean"),
-             avg_time=("Time_taken (min)", "mean"))
-        .reset_index()
-    )
-    r1, r2 = st.columns(2)
-    with r1:
-        fig = px.histogram(
-            riders, x="avg_rating", nbins=25,
-            title="Rider ratings — distribution of rider averages",
-            color_discrete_sequence=[C_GOOD],
-        )
-        fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Average rating (per rider)")
-        r1.plotly_chart(fig, width="stretch")
-
-    with r2:
-        top_riders = riders.nlargest(10, "orders").iloc[::-1]
-        fig = px.bar(
-            top_riders, y="Delivery_person_ID", x="orders", orientation="h",
-            title="Top 10 riders by order volume",
-            hover_data=["avg_rating", "avg_time"],
-        )
-        fig.update_traces(marker_color=C_NEUTRAL)
-        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
-        r2.plotly_chart(fig, width="stretch")
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# MAIN
-# ════════════════════════════════════════════════════════════════════════════
-
-
-def tab_decision_value(filtered: pd.DataFrame, filter_context: dict) -> None:
-    """Capacity and assumed-cost scenario on the already-filtered eligible queue."""
-    import json
+    st.divider()
+    st.subheader("KPI Definitions & Provenance")
+    st.caption("Every KPI on this dashboard traces to `data/metrics.json` and is validated by pandas↔SQL reconciliation (0 mismatches, 8 KPIs).")
     try:
-        from decision_engine import plan_reviews
-        from decision_history import render_history
-    except ImportError:
-        from dashboard.decision_engine import plan_reviews
-        from dashboard.decision_history import render_history
-
-    st.subheader("Decision & value — review capacity")
-    st.caption("Select cases from the filtered eligible queue. Customer scores and exposures use full source history; date filtering is on last order, not transaction dates.")
-    try:
-        scope, _ = plan_reviews(filtered, capacity=0, review_cost=0, recoverable_fraction=0, filter_context=filter_context)
-    except ValueError as error:
-        st.warning("Decision planning is blocked: " + str(error))
-        st.session_state.pop("refund_decision_record", None)
-        st.session_state.pop("refund_decision_queue", None)
-        return
-    scope_id = scope['scope']['scope_id']
-    signature = scope_id + ':' + json.dumps(filter_context, sort_keys=True)
-    if st.session_state.get("refund_decision_scope") != signature:
-        st.session_state["refund_decision_scope"] = signature
-        st.session_state.pop("refund_decision_record", None)
-        st.session_state.pop("refund_decision_queue", None)
-        st.session_state.pop("refund_copilot_answer", None)
-    st.metric("Eligible customers in current queue", len(filtered))
-    with st.expander("Ask the selected queue (deterministic)"):
-        st.caption("Try: How many flagged customers? or What is the refund rate for CUST07704? One supported metric at a time; no LLM or external provider is used.")
-        with st.form("refund_copilot_form"):
-            question = st.text_input("Queue question", max_chars=300, key="refund_copilot_question")
-            asked = st.form_submit_button("Calculate queue answer")
-        if asked:
-            try:
-                from decision_copilot import ask
-            except ImportError:
-                from dashboard.decision_copilot import ask
-            st.session_state["refund_copilot_answer"] = ask(filtered, question)
-        answer = st.session_state.get("refund_copilot_answer")
-        if answer:
-            if answer['ok']:
-                st.success(f"{answer['value']:,.2f} {answer['unit']}")
-                st.caption(f"Formula: {answer['formula']} · Scope: {answer['scope_customers']} customers · Sources: {', '.join(answer['source_columns'])} · SQLite/pandas queue check: {answer['reconciliation']}.")
-                st.caption(answer['warnings'][0])
-            else:
-                st.info(answer['text'])
-    with st.form("refund_decision_form"):
-        c1, c2, c3 = st.columns(3)
-        capacity = c1.number_input("Investigation capacity (customers)", min_value=0, max_value=1000000, value=50, step=1, key="refund_dec_capacity")
-        review_cost = c2.number_input("Assumed review cost per customer (₹)", min_value=0.0, max_value=10000000.0, value=250.0, step=50.0, key="refund_dec_cost")
-        recovery_pct = c3.number_input("Assumed recoverable exposure (%)", min_value=0.0, max_value=100.0, value=10.0, step=1.0, key="refund_dec_recovery")
-        action = st.text_input("Proposed action", value="Review cases with human oversight", max_chars=500, key="refund_dec_action")
-        metric = st.text_input("Follow-up KPI", value="Verified review outcomes and customer friction", max_chars=500, key="refund_dec_metric")
-        follow_up = st.text_input("Validation plan", value="Compare reviewed outcomes with a documented baseline", max_chars=500, key="refund_dec_follow")
-        status = st.selectbox("Decision status", ["proposed", "approved", "deferred"], key="refund_dec_status")
-        observed = st.text_input("Optional observed follow-up note (user-entered, unverified)", max_chars=500, key="refund_dec_observed")
-        submit = st.form_submit_button("Build review decision", type="primary")
-    if submit:
-        try:
-            record, queue = plan_reviews(filtered, capacity, review_cost, recovery_pct / 100,
-                                          action=action, success_metric=metric, follow_up=follow_up,
-                                          observed_note=observed, status=status, filter_context=filter_context)
-            st.session_state["refund_decision_record"] = record
-            st.session_state["refund_decision_queue"] = queue
-        except ValueError as error:
-            st.session_state.pop("refund_decision_record", None)
-            st.session_state.pop("refund_decision_queue", None)
-            st.error(str(error))
-    record = st.session_state.get("refund_decision_record")
-    if record is None:
-        st.info("Build a snapshot; it is not stored on a server. Download the files to keep it.")
-        render_history("refund_risk", None, "refund")
-        return
-    st.caption("Snapshot reflects the submitted assumptions. Changing the filtered queue clears it. User-entered follow-up is unverified.")
-    c1, c2 = st.columns(2)
-    c1.metric("Selected for review", record['scope']['selected_customers'])
-    c2.metric("Selected historical refund exposure", f"₹{record['evidence']['selected_historical_exposure_inr']:,.2f}")
-    st.caption("Selected queue count, refund count and historical exposure: SQLite/pandas reconciliation PASS. Assumed recovery and costs are not validated by that check.")
-    scenarios = pd.DataFrame([{'scenario': name, **record['scenarios'][name]} for name in ('low', 'base', 'high')])
-    st.dataframe(scenarios, hide_index=True, width="stretch")
-    threshold = record['scenarios']['break_even_recovery_fraction']
-    st.caption("Break-even assumed recoverable share: " + (f"{threshold:.1%}" if threshold is not None else "not available: selected exposure is zero"))
-    st.warning("Modeled net = selected historical exposure × assumed recoverable share − review cost. This is not realized savings, a fraud probability or a confirmed fraud determination. Low/base/high use 0.5×/1×/1.5× the assumed share, capped at 100%.")
-    st.dataframe(st.session_state["refund_decision_queue"], hide_index=True, width="stretch")
-    b1, b2 = st.columns(2)
-    b1.download_button("Download decision record (JSON)", json.dumps(record, indent=2, allow_nan=False).encode('utf-8'),
-                       f"refund_decision_{scope_id[:8]}.json", "application/json", key="refund_download_record")
-    b2.download_button("Download review queue (CSV)", st.session_state["refund_decision_queue"].to_csv(index=False).encode('utf-8'),
-                       f"refund_queue_{scope_id[:8]}.csv", "text/csv", key="refund_download_queue")
-    st.caption("The JSON is an aggregate snapshot; the queue CSV includes synthetic customer IDs. Use no sensitive notes. Neither file is server-side case management.")
-    render_history("refund_risk", record, "refund")
+        with open(METRICS_PATH) as f:
+            metrics = __import__('json').load(f)
+        for _key, _m in metrics["metrics"].items():
+            with st.expander(f"{_key.replace('_', ' ').title()}"):
+                st.markdown(f"**Definition:** {_m['definition']}")
+                st.markdown(f"**Basis:** {_m['basis']}")
+    except Exception:
+        st.info("Metric definitions file not found in this deployment.")
 
 
-def main() -> None:
+# ─── Main ───
+def main():
     st.set_page_config(
-        page_title="Refund Risk & Operations Analytics",
+        page_title="Zomato Refund Risk & Operations Analytics",
         page_icon="🍽️",
         layout="wide",
     )
@@ -1622,40 +1416,30 @@ def main() -> None:
     except (OSError, ValueError):
         metric_defs = None
 
-
-    # ── Sidebar: brand mark + scope period + filters + reset + methodology ──
-    period_label = (
-        f"{orders['Order_Date'].min().strftime('%b %Y')} – "
-        f"{orders['Order_Date'].max().strftime('%d %b %Y')}"
-    )
+    # ── Sidebar ───
+    period_label = f"{orders['Order_Date'].min().strftime('%b %Y')} – {orders['Order_Date'].max().strftime('%d %b %Y')}"
     n_refunds = int(orders["Refund_Requested"].sum())
     st.sidebar.markdown(
-        '<div class="z-brand"><div class="z-mark">Z</div><div>'
-        '<div class="zb-t">Zomato Analytics</div>'
-        '<div class="zb-s">Refund &amp; Trust Intelligence</div></div></div>',
-        unsafe_allow_html=True,
-    )
+        f'<div class="ft-brand"><div class="ft-mark">Z</div><div>'
+        f'<div class="ft-title">Zomato Analytics</div>'
+        f'<div class="ft-sub">Refund & Trust Intelligence</div></div></div>',
+        unsafe_allow_html=True)
     st.sidebar.markdown(
-        f'<div class="side-period">📅 <b>{period_label}</b><br>'
+        f'<div class="ft-period">📅 <b>{period_label}</b><br>'
         f'{len(orders):,} orders · {n_refunds:,} refunds<br>'
-        '<span style="color:#94A3B8">Synthetic refund layer — disclosed</span></div>',
-        unsafe_allow_html=True,
-    )
+        f'<span style="color:var(--ft-text-muted)">Synthetic refund layer — disclosed</span></div>',
+        unsafe_allow_html=True)
+
     st.sidebar.markdown("**Filters**")
 
-    # ── Global filters (cross-filter every tab) ──
-    # Full selection == no filter (NaN-safe: 1,200 orders have a missing City)
+    # Global filters
     all_city_types = sorted(orders["City"].dropna().unique().tolist())
     selected_cities = st.sidebar.multiselect(
         "City type", all_city_types, default=all_city_types,
-        help="Order-level city type — applies to every tab.",
-        key="f_city",
-    )
+        help="Order-level city type — applies to every page.", key="f_city")
     selected_bands = st.sidebar.multiselect(
         "Customer volume band", BAND_LABELS, default=BAND_LABELS,
-        help="1-2 / 3-5 / 6-10 / 11-20 / 21+ orders (customer-level) — applies to every tab.",
-        key="f_band",
-    )
+        help="1-2 / 3-5 / 6-10 / 11-20 / 21+ orders (customer-level) — applies to every page.", key="f_band")
     city_subset = selected_cities if len(selected_cities) < len(all_city_types) else None
     band_subset = selected_bands if len(selected_bands) < len(BAND_LABELS) else None
     orders_f = apply_global_filters(orders, city_subset, band_subset)
@@ -1663,37 +1447,35 @@ def main() -> None:
     if city_subset:
         suspects_scope = suspects_scope[suspects_scope["City"].isin(city_subset)]
     if band_subset:
-        suspects_scope = suspects_scope[
-            suspects_scope["Total_Orders"].apply(volume_band).isin(band_subset)
-        ]
+        suspects_scope = suspects_scope[suspects_scope["Total_Orders"].apply(volume_band).isin(band_subset)]
 
-    # ── Customer Risk tab filters (tier + last-order date) ──
+    # Investigation filters
     st.sidebar.markdown("**Investigation filters**")
     min_date = suspects["Last_Order_Date"].min().date()
     max_date = suspects["Last_Order_Date"].max().date()
-    date_range = st.sidebar.date_input(
-        "Last order date range", value=(min_date, max_date),
-        min_value=min_date, max_value=max_date, key="f_date",
-    )
-    risk_tiers = st.sidebar.multiselect(
-        "Risk tier", ["Low", "Medium", "High"], default=["Low", "Medium", "High"],
-        key="f_tier",
-    )
+    date_range = st.sidebar.date_input("Last order date range", value=(min_date, max_date),
+                                       min_value=min_date, max_value=max_date, key="f_date")
+    risk_tiers = st.sidebar.multiselect("Risk tier", ["Low", "Medium", "High"],
+                                        default=["Low", "Medium", "High"], key="f_tier")
 
     filtered = suspects_scope[suspects_scope["Risk_Tier"].isin(risk_tiers)]
     if isinstance(date_range, tuple) and len(date_range) == 2:
         start, end = date_range
-        filtered = filtered[
-            (filtered["Last_Order_Date"].dt.date >= start)
-            & (filtered["Last_Order_Date"].dt.date <= end)
-        ]
+        filtered = filtered[(filtered["Last_Order_Date"].dt.date >= start) & (filtered["Last_Order_Date"].dt.date <= end)]
 
-    # ── Active-scope chips + one-click reset ──
-    render_filter_status(
-        selected_cities, all_city_types, selected_bands, list(BAND_LABELS),
-        risk_tiers, ["Low", "Medium", "High"],
-    )
-    if st.sidebar.button("↺ Reset all filters", help="Restore the full dataset into scope."):
+    # Active filter chips
+    chips = []
+    if len(selected_cities) < len(all_city_types):
+        chips.append(f"City: {', '.join(selected_cities) if selected_cities else 'none'}")
+    if len(selected_bands) < len(BAND_LABELS):
+        chips.append(f"Volume band: {', '.join(selected_bands) if selected_bands else 'none'}")
+    if len(risk_tiers) < 3:
+        chips.append(f"Tier: {', '.join(risk_tiers) if risk_tiers else 'none'}")
+    html = "".join(f'<span class="ft-chip">{c}</span>' for c in chips) if chips else \
+        '<span class="ft-chip-none">No filters active — full dataset in scope</span>'
+    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10px;font-weight:700;letter-spacing:0.07em;color:var(--ft-text-muted);text-transform:uppercase;margin-bottom:4px;">Active scope</div><div class="ft-filter-chips">{html}</div></div>', unsafe_allow_html=True)
+
+    if st.sidebar.button("↺ Reset all filters", help="Restore the full dataset into scope.", use_container_width=True):
         for _k in ("f_city", "f_band", "f_tier", "f_date"):
             st.session_state.pop(_k, None)
         st.rerun()
@@ -1713,49 +1495,40 @@ def main() -> None:
             "in the README"
         )
 
-    app_header(orders_f, export_df=filtered)
+    ft_header(orders_f, export_df=filtered)
 
-    # ── Empty state: filters excluded everything ──
     if not len(orders_f):
-        empty_state_html()
+        ft_empty_state()
         if st.button("Reset filters", key="reset_main"):
             for _k in ("f_city", "f_band", "f_tier", "f_date"):
                 st.session_state.pop(_k, None)
             st.rerun()
-        app_footer()
+        ft_footer()
         return
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(
-        ["Executive Overview", "Refund Reasons", "Risk Investigation", "Operations Analysis",
-         "Policy & Impact", "AI Refund Analyst", "Data Quality", "Reports"]
+    # ─── Navigation ───
+    page = st.radio(
+        "Navigation",
+        ["1. Executive Overview", "2. Refund Patterns", "3. Risk Review", "4. Operations", "5. Data Quality"],
+        horizontal=True, label_visibility="collapsed",
+        key="Navigation",
     )
-    with tab1:
-        tab_overview(orders_f, suspects_scope, truth=truth, metric_defs=metric_defs)
-    with tab2:
-        tab_refunds(orders_f, suspects_scope)
-    with tab3:
-        tab_customer_risk(filtered, suspects)
-    with tab4:
-        tab_operations(orders_f)
-    with tab5:
-        selected_dates = ([str(date_range[0]), str(date_range[1])]
-                          if isinstance(date_range, tuple) and len(date_range) == 2 else None)
-        filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
-                          "risk_tiers": risk_tiers, "last_order_date_range": selected_dates}
-        tab_decision_value(filtered, filter_context)
-    with tab6:
-        tab_ai_analyst(filtered)
-    with tab7:
-        tab_data_quality(orders)
-    with tab8:
-        tab_reports()
 
-    app_footer()
+    if page == "1. Executive Overview":
+        page_executive(orders_f, suspects_scope, truth, metric_defs)
+    elif page == "2. Refund Patterns":
+        page_refund_patterns(orders_f, suspects_scope)
+    elif page == "3. Risk Review":
+        page_risk_review(orders_f, suspects_scope, filtered)
+    elif page == "4. Operations":
+        page_operations(orders_f, filtered, city_subset, band_subset, risk_tiers)
+    elif page == "5. Data Quality":
+        page_data_quality(orders_f)
 
-    st.divider()
+    ft_footer()
     st.caption(
-        "Synthetic, seeded dataset — the method is the point. Risk score = 40% refund rate + "
-        "30% reason repetition + 20% refund frequency + 10% reason length "
+        "Synthetic, seeded dataset — the method is the point. "
+        "Risk score = 40% refund rate + 30% reason repetition + 20% refund frequency + 10% reason length "
         "(docs/risk_scoring_methodology.md). Demo project — not affiliated with Zomato."
     )
 
