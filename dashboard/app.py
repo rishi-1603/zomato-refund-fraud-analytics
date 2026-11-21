@@ -783,8 +783,6 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     if "partial_periods" not in mom:
         st.warning("Analytics modules are refreshing. Please reload this page.")
         return
-    if mom.get("partial_periods"):
-        st.warning(mom["coverage_note"])
 
     # Hero KPI row
     refund_orders = kpis["refund_orders"]
@@ -801,7 +799,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
 
     kpi_cards = [
         ("#3B82F6", "🛒", "Delivery orders", f"{kpis['total_orders']:,}",
-         _mom_chip(mom["orders_delta_pct"]), "Month-over-month on the current scope."),
+         _mom_chip(mom["orders_delta_pct"]), "Observed orders in the current scope."),
         ("#EF4444", "↩", "Refund requests", f"{refund_orders:,}",
          f"{kpis['refund_rate_pct']:.1f}% of orders", "A refund request is not a confirmed refund."),
         ("#FBBF24", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
