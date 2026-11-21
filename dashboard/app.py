@@ -835,7 +835,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         st.subheader("Review queue — highest priority first")
         st.caption(
             "The highest review priority scores in the current view. A flag means look closer — never a guilt verdict. "
-            "The full list, baselines and per-customer details are on the Risk Review page."
+            "The full list, baselines and per-customer details are on the Customer Risk Review page."
         )
         st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
 
@@ -971,7 +971,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
   <div style="font-size:12px;line-height:1.5;margin-top:8px;color:#9ca3af;">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
-  <div style="font-size:12px;margin-top:10px;color:#e8edf5;"><b>Investigate next:</b> open the Risk Review page and start with the High tier
+  <div style="font-size:12px;margin-top:10px;color:#e8edf5;"><b>Investigate next:</b> open the Customer Risk Review page and start with the High tier
   ({n_high_tier} accounts) — each carries the strongest evidence.</div>
 </div>
 """, unsafe_allow_html=True)
@@ -1072,7 +1072,7 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
     st.caption(
         f"Aggregate refund rate by each customer's full order history: {lo:.1f}–{hi:.1f}% across "
         f"bands. Order volume alone does not explain refunds; what changes with volume is the "
-        f"per-customer P95 threshold used to flag unusual accounts (see Risk Review). "
+        f"per-customer P95 threshold used to flag unusual accounts (see Customer Risk Review). "
         f"No customer in this dataset exceeds 20 orders, so the 21+ band is empty and omitted."
     )
     band_rates = band_rates.sort_values("refund_rate", ascending=True)
