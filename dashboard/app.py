@@ -60,37 +60,28 @@ RISK_WEIGHTS = {
 MIN_ORDERS_THRESHOLD = 5
 MIN_REFUND_RATE_PCT = 30
 
-# ─── Professional Light Theme Palette ───
-C_PRIMARY = "#E23744"      # Zomato red
-C_PRIMARY_LIGHT = "#FEF2F2"
-C_TEAL = "#0D9488"
-C_TEAL_LIGHT = "#F0FDFA"
-C_AMBER = "#D97706"
-C_AMBER_LIGHT = "#FFFBEB"
-C_BLUE = "#2563EB"
-C_BLUE_LIGHT = "#EFF6FF"
-C_GREEN = "#16A34A"
-C_GREEN_LIGHT = "#F0FDF4"
-C_TEXT = "#111827"
-C_TEXT_MUTED = "#6B7280"
-C_TEXT_LIGHT = "#9CA3AF"
-C_BORDER = "#E5E7EB"
-C_CARD_BG = "#FFFFFF"
-C_PAGE_BG = "#F9FAFB"
-C_SIDEBAR_BG = "#FFFFFF"
-
+# ─── Dark Console Palette (original) ───
+C_PRIMARY = "#3B82F6"   # blue
+C_ACCENT = "#A78BFA"    # violet
+C_GOOD = "#34D399"      # green
+C_WARN = "#FBBF24"      # amber
+C_BAD = "#F87171"       # red
+C_NEUTRAL = "#94A3B8"   # slate
+C_ACCENT_2 = "#0D9488"    # teal
+TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
 PLOTLY_LAYOUT = dict(
-    template="plotly_white",
-    height=360,
-    margin=dict(l=50, r=30, t=60, b=45),
-    title_font=dict(size=15, color=C_TEXT, family="Inter, 'Segoe UI', sans-serif"),
-    font=dict(family="Inter, 'Segoe UI', system-ui, sans-serif", size=12, color=C_TEXT),
+    template="plotly_dark",
+    height=380,
+    margin=dict(l=40, r=30, t=56, b=40),
+    title_font=dict(size=15, color="#F1F5F9"),
+    font=dict(family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif",
+              size=12.5, color="#CBD5E1"),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    hoverlabel=dict(bgcolor="#FFFFFF", font_size=12, font_color=C_TEXT, bordercolor=C_BORDER),
-    xaxis=dict(gridcolor=C_BORDER, zerolinecolor=C_BORDER, showgrid=True),
-    yaxis=dict(gridcolor=C_BORDER, zerolinecolor=C_BORDER, showgrid=True),
-    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor=C_BORDER, borderwidth=1),
+    hoverlabel=dict(bgcolor="#141D31", font_size=12.5, font_color="#E8ECF4",
+                    bordercolor="#26375C"),
+    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
+    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
 )
 
 
@@ -113,307 +104,463 @@ def _inr(value: float, decimals: int = 0) -> str:
 
 
 def inject_css() -> None:
-    st.markdown(f"""
+    st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-:root {{
-  --ft-bg: {C_PAGE_BG};
-  --ft-card: {C_CARD_BG};
-  --ft-border: {C_BORDER};
-  --ft-text: {C_TEXT};
-  --ft-text-muted: {C_TEXT_MUTED};
-  --ft-text-light: {C_TEXT_LIGHT};
-  --ft-primary: {C_PRIMARY};
-  --ft-primary-light: {C_PRIMARY_LIGHT};
-  --ft-teal: {C_TEAL};
-  --ft-teal-light: {C_TEAL_LIGHT};
-  --ft-amber: {C_AMBER};
-  --ft-amber-light: {C_AMBER_LIGHT};
-  --ft-blue: {C_BLUE};
-  --ft-blue-light: {C_BLUE_LIGHT};
-  --ft-green: {C_GREEN};
-  --ft-green-light: {C_GREEN_LIGHT};
-}}
+:root{
+  --bg:#0a0f1e;
+  --bg-2:#0f1629;
+  --panel:#131d33;
+  --panel-2:#1a2744;
+  --panel-3:#213052;
+  --border:#1e3a5f;
+  --border-light:#2a4a73;
+  --text:#e8edf5;
+  --text-2:#c5cdd9;
+  --muted:#6b7a99;
+  --accent:#10b981;
+  --accent-glow:rgba(16,185,129,.15);
+  --accent-2:#3b82f6;
+  --accent-3:#8b5cf6;
+  --warn:#f59e0b;
+  --danger:#ef4444;
+  --success:#10b981;
+  --gradient-1:linear-gradient(135deg,#0a0f1e 0%,#131d33 50%,#0f1629 100%);
+  --gradient-accent:linear-gradient(135deg,#10b981 0%,#3b82f6 100%);
+  --shadow-sm:0 2px 8px rgba(0,0,0,.2);
+  --shadow-md:0 8px 24px rgba(0,0,0,.3);
+  --shadow-lg:0 16px 48px rgba(0,0,0,.4);
+  --radius-sm:6px;
+  --radius-md:10px;
+  --radius-lg:16px;
+  --radius-xl:24px;
+}
 
-html, body, [class*="css"], .stApp {{
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif !important;
-  background-color: var(--ft-bg) !important;
-  color: var(--ft-text) !important;
-}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-.stApp > header {{ display: none; }}
+body{
+  font:14px/1.65 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  min-height:100vh;
+}
 
-/* Sidebar */
-section[data-testid="stSidebar"] {{
-  background-color: var(--ft-card) !important;
-  border-right: 1px solid var(--ft-border) !important;
-}}
-section[data-testid="stSidebar"] * {{ font-size: 13px !important; }}
-section[data-testid="stSidebar"] hr {{ border-color: var(--ft-border) !important; margin: 14px 0 10px !important; }}
+body::before{
+  content:'';
+  position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%,rgba(16,185,129,.08),transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%,rgba(59,130,246,.05),transparent);
+  pointer-events:none;
+  z-index:0;
+}
+a{color:var(--accent-2);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent)}
 
-/* Main content area */
-.main .block-container {{
-  padding-top: 1.5rem !important;
-  padding-bottom: 2rem !important;
-  max-width: 1400px !important;
-}}
+/* ===== HEADER ===== */
+header{
+  position:relative;
+  z-index:1;
+  max-width:1400px;
+  margin:0 auto;
+  padding:48px 40px 32px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(16,185,129,.03) 0%,transparent 100%);
+}
 
-/* Sidebar brand mark */
-.ft-brand {{
-  display: flex; gap: 10px; align-items: center;
-  padding: 4px 4px 12px; border-bottom: 1px solid var(--ft-border);
-  margin-bottom: 12px;
-}}
-.ft-mark {{
-  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
-  background: linear-gradient(135deg, {C_PRIMARY}, #B91C1C);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 18px; color: #fff;
-  box-shadow: 0 0 16px rgba(226,55,68,0.35);
-}}
-.ft-brand .ft-title {{ font-size: 14px; font-weight: 800; color: var(--ft-text); line-height: 1.2; }}
-.ft-brand .ft-sub {{ font-size: 11px; color: var(--ft-text-muted); margin-top: 2px; }}
+.eyebrow{
+  font-size:10px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:700;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.eyebrow::before{
+  content:'';
+  width:24px;
+  height:2px;
+  background:var(--gradient-accent);
+  border-radius:1px;
+}
 
-/* Sidebar period */
-.ft-period {{
-  font-size: 11px; color: var(--ft-text-muted);
-  background: var(--ft-bg); border: 1px solid var(--ft-border);
-  border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;
-  line-height: 1.5;
-}}
-.ft-period b {{ color: var(--ft-text); }}
+h1{
+  font-size:clamp(28px,4vw,42px);
+  line-height:1.15;
+  margin:0 0 8px;
+  font-weight:800;
+  background:linear-gradient(135deg,#fff 0%,#a0aec0 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
 
-/* Active filter chips */
-.ft-filter-chips {{ display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }}
-.ft-chip {{
-  font-size: 11px; font-weight: 600; color: {C_BLUE};
-  background: {C_BLUE_LIGHT}; border: 1px solid rgba(37,99,235,0.3);
-  border-radius: 999px; padding: 3px 10px;
-}}
-.ft-chip-none {{ font-size: 11px; color: var(--ft-text-muted); }}
+.sub{
+  color:var(--muted);
+  font-size:15px;
+  max-width:760px;
+  margin:0;
+  line-height:1.6;
+}
 
-/* Header band */
-.ft-header {{
-  display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  background: var(--ft-card); border: 1px solid var(--ft-border);
-  border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
-  flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}}
-.ft-hleft {{ display: flex; align-items: center; gap: 14px; min-width: 0; }}
-.ft-hmark {{
-  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
-  background: linear-gradient(135deg, {C_PRIMARY}, #B91C1C);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 15px; letter-spacing: 0.5px; color: #fff;
-}}
-.ft-htitle {{ font-size: 18px; font-weight: 800; letter-spacing: -0.2px; color: var(--ft-text); }}
-.ft-hsub {{ font-size: 11.5px; color: var(--ft-text-muted); margin-top: 1px; }}
-.ft-hright {{ display: flex; gap: 8px; flex-wrap: wrap; }}
-.ft-hchip {{
-  font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em;
-  color: var(--ft-text-muted);
-  background: var(--ft-bg); border: 1px solid var(--ft-border);
-  border-radius: 999px; padding: 5px 11px; white-space: nowrap;
-}}
-.ft-hchip .live {{ color: {C_GREEN}; margin-right: 4px; }}
+.notice{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  border:1px solid rgba(245,158,11,.2);
+  background:rgba(245,158,11,.06);
+  font-size:11px;
+  color:var(--warn);
+  margin:16px 0 0;
+  border-radius:var(--radius-sm);
+  font-weight:500;
+}
+.notice::before{content:'ℹ';font-size:12px}
 
-/* Section headers */
-.main .stMarkdown h3 {{
-  font-size: 15px !important; font-weight: 700 !important; color: var(--ft-text) !important;
-  letter-spacing: -0.1px !important; margin: 8px 0 4px !important;
-  padding-bottom: 6px !important; border-bottom: 1px solid var(--ft-border) !important;
-}}
-.main .stMarkdown h4 {{
-  font-size: 13.5px !important; font-weight: 700 !important; color: var(--ft-text) !important;
-  margin: 6px 0 2px !important;
-}}
+/* ===== MAIN ===== */
+main{
+  position:relative;
+  z-index:1;
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 40px 40px;
+}
 
-/* KPI Cards - Hero row */
-.ft-kpi-row {{
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px; margin: 8px 0 4px;
-}}
-.ft-kpi-card {{
-  background: var(--ft-card); border: 1px solid var(--ft-border);
-  border-radius: 12px; padding: 14px 14px 12px; min-width: 0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}}
-.ft-kpi-head {{ display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }}
-.ft-kpi-icon {{
-  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 13px;
-}}
-.ft-kpi-icon.blue   {{ background: {C_BLUE_LIGHT}; color: {C_BLUE}; }}
-.ft-kpi-icon.red    {{ background: {C_PRIMARY_LIGHT}; color: {C_PRIMARY}; }}
-.ft-kpi-icon.amber  {{ background: {C_AMBER_LIGHT}; color: {C_AMBER}; }}
-.ft-kpi-icon.violet {{ background: #F5F0FF; color: #7C3AED; }}
-.ft-kpi-icon.teal   {{ background: {C_TEAL_LIGHT}; color: {C_TEAL}; }}
-.ft-kpi-icon.rose   {{ background: #FFF1F2; color: #E11D48; }}
-.ft-kpi-label {{
-  font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
-  text-transform: uppercase; color: var(--ft-text-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
-}}
-.ft-kpi-value {{
-  font-size: 22px; font-weight: 800; color: var(--ft-text);
-  font-variant-numeric: tabular-nums; letter-spacing: -0.4px;
-  white-space: nowrap; line-height: 1.2;
-}}
-.ft-kpi-sub {{
-  font-size: 11px; color: var(--ft-text-muted); margin-top: 3px;
-  font-variant-numeric: tabular-nums; line-height: 1.4;
-}}
-.ft-kpi-sub .up {{ color: {C_GREEN}; font-weight: 700; }}
-.ft-kpi-sub .down {{ color: {C_PRIMARY}; font-weight: 700; }}
+/* ===== FILTERS ===== */
+.filters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:16px;
+  background:var(--panel);
+  padding:20px 24px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-md);
+  margin-bottom:20px;
+}
+.filters label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-weight:700;
+}
+select,input[type=text],input[type=date],input[type=number]{
+  min-width:0;
+  max-width:100%;
+  background:var(--bg-2);
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:9px 12px;
+  transition:all .2s ease;
+  font-size:13px;
+}
+select:hover,input:hover{border-color:var(--border-light)}
+select:focus,input:focus{
+  border-color:var(--accent);
+  outline:none;
+  box-shadow:0 0 0 3px var(--accent-glow);
+}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+input[type=range]{accent-color:var(--accent);cursor:pointer}
 
-/* Claim behaviour chips */
-.ft-claim-chip {{
-  background: var(--ft-card); border: 1px solid var(--ft-border);
-  border-radius: 10px; padding: 10px 12px; text-align: left; height: 100%;
-}}
-.ft-claim-chip .cc-v {{ font-size: 19px; font-weight: 800; color: var(--ft-text); font-variant-numeric: tabular-nums; }}
-.ft-claim-chip .cc-l {{ font-size: 10px; font-weight: 600; color: var(--ft-text-muted); margin-top: 2px; line-height: 1.35; }}
+.scope{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap;
+  margin:16px 0 20px;
+  color:var(--muted);
+  font-size:13px;
+  padding:12px 16px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+}
+.scope strong{color:var(--text);font-weight:600}
+.scope label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.scope input[type=date]{max-width:150px}
 
-/* Metric cards (st.metric override) */
-[data-testid="stMetric"] {{
-  background: var(--ft-card) !important; border: 1px solid var(--ft-border) !important;
-  border-radius: 10px !important; padding: 12px 14px 10px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
-}}
-[data-testid="stMetric"] label, [data-testid="stMetric"] > div > label {{
-  font-size: 10px !important; font-weight: 700 !important; letter-spacing: 0.07em !important;
-  text-transform: uppercase !important; color: var(--ft-text-muted) !important;
-  margin-bottom: 5px !important; white-space: normal !important; overflow: visible !important;
-}}
-[data-testid="stMetric"] [data-testid="stMarkdownContainer"] {{ white-space: normal; overflow: visible; }}
-[data-testid="stMetric"] [data-testid="stMarkdownContainer"] p {{ white-space: normal; overflow: visible; }}
-[data-testid="stMetric"] [data-testid="stMetricValue"] {{
-  font-size: 22px !important; font-weight: 800 !important; color: var(--ft-text) !important;
-  font-variant-numeric: tabular-nums !important; letter-spacing: -0.4px !important;
-  white-space: nowrap !important; overflow: visible !important;
-}}
-@media (max-width: 1200px) {{ [data-testid="stMetric"] [data-testid="stMetricValue"] {{ font-size: 18px !important; }} }}
+button{
+  background:var(--panel-2);
+  color:var(--text);
+  border:1px solid var(--border);
+  padding:9px 16px;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:all .2s ease;
+  font-weight:500;
+  font-size:13px;
+}
+button:hover{
+  background:var(--accent);
+  color:#071a13;
+  border-color:var(--accent);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px var(--accent-glow);
+}
+button:active{transform:translateY(0)}
 
-/* Tabs */
-.stTabs [data-baseweb="tab-list"] {{
-  gap: 2px; border-bottom: 1px solid var(--ft-border);
-  background: var(--ft-bg); padding: 0 4px; border-radius: 8px 8px 0 0;
-}}
-.stTabs [data-baseweb="tab"] {{
-  font-size: 13px !important; font-weight: 600 !important; color: var(--ft-text-muted) !important;
-  padding: 10px 18px !important; background: transparent !important;
-  border: 1px solid transparent !important; border-radius: 8px 8px 0 0 !important;
-  margin-bottom: -1px !important; min-height: 42px !important;
-}}
-.stTabs [data-baseweb="tab"]:hover {{ color: var(--ft-text) !important; background: var(--ft-bg) !important; }}
-.stTabs [aria-selected="true"] {{
-  color: {C_PRIMARY} !important; font-weight: 700 !important;
-  background: var(--ft-card) !important; border-color: var(--ft-border) !important;
-  border-bottom-color: var(--ft-bg) !important;
-}}
-.stTabs [data-baseweb="tab-highlight"] {{ display: none !important; }}
+/* ===== TABS ===== */
+.tabs{
+  display:flex;
+  gap:4px;
+  flex-wrap:wrap;
+  margin:28px 0 20px;
+  border-bottom:1px solid var(--border);
+  padding-bottom:0;
+}
+.tabs button{
+  background:transparent;
+  color:var(--muted);
+  border:none;
+  border-bottom:2px solid transparent;
+  padding:10px 18px;
+  border-radius:0;
+  cursor:pointer;
+  font-weight:500;
+  font-size:13px;
+  transition:all .2s ease;
+  margin-bottom:-1px;
+}
+.tabs button:hover{color:var(--text);background:rgba(255,255,255,.03)}
+.tabs button[aria-selected=true]{
+  color:var(--accent);
+  border-bottom-color:var(--accent);
+  font-weight:600;
+  background:transparent;
+}
 
-/* Tables */
-[data-testid="stDataFrame"] {{ font-size: 12px !important; }}
-[data-testid="stDataFrame"] table {{ font-variant-numeric: tabular-nums; }}
+/* ===== KPI CARDS ===== */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  margin:20px 0;
+}
+.kpi{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:20px 22px;
+  position:relative;
+  overflow:hidden;
+  transition:all .25s ease;
+  box-shadow:var(--shadow-sm);
+}
+.kpi::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background:var(--gradient-accent);
+  opacity:.7;
+}
+.kpi:hover{
+  transform:translateY(-3px);
+  box-shadow:var(--shadow-md);
+  border-color:var(--border-light);
+}
+.kpi .label{
+  font-size:10px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-bottom:6px;
+}
+.value{
+  font-size:30px;
+  line-height:1.1;
+  font-weight:800;
+  margin:8px 0 4px;
+  color:#fff;
+  letter-spacing:-.02em;
+}
+.kpi small{
+  color:var(--muted);
+  font-size:11px;
+  display:block;
+  margin-top:4px;
+  line-height:1.4;
+}
 
-/* Empty state */
-.ft-empty {{
-  background: var(--ft-card); border: 1px dashed var(--ft-border);
-  border-radius: 12px; padding: 40px 20px; text-align: center; margin-top: 16px;
-}}
-.ft-empty-icon {{ font-size: 28px; }}
-.ft-empty-title {{ font-size: 14px; font-weight: 700; color: var(--ft-text); margin-top: 8px; }}
-.ft-empty-sub {{ font-size: 12px; color: var(--ft-text-muted); margin-top: 4px; }}
+/* ===== CHARTS ===== */
+.charts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+  margin:20px 0;
+}
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:20px 22px;
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow .2s ease;
+}
+.card:hover{box-shadow:var(--shadow-md)}
+.card h3{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text-2);
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+.plot{
+  width:100%;
+  height:360px;
+  border-radius:var(--radius-sm);
+}
+.card p{
+  font-size:13px;
+  color:var(--muted);
+  margin:10px 0 0;
+  line-height:1.5;
+}
 
-/* Insight card */
-.ft-insight {{
-  background: var(--ft-card); border: 1px solid var(--ft-border);
-  border-left: 4px solid var(--ft-primary); border-radius: 10px;
-  padding: 12px 14px; height: 100%;
-}}
-.ft-ins-head {{ font-size: 12.5px; font-weight: 700; color: var(--ft-text); display: flex; gap: 8px; align-items: baseline; }}
-.ft-ins-detail {{ font-size: 12px; color: var(--ft-text-muted); line-height: 1.5; margin-top: 4px; }}
+/* ===== TABLE ===== */
+.tablewrap{
+  overflow:auto;
+  max-height:500px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  background:var(--panel);
+}
+.tablewrap table{
+  border-collapse:collapse;
+  width:100%;
+  font-size:12px;
+  text-align:left;
+}
+th{
+  background:var(--panel-2);
+  position:sticky;
+  top:0;
+  font-weight:600;
+  padding:11px 14px;
+  border-bottom:1px solid var(--border);
+  color:var(--text-2);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+td{
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+  color:var(--text);
+}
+tbody tr:hover{background:rgba(16,185,129,.04)}
+tbody tr:last-child td{border-bottom:none}
 
-/* Key insight banner */
-.ft-key-banner {{
-  background: var(--ft-card); border: 1px solid var(--ft-border);
-  border-radius: 10px; padding: 16px 20px; margin-top: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}}
-.ft-ki-eyebrow {{ font-size: 10px; font-weight: 700; letter-spacing: 0.09em; color: {C_BLUE}; text-transform: uppercase; }}
-.ft-ki-main {{ font-size: 13.5px; line-height: 1.55; margin-top: 6px; color: var(--ft-text); }}
-.ft-ki-why {{ font-size: 12px; line-height: 1.5; margin-top: 8px; color: var(--ft-text-muted); }}
-.ft-ki-next {{ font-size: 12px; margin-top: 10px; color: var(--ft-text); }}
-.ft-ki-next b {{ color: {C_AMBER}; }}
+/* ===== SUMMARY / INSIGHT ===== */
+.summary{
+  padding:18px 22px;
+  border:1px solid rgba(16,185,129,.2);
+  background:linear-gradient(135deg,rgba(16,185,129,.06) 0%,rgba(59,130,246,.04) 100%);
+  border-radius:var(--radius-md);
+  margin:20px 0;
+  font-size:13px;
+  color:var(--text);
+  line-height:1.6;
+  box-shadow:var(--shadow-sm);
+}
 
-/* Meter cards (Explain a flag) */
-.ft-meter-card {{ background: var(--ft-card); border: 1px solid var(--ft-border); border-radius: 10px; padding: 14px 16px; }}
-.ft-meter-row {{ margin: 10px 0; }}
-.ft-meter-head {{ display: flex; justify-content: space-between; font-size: 11.5px; color: var(--ft-text-muted); margin-bottom: 4px; }}
-.ft-meter-head b {{ color: var(--ft-text); font-variant-numeric: tabular-nums; }}
-.ft-meter-track {{ height: 7px; border-radius: 999px; background: var(--ft-border); overflow: hidden; }}
-.ft-meter-fill {{ height: 100%; border-radius: 999px; background: var(--ft-primary); }}
-.ft-meter-fill.over {{ background: linear-gradient(90deg, {C_AMBER}, {C_PRIMARY}); }}
-.ft-meter-note {{ font-size: 10px; color: var(--ft-text-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }}
+.empty{
+  padding:48px;
+  border:1px dashed var(--border);
+  text-align:center;
+  color:var(--muted);
+  border-radius:var(--radius-md);
+  background:var(--panel);
+}
 
-/* Data Quality rows */
-.ft-dq-card {{ background: var(--ft-card); border: 1px solid var(--ft-border); border-radius: 10px; padding: 4px 12px; margin-bottom: 6px; }}
-.ft-dq-row {{ display: flex; align-items: center; gap: 14px; padding: 8px 4px; border-bottom: 1px solid var(--ft-border); font-size: 12px; }}
-.ft-dq-row:last-child {{ border-bottom: none; }}
-.ft-dq-check {{ color: var(--ft-text); font-weight: 600; width: 200px; flex-shrink: 0; }}
-.ft-dq-result {{ color: var(--ft-text-muted); flex: 1; line-height: 1.45; }}
-.ft-dq-pill {{
-  font-size: 9.5px; font-weight: 800; letter-spacing: 0.07em; border-radius: 999px;
-  padding: 2px 8px; flex-shrink: 0;
-}}
-.ft-dq-pill.pass {{ color: {C_GREEN}; background: {C_GREEN_LIGHT}; border: 1px solid {C_GREEN}; }}
-.ft-dq-pill.gap {{ color: {C_AMBER}; background: {C_AMBER_LIGHT}; border: 1px solid {C_AMBER}; }}
-.ft-dq-pill.disclosed {{ color: {C_BLUE}; background: {C_BLUE_LIGHT}; border: 1px solid {C_BLUE}; }}
-.ft-dq-pill.review {{ color: {C_PRIMARY}; background: {C_PRIMARY_LIGHT}; border: 1px solid {C_PRIMARY}; }}
+[hidden]{display:none!important}
 
-/* Footer */
-.ft-footer {{
-  border-top: 1px solid var(--ft-border); margin-top: 24px; padding: 12px 4px 4px;
-  font-size: 11px; color: var(--ft-text-muted); line-height: 1.6;
-}}
-.ft-footer b {{ color: var(--ft-text); }}
+/* ===== VIDEO PLAYER ===== */
+.player{
+  width:100%;
+  max-width:1100px;
+  background:#000;
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg);
+  overflow:hidden;
+}
 
-/* Buttons */
-.stButton > button {{
-  border-radius: 8px !important; border: 1px solid var(--ft-border) !important;
-  font-weight: 600 !important; font-size: 12.5px !important;
-  background: var(--ft-card) !important; color: var(--ft-text) !important;
-}}
-.stButton > button[kind="primary"] {{ background: var(--ft-primary) !important; border-color: var(--ft-primary) !important; color: #fff !important; }}
-.stDownloadButton > button {{
-  border-radius: 8px !important; border: 1px solid var(--ft-border) !important;
-  font-weight: 600 !important; font-size: 12px !important;
-  background: {C_BLUE_LIGHT} !important; color: {C_BLUE} !important;
-}}
+/* ===== FOOTER ===== */
+footer{
+  font-size:12px;
+  color:var(--muted);
+  border-top:1px solid var(--border);
+  padding-top:20px;
+  margin-top:40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+footer a{color:var(--muted);transition:color .2s}
+footer a:hover{color:var(--accent)}
 
-/* Expander */
-div[data-testid="stExpander"] {{
-  background: var(--ft-card) !important; border: 1px solid var(--ft-border) !important; border-radius: 8px !important;
-}}
-div[data-testid="stExpander"] summary {{ font-weight: 600 !important; }}
+.error{color:var(--danger)}
 
-/* Selectbox / multiselect */
-.stSelectbox > div > div, .stMultiSelect > div > div {{ border-radius: 8px !important; border-color: var(--ft-border) !important; }}
+.split{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin:16px 0;
+}
 
-/* Number input / date input */
-.stNumberInput > div > div > input, .stDateInput > div > div > input {{ border-radius: 8px !important; border-color: var(--ft-border) !important; }}
+.muted{color:var(--muted);font-size:13px}
+.scope label{max-width:100%;flex-wrap:wrap}
 
-/* Hide streamlit default footer/menu */
-#MainMenu {{ visibility: hidden; }}
-footer {{ visibility: hidden; }}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+main section,main .kpis,main .charts{animation:fadeIn .4s ease-out}
 
-/* Scrollbar */
-::-webkit-scrollbar {{ width: 8px; height: 8px; }}
-::-webkit-scrollbar-track {{ background: transparent; }}
-::-webkit-scrollbar-thumb {{ background: var(--ft-border); border-radius: 4px; }}
-::-webkit-scrollbar-thumb:hover {{ background: var(--ft-text-muted); }}
+@media(max-width:1024px){
+  header,main,footer{padding:20px 24px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .charts{grid-template-columns:1fr}
+  .value{font-size:26px}
+}
+@media(max-width:640px){
+  header,main,footer{padding:16px 16px}
+  .filters{grid-template-columns:1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .value{font-size:22px}
+  h1{font-size:24px}
+  .plot{height:280px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+.charts>.card{min-width:0}
+.plot{min-width:0;overflow:hidden}
+.tablewrap{max-width:100%}
+input[type=date]{max-width:160px}
+#threshold{width:120px}
 </style>
 """, unsafe_allow_html=True)
 
@@ -634,7 +781,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         cols = st.columns(min(3, len(insights)))
         for i, ins in enumerate(insights[:3]):
             with cols[i]:
-                color = {"ok": C_GREEN, "info": C_BLUE, "watch": C_AMBER, "alert": C_PRIMARY}.get(ins["level"], C_BLUE)
+                color = {"ok": C_GOOD, "info": C_PRIMARY, "watch": C_WARN, "alert": C_PRIMARY}.get(ins["level"], C_PRIMARY)
                 st.markdown(
                     f'<div class="ft-insight" style="border-left-color:{color};">'
                     f'<div class="ft-ins-head">{ins["headline"]}</div>'
@@ -644,7 +791,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         if len(insights) > 3:
             with st.expander(f"More signals ({len(insights) - 3})"):
                 for ins in insights[3:]:
-                    color = {"ok": C_GREEN, "info": C_BLUE, "watch": C_AMBER, "alert": C_PRIMARY}.get(ins["level"], C_BLUE)
+                    color = {"ok": C_GOOD, "info": C_PRIMARY, "watch": C_WARN, "alert": C_PRIMARY}.get(ins["level"], C_PRIMARY)
                     st.markdown(
                         f'<div class="ft-insight" style="border-left-color:{color};">'
                         f'<div class="ft-ins-head">{ins["headline"]}</div>'
@@ -785,7 +932,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         tdf = tier_counts.rename_axis("Tier").reset_index(name="Flagged accounts")
         fig = px.bar(tdf, x="Tier", y="Flagged accounts", color="Tier",
                      category_orders={"Tier": ["Low", "Medium", "High"]},
-                     color_discrete_map={"Low": C_GREEN, "Medium": C_AMBER, "High": C_PRIMARY},
+                     color_discrete_map={"Low": C_GOOD, "Medium": C_WARN, "High": C_PRIMARY},
                      title="Flagged pool by risk tier", text="Flagged accounts")
         fig.update_layout(**PLOTLY_LAYOUT)
         fig.update_traces(textposition="outside")
@@ -869,9 +1016,9 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
     fig.add_scatter(x=x, y=cum, mode="lines", name="Cumulative share of refund value",
                     line=dict(color=C_PRIMARY, width=3))
     fig.add_trace(go.Scatter(x=[0, 100], y=[0, 100], mode="lines", name="Perfect equality (y = x)",
-                    line=dict(color=C_BORDER, dash="dash", width=1.5)))
-    fig.add_hline(y=80, line_dash="dot", line_color=C_AMBER, opacity=0.7)
-    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color=C_AMBER, opacity=0.7)
+                    line=dict(color="#1e3a5f", dash="dash", width=1.5)))
+    fig.add_hline(y=80, line_dash="dot", line_color=C_WARN, opacity=0.7)
+    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color=C_WARN, opacity=0.7)
     fig.update_layout(**PLOTLY_LAYOUT,
         xaxis_title="Customers (% — ranked by refund value, highest first)",
         yaxis_title="Cumulative share of refund value (%)")
@@ -1006,7 +1153,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         tier_counts = all_suspects["Risk_Tier"].value_counts().reindex(["Low", "Medium", "High"]).fillna(0)
         tier_df = tier_counts.rename_axis("Tier").reset_index(name="count")
         fig = px.bar(tier_df, x="Tier", y="count", title="Risk tier distribution (all flagged)",
-                     color="Tier", color_discrete_map={"Low": C_GREEN, "Medium": C_AMBER, "High": C_PRIMARY},
+                     color="Tier", color_discrete_map={"Low": C_GOOD, "Medium": C_WARN, "High": C_PRIMARY},
                      text="count")
         fig.update_traces(textposition="outside")
         fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
@@ -1026,7 +1173,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         if len(top20):
             fig = px.bar(top20, y="Customer_ID", x="Fraud_Risk_Score",
                          orientation="h", title="Top 20 by fraud risk score",
-                         color="Risk_Tier", color_discrete_map={"Low": C_GREEN, "Medium": C_AMBER, "High": C_PRIMARY},
+                         color="Risk_Tier", color_discrete_map={"Low": C_GOOD, "Medium": C_WARN, "High": C_PRIMARY},
                          hover_data=["Total_Orders", "Total_Refunds", "Refund_Rate"])
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
             right.plotly_chart(fig, width="stretch")
@@ -1046,12 +1193,12 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
 
         def _tier_badge(val):
             if val in ("High", "Investigate first"):
-                return f"background: rgba(248,113,113,0.13); color: {C_PRIMARY}; font-weight: 700"
+                return f"background: rgba(248,113,113,0.13); color: #F87171; font-weight: 700"
             if val in ("Medium", "Watchlist"):
-                return f"background: rgba(251,191,36,0.12); color: {C_AMBER}; font-weight: 700"
+                return f"background: rgba(251,191,36,0.12); color: {C_WARN}; font-weight: 700"
             if val in ("Low", "Routine review"):
-                return f"background: rgba(52,211,153,0.12); color: {C_GREEN}; font-weight: 700"
-            return f"color: {C_TEXT_MUTED}"
+                return f"background: rgba(52,211,153,0.12); color: {C_GOOD}; font-weight: 700"
+            return f"color: #6b7a99"
 
         styler = (
             tbl.style
@@ -1219,14 +1366,14 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
     with r1:
         fig = px.histogram(riders, x="avg_rating", nbins=25,
                            title="Rider ratings — distribution of rider averages",
-                           color_discrete_sequence=[C_GREEN])
+                           color_discrete_sequence=[C_GOOD])
         fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Average rating (per rider)")
         r1.plotly_chart(fig, width="stretch")
     with r2:
         top_riders = riders.nlargest(10, "orders").iloc[::-1]
         fig = px.bar(top_riders, y="Delivery_person_ID", x="orders", orientation="h",
                      title="Top 10 riders by order volume", hover_data=["avg_rating", "avg_time"])
-        fig.update_traces(marker_color=C_TEXT_MUTED)
+        fig.update_traces(marker_color="#6b7a99")
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
         r2.plotly_chart(fig, width="stretch")
 
