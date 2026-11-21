@@ -1,5 +1,5 @@
 """FoodTrust — Zomato Refund Risk & Operations Analytics
-Professional minimalist BI dashboard (light theme).
+Professional dark-theme BI dashboard matching PDF mockups.
 
 Five analytical pages:
 1. Executive Overview    — Primary KPIs, trends, business attention points
@@ -35,7 +35,6 @@ try:
     )
 except ImportError:
     import sys
-    from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     from dashboard.kpi_engine import (
         BAND_LABELS,
@@ -50,6 +49,11 @@ try:
 except ImportError:
     from dashboard.decision_history import render_history
 
+try:
+    from decision_copilot import ask
+except ImportError:
+    from dashboard.decision_copilot import ask
+
 RISK_WEIGHTS = {
     "Refund_Rate": 0.40,
     "Reason_Repetition_Rate": 0.30,
@@ -60,7 +64,7 @@ RISK_WEIGHTS = {
 MIN_ORDERS_THRESHOLD = 5
 MIN_REFUND_RATE_PCT = 30
 
-# ─── Dark Console Palette (original) ───
+# ─── Dark Console Palette ───
 C_PRIMARY = "#3B82F6"   # blue
 C_ACCENT = "#A78BFA"    # violet
 C_GOOD = "#34D399"      # green
@@ -69,19 +73,19 @@ C_BAD = "#F87171"       # red
 C_NEUTRAL = "#94A3B8"   # slate
 C_ACCENT_2 = "#0D9488"    # teal
 TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
+
 PLOTLY_LAYOUT = dict(
     template="plotly_dark",
-    height=380,
-    margin=dict(l=40, r=30, t=56, b=40),
+    height=360,
+    margin=dict(l=50, r=30, t=60, b=45),
     title_font=dict(size=15, color="#F1F5F9"),
-    font=dict(family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif",
-              size=12.5, color="#CBD5E1"),
+    font=dict(family="Inter, 'Segoe UI', system-ui, sans-serif", size=12, color="#CBD5E1"),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    hoverlabel=dict(bgcolor="#141D31", font_size=12.5, font_color="#E8ECF4",
-                    bordercolor="#26375C"),
-    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
-    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155"),
+    hoverlabel=dict(bgcolor="#141D31", font_size=12, font_color="#E8ECF4", bordercolor="#26375C"),
+    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True),
+    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True),
+    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#1E293B", borderwidth=1),
 )
 
 
@@ -527,7 +531,7 @@ footer a:hover{color:var(--accent)}
   gap:12px;
   align-items:center;
   flex-wrap:wrap;
-  margin:16px 0;
+  margin:16px 0
 }
 
 .muted{color:var(--muted);font-size:13px}
@@ -575,19 +579,32 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
     with head_col:
         st.markdown(
             f"""
-<div class="ft-header">
-  <div class="ft-hleft">
-    <div class="ft-hmark">RR</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:16px;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:16px 20px;margin-bottom:16px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+  <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+    <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
+      background:linear-gradient(135deg,#3B82F6,#7C3AED);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:15px;letter-spacing:.5px;color:#fff;">RR</div>
     <div>
-      <div class="ft-htitle">Zomato Refund Risk & Operations Analytics</div>
-      <div class="ft-hsub">Refund patterns, customer comparisons and evidence for human review</div>
+      <div style="font-size:18px;font-weight:800;letter-spacing:-0.2px;color:var(--text);">Zomato Refund Risk & Operations Analytics</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">Refund patterns, customer comparisons and evidence for human review</div>
     </div>
   </div>
-  <div class="ft-hright">
-    <span class="ft-hchip"><span class="live">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
-    <span class="ft-hchip">{n:,} orders in scope · {period}</span>
-    <span class="ft-hchip">Delivery data: public · Refund layer: synthetic</span>
-    <span class="ft-hchip">Risk score ≠ proof of fraud</span>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
+      color:var(--muted);background:var(--bg);border:1px solid var(--border);
+      border-radius:999px;padding:5px 11px;white-space:nowrap;"><span style="color:#10b981;margin-right:4px;">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
+      color:var(--muted);background:var(--bg);border:1px solid var(--border);
+      border-radius:999px;padding:5px 11px;white-space:nowrap;">{n:,} orders in scope · {period}</span>
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
+      color:var(--muted);background:var(--bg);border:1px solid var(--border);
+      border-radius:999px;padding:5px 11px;white-space:nowrap;">Delivery data: public · Refund layer: synthetic</span>
+    <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
+      color:var(--muted);background:var(--bg);border:1px solid var(--border);
+      border-radius:999px;padding:5px 11px;white-space:nowrap;">Risk score ≠ proof of fraud</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -604,18 +621,20 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
 def ft_empty_state() -> None:
     st.markdown(
         """
-<div class="ft-empty">
-  <div class="ft-empty-icon">🔎</div>
-  <div class="ft-empty-title">No records match the selected filters</div>
-  <div class="ft-empty-sub">Reset the filters to bring the full dataset back into scope.</div>
+<div style="background:var(--panel);border:1px dashed var(--border);
+  border-radius:12px;padding:40px 20px;text-align:center;margin-top:16px;">
+  <div style="font-size:28px;">🔎</div>
+  <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:8px;">No records match the selected filters</div>
+  <div style="font-size:12px;color:var(--muted);margin-top:4px;">Reset the filters to bring the full dataset back into scope.</div>
 </div>
 """, unsafe_allow_html=True)
 
 
 def ft_footer() -> None:
     st.markdown(
-        f"""
-<div class="ft-footer">
+        """
+<div style="border-top:1px solid var(--border);margin-top:40px;padding-top:20px;
+  font-size:12px;color:var(--muted);line-height:1.6;">
   <b>How to read this:</b> Refund rate = refunded orders ÷ total orders in the current view.
   A customer is flagged at ≥5 orders AND refund rate > 30% — a flag means <i>investigate</i>, never guilty.
   The score is a simple weighted formula (refund rate 40% · reason repetition 30% · refunds/day 20% · reason length 10%),
@@ -716,7 +735,7 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
 
 
 # ─── Chart helpers ───
-def bar_chart(df, x, y, title, color=C_PRIMARY, horizontal=False, text_fmt=None):
+def bar_chart(df, x, y, title, color="#3B82F6", horizontal=False, text_fmt=None):
     orientation = "h" if horizontal else "v"
     fig = px.bar(df, x=x, y=y, orientation=orientation, title=title)
     fig.update_traces(marker_color=color, marker_line_width=0)
@@ -735,7 +754,7 @@ def rate_by_column(orders: pd.DataFrame, col: str, title: str):
     g["refund_rate"] = (g["refunds"] / g["orders"] * 100).round(2)
     g = g.sort_values("refund_rate", ascending=False)
     fig = px.bar(g, x=col, y="refund_rate", title=title, hover_data=["orders", "refunds"])
-    fig.update_traces(marker_color=C_PRIMARY, text=g["refund_rate"], textposition="outside")
+    fig.update_traces(marker_color="#3B82F6", text=g["refund_rate"], textposition="outside")
     fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Refund rate (%)")
     return fig
 
@@ -781,22 +800,22 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         cols = st.columns(min(3, len(insights)))
         for i, ins in enumerate(insights[:3]):
             with cols[i]:
-                color = {"ok": C_GOOD, "info": C_PRIMARY, "watch": C_WARN, "alert": C_PRIMARY}.get(ins["level"], C_PRIMARY)
+                color = {"ok": "#34D399", "info": "#3B82F6", "watch": "#FBBF24", "alert": "#EF4444"}.get(ins["level"], "#3B82F6")
                 st.markdown(
-                    f'<div class="ft-insight" style="border-left-color:{color};">'
-                    f'<div class="ft-ins-head">{ins["headline"]}</div>'
-                    f'<div class="ft-ins-detail">{ins["detail"]}</div>'
-                    f'<div class="ft-ins-ev">Evidence: {ins["evidence"]}</div></div>',
+                    f'<div style="background:#131d33;border:1px solid #1e3a5f;border-left:4px solid {color};border-radius:10px;padding:12px 14px;height:100%;">'
+                    f'<div style="font-size:12.5px;font-weight:700;color:#e8edf5;display:flex;gap:8px;align-items:baseline;">{ins["headline"]}</div>'
+                    f'<div style="font-size:12px;color:#9ca3af;line-height:1.5;margin-top:4px;">{ins["detail"]}</div>'
+                    f'<div style="font-size:11px;color:#6b7a99;margin-top:4px;font-variant-numeric:tabular-nums;">Evidence: {ins["evidence"]}</div></div>',
                     unsafe_allow_html=True)
         if len(insights) > 3:
             with st.expander(f"More signals ({len(insights) - 3})"):
                 for ins in insights[3:]:
-                    color = {"ok": C_GOOD, "info": C_PRIMARY, "watch": C_WARN, "alert": C_PRIMARY}.get(ins["level"], C_PRIMARY)
+                    color = {"ok": "#34D399", "info": "#3B82F6", "watch": "#FBBF24", "alert": "#EF4444"}.get(ins["level"], "#3B82F6")
                     st.markdown(
-                        f'<div class="ft-insight" style="border-left-color:{color};">'
-                        f'<div class="ft-ins-head">{ins["headline"]}</div>'
-                        f'<div class="ft-ins-detail">{ins["detail"]}</div>'
-                        f'<div class="ft-ins-ev">Evidence: {ins["evidence"]}</div></div>',
+                        f'<div style="background:#131d33;border:1px solid #1e3a5f;border-left:4px solid {color};border-radius:10px;padding:12px 14px;height:100%;">'
+                        f'<div style="font-size:12.5px;font-weight:700;color:#e8edf5;display:flex;gap:8px;align-items:baseline;">{ins["headline"]}</div>'
+                        f'<div style="font-size:12px;color:#9ca3af;line-height:1.5;margin-top:4px;">{ins["detail"]}</div>'
+                        f'<div style="font-size:11px;color:#6b7a99;margin-top:4px;font-variant-numeric:tabular-nums;">Evidence: {ins["evidence"]}</div></div>',
                         unsafe_allow_html=True)
 
     # Hero KPI row
@@ -813,31 +832,32 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         return f'<span class="{cls}">{arrow} {delta:+.1f}{suffix}</span> vs {mom["prev_label"]}'
 
     kpi_cards = [
-        ("blue", "🛒", "Delivery orders", f"{kpis['total_orders']:,}",
+        ("#3B82F6", "🛒", "Delivery orders", f"{kpis['total_orders']:,}",
          _mom_chip(mom["orders_delta_pct"]), "Month-over-month on the current scope."),
-        ("red", "↩", "Refund requests", f"{refund_orders:,}",
+        ("#EF4444", "↩", "Refund requests", f"{refund_orders:,}",
          f"{kpis['refund_rate_pct']:.1f}% of orders", "A refund request is not a confirmed refund."),
-        ("amber", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
+        ("#FBBF24", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
          _mom_chip(mom["exposure_delta_pct"], up_is_good=False),
          "Historical refund value — not a confirmed loss."),
-        ("violet", "🛡", "High-risk accounts", f"{kpis['flagged_count']:,}",
+        ("#8B5CF6", "🛡", "High-risk accounts", f"{kpis['flagged_count']:,}",
          f"{refunders_share:.1f}% of refunders",
          "Eligibility: ≥5 orders AND refund rate >30%. A flag means investigate — never guilty."),
-        ("teal", "⚠", "Potential exposure", _inr(kpis["flagged_exposure"]),
+        ("#10B981", "⚠", "Potential exposure", _inr(kpis["flagged_exposure"]),
          f"{kpis['flagged_exposure_share_pct']:.1f}% of refunds",
          "Refund value held by the flagged pool."),
-        ("rose", "₹", "Avg refund amount", _inr(avg_refund),
+        ("#EC4899", "₹", "Avg refund amount", _inr(avg_refund),
          "Per refund request", "Total refund amount ÷ refund requests."),
     ]
     st.markdown(
-        '<div class="ft-kpi-row">' + "".join(
-            f'<div class="ft-kpi-card"><div class="ft-kpi-head">'
-            f'<div class="ft-kpi-icon {icon}">{emoji}</div>'
-            f'<div class="ft-kpi-label">{label}</div></div>'
-            f'<div class="ft-kpi-value">{value}</div>'
-            f'<div class="ft-kpi-sub">{sub}</div>'
-            f'<div class="ft-kpi-sub" style="color:var(--ft-text-muted)">{note}</div></div>'
-            for icon, emoji, label, value, sub, note in kpi_cards
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:8px 0 4px;">' + "".join(
+            f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:14px 14px 12px;min-width:0;box-shadow:0 1px 3px rgba(0,0,0,.04);">'
+            f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+            f'<div style="width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(59,130,246,.15);color:#3B82F6;">{emoji}</div>'
+            f'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7a99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">{label}</div></div>'
+            f'<div style="font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;line-height:1.2;">{value}</div>'
+            f'<div style="font-size:11px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;line-height:1.4;">{sub}</div>'
+            f'<div style="font-size:11px;color:#6b7a99;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.4;">{note}</div></div>'
+            for _, emoji, label, value, sub, note in kpi_cards
         ) + "</div>",
         unsafe_allow_html=True,
     )
@@ -859,13 +879,17 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         for _, r in suspects.head(top_n).iterrows():
             tier = str(r["Risk_Tier"])
             rows += (
-                f'<div class="sus-row {tier.lower()}">'
-                f'<span class="tier-pill {tier.lower()}">{tier.upper()}</span>'
-                f'<span class="sus-id">#{r["Customer_ID"]}</span>'
-                f'<span class="sus-metric"><b>{r["Fraud_Risk_Score"]:.1f}</b> risk score</span>'
-                f'<span class="sus-metric">{r["Refund_Rate"]:.0f}% refund rate · {int(r["Total_Refunds"])}/{int(r["Total_Orders"])} orders</span>'
-                f'<span class="sus-fill"></span>'
-                f'<span class="sus-metric"><b>₹{r["Total_Refund_Amount"]:,.0f}</b> exposure</span>'
+                f'<div style="display:flex;align-items:center;gap:12px;padding:8px 4px;'
+                f'border-bottom:1px solid rgba(38,55,92,.5);font-size:12.5px;'
+                f'background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">'
+                f'<span style="font-size:10px;font-weight:800;letter-spacing:.07em;border-radius:999px;'
+                f'padding:2px 9px;flex-shrink:0;'
+                f'{"color:#EF4444;background:rgba(248,113,113,.13);border:1px solid rgba(248,113,113,.4);" if tier=="High" else "color:#FBBF24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);" if tier=="Medium" else "color:#34D399;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.4);"}">{tier.upper()}</span>'
+                f'<span style="color:#e8edf5;font-weight:700;font-variant-numeric:tabular-nums;width:92px;">#{r["Customer_ID"]}</span>'
+                f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;white-space:nowrap;"><b>{r["Fraud_Risk_Score"]:.1f}</b> risk score</span>'
+                f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;white-space:nowrap;">{r["Refund_Rate"]:.0f}% refund rate · {int(r["Total_Refunds"])}/{int(r["Total_Orders"])} orders</span>'
+                f'<span style="flex:1;"></span>'
+                f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;"><b>₹{r["Total_Refund_Amount"]:,.0f}</b> exposure</span>'
                 f'</div>'
             )
         st.subheader("Top suspects — investigation queue")
@@ -873,7 +897,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
             "The highest risk scores in the current view. A flag means look closer — never guilty. "
             "The full list, baselines and per-customer details are in the Risk Review tab."
         )
-        st.markdown(f'<div class="queue-card">{rows}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
 
     # Monthly trend: dual-axis
     m = (
@@ -888,7 +912,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     fig.add_bar(x=m["Order_Date"], y=m["orders"], name="Orders",
                 marker_color="#7FB0F5", opacity=0.9)
     fig.add_scatter(x=m["Order_Date"], y=m["refund_rate"], name="Refund rate (%)",
-                    mode="lines+markers", line=dict(color=C_PRIMARY, width=3), secondary_y=True)
+                    mode="lines+markers", line=dict(color="#EF4444", width=3), secondary_y=True)
     fig.update_layout(title="Monthly order volume vs refund rate (observed data)", **PLOTLY_LAYOUT)
     fig.update_yaxes(title_text="Orders", secondary_y=False)
     fig.update_yaxes(title_text="Refund rate (%)", secondary_y=True)
@@ -903,7 +927,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         )
         fig = px.bar(reasons, y="Reason", x="count", orientation="h",
                      title="Refund reasons, ranked")
-        fig.update_traces(marker_color="#7C3AED", text=reasons["count"], textposition="outside")
+        fig.update_traces(marker_color="#8B5CF6", text=reasons["count"], textposition="outside")
         fig.update_layout(**PLOTLY_LAYOUT)
         left.plotly_chart(fig, width="stretch")
 
@@ -916,7 +940,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         city["refund_rate"] = (city["refunds"] / city["orders"] * 100).round(2)
         city = city.sort_values("orders", ascending=False)
         fig = px.bar(city, x="City", y="orders", color="refund_rate",
-                     color_continuous_scale=["#1E3A8A", C_PRIMARY, "#FCA5A5"],
+                     color_continuous_scale=["#1E3A8A", "#3B82F6", "#FCA5A5"],
                      title="Orders by city type (colour = refund rate)",
                      hover_data=["refunds", "refund_rate"])
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Orders")
@@ -932,7 +956,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         tdf = tier_counts.rename_axis("Tier").reset_index(name="Flagged accounts")
         fig = px.bar(tdf, x="Tier", y="Flagged accounts", color="Tier",
                      category_orders={"Tier": ["Low", "Medium", "High"]},
-                     color_discrete_map={"Low": C_GOOD, "Medium": C_WARN, "High": C_PRIMARY},
+                     color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
                      title="Flagged pool by risk tier", text="Flagged accounts")
         fig.update_layout(**PLOTLY_LAYOUT)
         fig.update_traces(textposition="outside")
@@ -970,8 +994,10 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         cc1, cc2, cc3, cc4 = st.columns(4)
         for col, (v, l) in zip((cc1, cc2, cc3, cc4), chips):
             col.markdown(
-                f'<div class="ft-claim-chip"><div class="cc-v">{v}</div>'
-                f'<div class="cc-l">{l}</div></div>', unsafe_allow_html=True)
+                f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:10px 12px;text-align:left;height:100%;">'
+                f'<div style="font-size:19px;font-weight:800;color:#e8edf5;font-variant-numeric:tabular-nums;">{v}</div>'
+                f'<div style="font-size:10px;font-weight:600;color:#6b7a99;margin-top:2px;line-height:1.35;">{l}</div></div>',
+                unsafe_allow_html=True)
         st.caption("Behavioural patterns of refund requests in the current scope. Repeat claiming is an investigation signal, not proof of fraud.")
 
     # Key insight banner
@@ -981,14 +1007,14 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     n_high_tier = int((suspects["Risk_Tier"] == "High").sum()) if len(suspects) else 0
     st.markdown(
         f"""
-<div class="ft-key-banner">
-  <div class="ft-ki-eyebrow">Financial impact & actions — computed from the current scope</div>
-  <div class="ft-ki-main">"{top_reason}" is the most common refund reason ({top_reason_share:.1f}% of all refunds).
+<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:16px 20px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
+  <div style="font-size:10px;font-weight:700;letter-spacing:.09em;color:#60a5fa;text-transform:uppercase;">Financial impact & actions — computed from the current scope</div>
+  <div style="font-size:13.5px;line-height:1.55;margin-top:6px;color:#e8edf5;">"{top_reason}" is the most common refund reason ({top_reason_share:.1f}% of all refunds).
   Busiest month on record: <b>{busiest_month}</b>. Flagged customers ({len(suspects):,} accounts) hold
   <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
-  <div class="ft-ki-why">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
+  <div style="font-size:12px;line-height:1.5;margin-top:8px;color:#9ca3af;">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
-  <div class="ft-ki-next"><b>Investigate next:</b> open the Risk Review tab and start with the High tier
+  <div style="font-size:12px;margin-top:10px;color:#e8edf5;"><b>Investigate next:</b> open the Risk Review tab and start with the High tier
   ({n_high_tier} accounts) — each carries the strongest evidence.</div>
 </div>
 """, unsafe_allow_html=True)
@@ -1014,11 +1040,11 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
     )
     fig = go.Figure()
     fig.add_scatter(x=x, y=cum, mode="lines", name="Cumulative share of refund value",
-                    line=dict(color=C_PRIMARY, width=3))
+                    line=dict(color="#3B82F6", width=3))
     fig.add_trace(go.Scatter(x=[0, 100], y=[0, 100], mode="lines", name="Perfect equality (y = x)",
                     line=dict(color="#1e3a5f", dash="dash", width=1.5)))
-    fig.add_hline(y=80, line_dash="dot", line_color=C_WARN, opacity=0.7)
-    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color=C_WARN, opacity=0.7)
+    fig.add_hline(y=80, line_dash="dot", line_color="#FBBF24", opacity=0.7)
+    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color="#FBBF24", opacity=0.7)
     fig.update_layout(**PLOTLY_LAYOUT,
         xaxis_title="Customers (% — ranked by refund value, highest first)",
         yaxis_title="Cumulative share of refund value (%)")
@@ -1047,7 +1073,7 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
     left, right = st.columns(2)
     with left:
         fig = px.histogram(refunds, x="Refund_Amount", nbins=40,
-                           title="Refund amount distribution", color_discrete_sequence=[C_PRIMARY])
+                           title="Refund amount distribution", color_discrete_sequence=["#3B82F6"])
         fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Refund amount (₹)")
         left.plotly_chart(fig, width="stretch")
 
@@ -1058,15 +1084,15 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
             .reset_index(name="avg_amount")
         )
         fig = bar_chart(avg_reason, x="Reason", y="avg_amount",
-                        title="Avg refund amount by reason", color="#7C3AED",
+                        title="Avg refund amount by reason", color="#8B5CF6",
                         text_fmt=lambda v: f"₹{v:,.0f}")
         right.plotly_chart(fig, width="stretch")
 
     # Refund rate by conditions
     st.subheader("Refund rate by operating conditions")
     st.caption(
-        "Refund rates across delivery conditions — the first cut an ops analyst would run. "
-        "(On this synthetic dataset rates are roughly flat by design: refunds were "
+        "Refund rates across delivery conditions — the first cut an ops analyst would "
+        "run. (On this synthetic dataset rates are roughly flat by design: refunds were "
         "generated independently of conditions.)"
     )
     c1, c2 = st.columns(2)
@@ -1092,7 +1118,7 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
     band_rates["refund_rate"] = (band_rates["refunds"] / band_rates["orders"] * 100).round(2)
     band_rates = band_rates.set_index("Volume_Band").reindex(BAND_LABELS).reset_index()
     fig = px.bar(band_rates, x="Volume_Band", y="refund_rate", title="Refund rate by customer volume band",
-                 color="refund_rate", color_continuous_scale=["#1E3A8A", C_PRIMARY, "#FCA5A5"],
+                 color="refund_rate", color_continuous_scale=["#1E3A8A", "#3B82F6", "#FCA5A5"],
                  text="refund_rate", hover_data=["orders", "refunds"])
     fig.update_traces(textposition="outside")
     fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Refund rate (%)")
@@ -1135,7 +1161,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         fig = go.Figure()
         for _, b in _bands.iterrows():
             fig.add_trace(go.Bar(x=[b["band"]], y=[b["p95"]], name=b["band"],
-                marker_color=C_PRIMARY, text=f"P95: {b['p95']:.1f}%",
+                marker_color="#3B82F6", text=f"P95: {b['p95']:.1f}%",
                 textposition="outside", showlegend=False))
         fig.update_layout(**{**PLOTLY_LAYOUT, "height": 320},
             xaxis_title="Order-volume band", yaxis_title="P95 refund rate (%)")
@@ -1153,7 +1179,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         tier_counts = all_suspects["Risk_Tier"].value_counts().reindex(["Low", "Medium", "High"]).fillna(0)
         tier_df = tier_counts.rename_axis("Tier").reset_index(name="count")
         fig = px.bar(tier_df, x="Tier", y="count", title="Risk tier distribution (all flagged)",
-                     color="Tier", color_discrete_map={"Low": C_GOOD, "Medium": C_WARN, "High": C_PRIMARY},
+                     color="Tier", color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
                      text="count")
         fig.update_traces(textposition="outside")
         fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
@@ -1163,7 +1189,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         if len(rep):
             fig = px.bar(rep.iloc[::-1], x="flagged", y="City", orientation="h",
                          title="Flagged customers by city type",
-                         color_discrete_sequence=[C_PRIMARY], text="flagged")
+                         color_discrete_sequence=["#3B82F6"], text="flagged")
             fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Flagged customers")
             left.plotly_chart(fig, width="stretch")
@@ -1173,7 +1199,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         if len(top20):
             fig = px.bar(top20, y="Customer_ID", x="Fraud_Risk_Score",
                          orientation="h", title="Top 20 by fraud risk score",
-                         color="Risk_Tier", color_discrete_map={"Low": C_GOOD, "Medium": C_WARN, "High": C_PRIMARY},
+                         color="Risk_Tier", color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
                          hover_data=["Total_Orders", "Total_Refunds", "Refund_Rate"])
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
             right.plotly_chart(fig, width="stretch")
@@ -1193,12 +1219,12 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
 
         def _tier_badge(val):
             if val in ("High", "Investigate first"):
-                return f"background: rgba(248,113,113,0.13); color: #F87171; font-weight: 700"
+                return "background: rgba(248,113,113,0.13); color: #EF4444; font-weight: 700"
             if val in ("Medium", "Watchlist"):
-                return f"background: rgba(251,191,36,0.12); color: {C_WARN}; font-weight: 700"
+                return "background: rgba(251,191,36,0.12); color: #FBBF24; font-weight: 700"
             if val in ("Low", "Routine review"):
-                return f"background: rgba(52,211,153,0.12); color: {C_GOOD}; font-weight: 700"
-            return f"color: #6b7a99"
+                return "background: rgba(52,211,153,0.12); color: #34D399; font-weight: 700"
+            return "color: #9ca3af"
 
         styler = (
             tbl.style
@@ -1241,13 +1267,17 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
             fill = "over" if over else ""
             note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over else f"P95 of flagged: {p95:.1f}")
             meters += (
-                f'<div class="ft-meter-row">'
-                f'<div class="ft-meter-head"><span>{name} <span style="color:var(--ft-text-muted);">· weight {weight:.0%}</span></span>'
+                f'<div style="margin:10px 0;">'
+                f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#9ca3af;margin-bottom:4px;">'
+                f'<span>{name} <span style="color:#6b7a99;">· weight {weight:.0%}</span></span>'
                 f'<b>{text}</b></div>'
-                f'<div class="ft-meter-track"><div class="ft-meter-fill {fill}" style="width:{pct:.0f}%"></div></div>'
-                f'<div class="ft-meter-note">{note}</div></div>'
+                f'<div style="height:7px;border-radius:999px;background:#1e3a5f;overflow:hidden;">'
+                f'<div class="meter-fill {fill}" style="height:100%;border-radius:999px;background:#3B82F6;'
+                f'{"background:linear-gradient(90deg,#F59E0B,#EF4444);" if over else ""} width:{pct:.0f}%"></div></div>'
+                f'<div style="font-size:10px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;">{note}</div>'
+                f'</div>'
             )
-        st.markdown(f'<div class="ft-meter-card">{meters}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:14px 16px;">{meters}</div>', unsafe_allow_html=True)
         st.caption(
             "Each bar shows how extreme one score factor is, compared to the 95th percentile "
             "of flagged customers in the current view. The score is a simple weighted formula — "
@@ -1256,7 +1286,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
     else:
         st.info("No customers match the current filters.")
 
-    # ─── AI Investigation (deterministic evidence + optional LLM narration) ───
+    # AI Investigation
     with st.expander("🤖 AI Investigation — evidence-grounded customer analysis", expanded=False):
         st.caption(
             "Retrieve a customer's risk signals, refund history and volume-band comparison. "
@@ -1327,8 +1357,8 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
     left, right = st.columns(2)
     with left:
         fig = px.histogram(orders, x="Time_taken (min)", nbins=45, title="Delivery time distribution",
-                           color_discrete_sequence=[C_PRIMARY])
-        fig.add_vline(x=avg_time, line_dash="dash", line_color=C_PRIMARY,
+                           color_discrete_sequence=["#3B82F6"])
+        fig.add_vline(x=avg_time, line_dash="dash", line_color="#3B82F6",
                       annotation_text=f"mean {avg_time:.1f} min")
         fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Minutes")
         left.plotly_chart(fig, width="stretch")
@@ -1353,7 +1383,7 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
     with c4_:
         type_counts = orders["Type_of_order"].value_counts().rename_axis("Type").reset_index(name="count")
         fig = px.bar(type_counts.iloc[::-1], x="count", y="Type", orientation="h",
-                     title="Order mix by type (orders)", color_discrete_sequence=[C_PRIMARY], text="count")
+                     title="Order mix by type (orders)", color_discrete_sequence=["#3B82F6"], text="count")
         fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Orders")
         c4_.plotly_chart(fig, width="stretch")
@@ -1366,14 +1396,14 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
     with r1:
         fig = px.histogram(riders, x="avg_rating", nbins=25,
                            title="Rider ratings — distribution of rider averages",
-                           color_discrete_sequence=[C_GOOD])
+                           color_discrete_sequence=["#34D399"])
         fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Average rating (per rider)")
         r1.plotly_chart(fig, width="stretch")
     with r2:
         top_riders = riders.nlargest(10, "orders").iloc[::-1]
         fig = px.bar(top_riders, y="Delivery_person_ID", x="orders", orientation="h",
                      title="Top 10 riders by order volume", hover_data=["avg_rating", "avg_time"])
-        fig.update_traces(marker_color="#6b7a99")
+        fig.update_traces(marker_color="#9ca3af")
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
         r2.plotly_chart(fig, width="stretch")
 
@@ -1389,7 +1419,7 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
         from dashboard.decision_engine import plan_reviews
 
     filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
-                  "risk_tiers": risk_tiers, "last_order_date_range": None}
+                      "risk_tiers": risk_tiers, "last_order_date_range": None}
     scope_id = str(hash(str(filter_context)))
     if st.session_state.get("refund_decision_scope") != scope_id:
         st.session_state["refund_decision_scope"] = scope_id
@@ -1447,13 +1477,15 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
                            f"refund_queue_{record['scope']['scope_id'][:8]}.csv", "text/csv", key="dec_download_queue")
         st.caption("The JSON is an aggregate snapshot; the queue CSV includes synthetic customer IDs. Use no sensitive notes. Neither file is server-side case management.")
 
-    # ─── Deterministic Copilot (no LLM) ───
-    # Track filter context to clear copilot answer when scope changes
-    filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
+        # Decision History
+        render_history("refund_risk", record, "refund")
+
+    # Deterministic Copilot
+    filter_context_copilot = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
                       "risk_tiers": risk_tiers, "last_order_date_range": None}
-    scope_id = str(hash(str(filter_context)))
-    if st.session_state.get("refund_copilot_scope") != scope_id:
-        st.session_state["refund_copilot_scope"] = scope_id
+    scope_id_copilot = str(hash(str(filter_context_copilot)))
+    if st.session_state.get("refund_copilot_scope") != scope_id_copilot:
+        st.session_state["refund_copilot_scope"] = scope_id_copilot
         st.session_state.pop("refund_copilot_answer", None)
 
     with st.expander("🤖 Ask the queue (deterministic)", expanded=False):
@@ -1479,8 +1511,10 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
             else:
                 st.info(answer['text'])
 
-    # ─── Decision History ───
-    render_history("refund_risk", record, "refund")
+    # Decision History (use unique prefix per scope to avoid duplicate keys on rerun)
+    if record:
+        scope_id = record['scope']['scope_id'][:8]
+        render_history("refund_risk", record, f"refund_{scope_id}")
 
 
 def page_data_quality(orders: pd.DataFrame):
@@ -1514,12 +1548,14 @@ def page_data_quality(orders: pd.DataFrame):
     ]
     pill_label = {"pass": "PASS", "review": "REVIEW", "gap": "KNOWN GAP", "disclosed": "DISCLOSED"}
     rows = "".join(
-        f'<div class="ft-dq-row"><div class="ft-dq-check">{name}</div>'
-        f'<div class="ft-dq-result">{result}</div>'
-        f'<span class="ft-dq-pill {status}">{pill_label[status]}</span></div>'
+        f'<div style="display:flex;align-items:center;gap:14px;padding:8px 4px;border-bottom:1px solid #1e3a5f;font-size:12px;">'
+        f'<div style="color:#e8edf5;font-weight:600;width:200px;flex-shrink:0;">{name}</div>'
+        f'<div style="color:#9ca3af;flex:1;line-height:1.45;">{result}</div>'
+        f'<span style="font-size:9.5px;font-weight:800;letter-spacing:.07em;border-radius:999px;padding:2px 8px;flex-shrink:0;'
+        f'{"color:#34D399;background:rgba(52,211,153,.12);border:1px solid #34D399;" if status=="pass" else "color:#FBBF24;background:rgba(251,191,36,.12);border:1px solid #FBBF24;" if status=="gap" else "color:#3B82F6;background:rgba(59,130,246,.12);border:1px solid #3B82F6;" if status=="disclosed" else "color:#EF4444;background:rgba(248,113,113,.13);border:1px solid #EF4444;"}">{pill_label[status]}</span></div>'
         for name, result, status in checks
     )
-    st.markdown(f'<div class="ft-dq-card">{rows}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:4px 12px;margin-bottom:6px;">{rows}</div>', unsafe_allow_html=True)
 
     st.markdown("**Column completeness**")
     comp = (pd.DataFrame({"Column": orders.columns, "Missing": missing.values})
@@ -1567,15 +1603,26 @@ def main():
     period_label = f"{orders['Order_Date'].min().strftime('%b %Y')} – {orders['Order_Date'].max().strftime('%d %b %Y')}"
     n_refunds = int(orders["Refund_Requested"].sum())
     st.sidebar.markdown(
-        f'<div class="ft-brand"><div class="ft-mark">Z</div><div>'
-        f'<div class="ft-title">Zomato Analytics</div>'
-        f'<div class="ft-sub">Refund & Trust Intelligence</div></div></div>',
-        unsafe_allow_html=True)
+        """
+<div style="display:flex;gap:10px;align-items:center;padding:4px 4px 12px;border-bottom:1px solid #1e3a5f;margin-bottom:12px;">
+  <div style="width:40px;height:40px;border-radius:10px;flex-shrink:0;
+    background:linear-gradient(135deg,#E23744,#B91C1C);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:18px;color:#fff;
+    box-shadow:0 0 16px rgba(226,55,68,.35);">Z</div>
+  <div>
+    <div style="font-size:14px;font-weight:800;color:#e8edf5;line-height:1.2;">Zomato Analytics</div>
+    <div style="font-size:11px;color:#6b7a99;margin-top:2px;">Refund & Trust Intelligence</div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
     st.sidebar.markdown(
-        f'<div class="ft-period">📅 <b>{period_label}</b><br>'
-        f'{len(orders):,} orders · {n_refunds:,} refunds<br>'
-        f'<span style="color:var(--ft-text-muted)">Synthetic refund layer — disclosed</span></div>',
-        unsafe_allow_html=True)
+        f"""
+<div style="font-size:11px;color:#6b7a99;background:#0a0f1e;border:1px solid #1e3a5f;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5;">
+  📅 <b>{period_label}</b><br>
+  {len(orders):,} orders · {n_refunds:,} refunds<br>
+  <span style="color:#6b7a99">Synthetic refund layer — disclosed</span></div>
+""", unsafe_allow_html=True)
 
     st.sidebar.markdown("**Filters**")
 
@@ -1618,9 +1665,9 @@ def main():
         chips.append(f"Volume band: {', '.join(selected_bands) if selected_bands else 'none'}")
     if len(risk_tiers) < 3:
         chips.append(f"Tier: {', '.join(risk_tiers) if risk_tiers else 'none'}")
-    html = "".join(f'<span class="ft-chip">{c}</span>' for c in chips) if chips else \
-        '<span class="ft-chip-none">No filters active — full dataset in scope</span>'
-    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10px;font-weight:700;letter-spacing:0.07em;color:var(--ft-text-muted);text-transform:uppercase;margin-bottom:4px;">Active scope</div><div class="ft-filter-chips">{html}</div></div>', unsafe_allow_html=True)
+    html = "".join(f'<span style="font-size:11px;font-weight:600;color:#3B82F6;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:999px;padding:3px 10px;">{c}</span>' for c in chips) if chips else \
+        '<span style="font-size:11px;color:#6b7a99;">No filters active — full dataset in scope</span>'
+    st.sidebar.markdown(f'<div style="margin-top:2px;"><div style="font-size:10px;font-weight:700;letter-spacing:.07em;color:#6b7a99;text-transform:uppercase;margin-bottom:4px;">Active scope</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;">{html}</div></div>', unsafe_allow_html=True)
 
     if st.sidebar.button("↺ Reset all filters", help="Restore the full dataset into scope.", use_container_width=True):
         for _k in ("f_city", "f_band", "f_tier", "f_date"):
@@ -1653,12 +1700,11 @@ def main():
         ft_footer()
         return
 
-    # ─── Navigation ───
+    # Navigation
     page = st.radio(
         "Navigation",
         ["1. Executive Overview", "2. Refund Patterns", "3. Risk Review", "4. Operations", "5. Data Quality"],
-        horizontal=True, label_visibility="collapsed",
-        key="Navigation",
+        horizontal=True, label_visibility="collapsed", key="Navigation",
     )
 
     if page == "1. Executive Overview":
