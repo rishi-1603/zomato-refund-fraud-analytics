@@ -77,16 +77,17 @@ TIER_COLORS = {"Low": C_GOOD, "Medium": C_WARN, "High": C_BAD}
 
 PLOTLY_LAYOUT = dict(
     template="plotly_dark",
-    height=360,
-    margin=dict(l=50, r=30, t=60, b=45),
-    title_font=dict(size=15, color="#F1F5F9"),
-    font=dict(family="Inter, 'Segoe UI', system-ui, sans-serif", size=12, color="#CBD5E1"),
+    height=420,
+    margin=dict(l=56, r=32, t=62, b=52),
+    title_font=dict(size=15, color="#F1F5F9", family="'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif"),
+    font=dict(family="'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", size=12, color="#CBD5E1"),
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     hoverlabel=dict(bgcolor="#141D31", font_size=12, font_color="#E8ECF4", bordercolor="#26375C"),
-    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True),
-    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True),
-    legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor="#1E293B", borderwidth=1),
+    hovermode="closest",
+    xaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True, title_font=dict(color="#CBD5E1")),
+    yaxis=dict(gridcolor="#1E293B", zerolinecolor="#334155", showgrid=True, title_font=dict(color="#CBD5E1")),
+    legend=dict(bgcolor="rgba(20,29,49,0.85)", bordercolor="#26375C", borderwidth=1, font=dict(color="#CBD5E1")),
 )
 
 
@@ -786,14 +787,14 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     ]
     st.markdown(
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:8px 0 4px;">' + "".join(
-            f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:14px 14px 12px;min-width:0;box-shadow:0 1px 3px rgba(0,0,0,.04);">'
+            f'<div style="background:#131d33;border:1px solid #1e3a5f;border-left:3px solid {color};border-radius:12px;padding:14px 14px 12px;min-width:0;box-shadow:0 1px 4px rgba(0,0,0,.06);">'
             f'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-            f'<div style="width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(59,130,246,.15);color:#3B82F6;">{emoji}</div>'
+            f'<div style="width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;background:rgba(59,130,246,.15);color:{color};">{emoji}</div>'
             f'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#6b7a99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">{label}</div></div>'
             f'<div style="font-size:22px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.4px;white-space:nowrap;line-height:1.2;">{value}</div>'
             f'<div style="font-size:11px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;line-height:1.4;">{sub}</div>'
             f'<div style="font-size:11px;color:#6b7a99;margin-top:2px;font-variant-numeric:tabular-nums;line-height:1.4;">{note}</div></div>'
-            for _, emoji, label, value, sub, note in kpi_cards
+            for color, emoji, label, value, sub, note in kpi_cards
         ) + "</div>",
         unsafe_allow_html=True,
     )
@@ -846,10 +847,21 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_bar(x=m["Order_Date"], y=m["orders"], name="Orders",
-                marker_color="#7FB0F5", opacity=0.9)
+                marker_color="#3B82F6", opacity=0.65,
+                text=m["orders"], textposition="outside", textfont=dict(size=10))
     fig.add_scatter(x=m["Order_Date"], y=m["refund_rate"], name="Refund rate (%)",
-                    mode="lines+markers", line=dict(color="#EF4444", width=3), secondary_y=True)
-    fig.update_layout(title="Monthly order volume vs refund rate (observed data)", **PLOTLY_LAYOUT)
+                    mode="lines+markers", line=dict(color="#F87171", width=3),
+                    marker=dict(size=8, color="#F87171", line=dict(color="#0A0F1E", width=1)),
+                    secondary_y=True)
+    # Annotate the month with the highest refund rate
+    if len(m):
+        peak_idx = m["refund_rate"].idxmax()
+        fig.add_annotation(x=m.loc[peak_idx, "Order_Date"], y=m.loc[peak_idx, "refund_rate"],
+                           text=f"Peak {m.loc[peak_idx, 'refund_rate']:.1f}%",
+                           showarrow=True, arrowhead=2, ax=0, ay=-30,
+                           font=dict(color="#FBBF24", size=11), secondary_y=True)
+    fig.update_layout(title="Monthly order volume vs refund rate (observed data)", **PLOTLY_LAYOUT,
+                      bargap=0.25)
     fig.update_yaxes(title_text="Orders", secondary_y=False)
     fig.update_yaxes(title_text="Refund rate (%)", secondary_y=True)
     st.plotly_chart(fig, width="stretch")
@@ -882,8 +894,10 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         fig = px.bar(city, x="City", y="orders", color="refund_rate",
                      color_continuous_scale=["#1E3A8A", "#3B82F6", "#FCA5A5"],
                      title="Orders by city type (colour = refund rate)",
-                     hover_data=["refunds", "refund_rate"])
+                     text="orders", hover_data=["refunds", "refund_rate"])
+        fig.update_traces(textposition="outside", marker_line_width=0)
         fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Orders")
+        fig.update_coloraxes(colorbar_title="Refund rate (%)")
         right.plotly_chart(fig, width="stretch")
 
     # Risk tier distribution + Claim behaviour
@@ -899,7 +913,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
                      color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
                      title="Flagged pool by risk tier", text="Flagged accounts")
         fig.update_layout(**PLOTLY_LAYOUT)
-        fig.update_traces(textposition="outside")
+        fig.update_traces(textposition="outside", marker_line_width=0)
         tier_left.plotly_chart(fig, width="stretch")
         gt_note = ""
         if truth is not None and truth["Planted_Risk"].notna().any():
@@ -984,11 +998,14 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
     )
     fig = go.Figure()
     fig.add_scatter(x=x, y=cum, mode="lines", name="Cumulative share of refund value",
-                    line=dict(color="#3B82F6", width=3))
+                    line=dict(color="#3B82F6", width=3), fill="tozeroy",
+                    fillcolor="rgba(59,130,246,0.12)")
     fig.add_trace(go.Scatter(x=[0, 100], y=[0, 100], mode="lines", name="Perfect equality (y = x)",
-                    line=dict(color="#1e3a5f", dash="dash", width=1.5)))
-    fig.add_hline(y=80, line_dash="dot", line_color="#FBBF24", opacity=0.7)
-    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color="#FBBF24", opacity=0.7)
+                    line=dict(color="#475569", dash="dash", width=1.5)))
+    fig.add_hline(y=80, line_dash="dot", line_color="#FBBF24", opacity=0.7,
+                  annotation_text="80% of value", annotation_position="right")
+    fig.add_vline(x=k80 / n_cust * 100, line_dash="dot", line_color="#FBBF24", opacity=0.7,
+                  annotation_text=f"top {k80} customers", annotation_position="top right")
     fig.update_layout(**PLOTLY_LAYOUT,
         xaxis_title="Customers (% — ranked by refund value, highest first)",
         yaxis_title="Cumulative share of refund value (%)")
@@ -1055,11 +1072,17 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
         f"per-customer P95 threshold used to flag unusual accounts (see Risk Review). "
         f"No customer in this dataset exceeds 20 orders, so the 21+ band is empty and omitted."
     )
-    fig = px.bar(band_rates, x="Volume_Band", y="refund_rate", title="Refund rate by customer volume band",
+    band_rates = band_rates.sort_values("refund_rate", ascending=True)
+    fig = px.bar(band_rates, x="refund_rate", y="Volume_Band", orientation="h",
+                 title="Refund rate by customer volume band",
                  color="refund_rate", color_continuous_scale=["#1E3A8A", "#3B82F6", "#FCA5A5"],
                  text="refund_rate", hover_data=["customers", "orders", "refunds"])
-    fig.update_traces(textposition="outside")
-    fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Refund rate (%)")
+    fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
+    fig.add_vline(x=float(orders["Refund_Requested"].mean() * 100), line_dash="dash",
+                  line_color="#94A3B8", opacity=0.7,
+                  annotation_text="overall 7.9%", annotation_position="top right")
+    fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Refund rate (%)", yaxis_title="Volume band")
+    fig.update_coloraxes(showscale=False)
     st.plotly_chart(fig, width="stretch")
 
 
