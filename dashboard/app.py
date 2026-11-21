@@ -10,6 +10,7 @@ Four analytical pages:
 Run: streamlit run dashboard/app.py
 """
 
+import os
 from pathlib import Path
 import pandas as pd
 import numpy as np
@@ -574,7 +575,7 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
       color:var(--muted);background:var(--bg);border:1px solid var(--border);
-      border-radius:999px;padding:5px 11px;white-space:nowrap;"><span style="color:#10b981;margin-right:4px;">●</span>&nbsp; LIVE — COMPUTED FROM DATA</span>
+      border-radius:999px;padding:5px 11px;white-space:nowrap;"><span style="color:#10b981;margin-right:4px;">●</span>&nbsp; Historical dataset · Interactive analysis · Synthetic refund layer</span>
     <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
       color:var(--muted);background:var(--bg);border:1px solid var(--border);
       border-radius:999px;padding:5px 11px;white-space:nowrap;">{n:,} orders in scope · {period}</span>
@@ -583,7 +584,7 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
       border-radius:999px;padding:5px 11px;white-space:nowrap;">Delivery data: public · Refund layer: synthetic</span>
     <span style="font-size:10.5px;font-weight:600;letter-spacing:.03em;
       color:var(--muted);background:var(--bg);border:1px solid var(--border);
-      border-radius:999px;padding:5px 11px;white-space:nowrap;">Risk score ≠ proof of fraud</span>
+      border-radius:999px;padding:5px 11px;white-space:nowrap;">Review priority score ≠ proof of fraud</span>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -833,7 +834,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
             )
         st.subheader("Review queue — highest priority first")
         st.caption(
-            "The highest risk scores in the current view. A flag means look closer — never a guilt verdict. "
+            "The highest review priority scores in the current view. A flag means look closer — never a guilt verdict. "
             "The full list, baselines and per-customer details are on the Risk Review page."
         )
         st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
@@ -926,7 +927,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
                 f"Medium {gt_mix.get('Medium', 0):.0f}% · High {gt_mix.get('High', 0):.0f}%."
             )
         st.caption(
-            "Tiers come from the documented risk score on the flagged pool — not from the planted labels. "
+            "Tiers come from the documented review priority score on the flagged pool — not from the planted labels. "
             + gt_note
         )
 
@@ -1092,7 +1093,7 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Flagged customers", len(filtered))
     c2.metric("Refund exposure", f"₹{filtered['Total_Refund_Amount'].sum():,.0f}")
-    c3.metric("Avg risk score", f"{filtered['Fraud_Risk_Score'].mean():.1f}" if len(filtered) else "—")
+    c3.metric("Avg review priority score", f"{filtered['Fraud_Risk_Score'].mean():.1f}" if len(filtered) else "—")
     c4.metric("High risk tier", int((filtered["Risk_Tier"] == "High").sum()))
 
     # Explain a flag — first thing a reviewer needs: why this customer?
@@ -1101,7 +1102,7 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
     if customer_options:
         chosen = st.selectbox("Select a customer", customer_options, key="inv_customer")
         row = filtered[filtered["Customer_ID"] == chosen].iloc[0]
-        st.write(f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})")
+        st.write(f"**{chosen}** — Review Priority Score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})")
         signals = [
             ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
             ("Reason repetition", row["Reason_Repetition_Rate"], f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
@@ -1195,7 +1196,7 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
         top20 = filtered.head(20).iloc[::-1]
         if len(top20):
             fig = px.bar(top20, y="Customer_ID", x="Fraud_Risk_Score",
-                         orientation="h", title="Top 20 by risk score (review priority)",
+                         orientation="h", title="Top 20 by review priority score",
                          color="Risk_Tier", color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
                          hover_data=["Total_Orders", "Total_Refunds", "Refund_Rate"])
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
@@ -1210,7 +1211,7 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
             "Customer_ID", "City", "Risk_Tier", "Fraud_Risk_Score",
             "Total_Orders", "Total_Refunds", "Refund_Rate",
             "Reason_Repetition_Rate", "Total_Refund_Amount", "Last_Order_Date",
-        ]].copy().rename(columns={"Fraud_Risk_Score": "Risk score"})
+        ]].copy().rename(columns={"Fraud_Risk_Score": "Review Priority Score"})
         _status_map = {"High": "Investigate first", "Medium": "Watchlist", "Low": "Routine review"}
         tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
 
@@ -1228,7 +1229,7 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
             .map(_tier_badge, subset=["Risk_Tier"])
             .map(_tier_badge, subset=["Status"])
             .format({
-                "Risk score": "{:.1f}", "Refund_Rate": "{:.1f}%",
+                "Review Priority Score": "{:.1f}", "Refund_Rate": "{:.1f}%",
                 "Reason_Repetition_Rate": "{:.0f}%", "Total_Refund_Amount": "₹{:,.0f}",
                 "Last_Order_Date": lambda d: d.strftime("%d %b %Y"),
             })
@@ -1266,7 +1267,7 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
                     ev = result["evidence"]
                     e1, e2, e3 = st.columns(3)
                     with e1:
-                        st.markdown(f"**Risk Score:** {ev['risk']['risk_score']}")
+                        st.markdown(f"**Review Priority Score:** {ev['risk']['risk_score']}")
                         st.markdown(f"**Tier:** {ev['risk']['risk_tier']}")
                         st.markdown(f"**Refund Rate:** {ev['risk']['refund_rate_pct']}%")
                     with e2:
@@ -1410,6 +1411,88 @@ def page_operations(filtered: pd.DataFrame, city_subset=None, band_subset=None, 
 
 
 # ─── Main ───
+def page_methodology(orders: pd.DataFrame, suspects: pd.DataFrame):
+    st.subheader("Data, validation and methodology")
+    st.caption(
+        "Where the data comes from, how every KPI is calculated, and the limits of "
+        "what this dashboard can claim. The refund layer is synthetic and disclosed."
+    )
+
+    st.subheader("Dataset overview")
+    overview = pd.DataFrame([
+        ("Delivery source", "Public delivery dataset (Zomato-style)"),
+        ("Refund layer", "Synthetic — generated for this portfolio case study"),
+        ("Analysis period", f"{orders['Order_Date'].min():%d %b %Y} – {orders['Order_Date'].max():%d %b %Y}"),
+        ("Delivery orders", f"{len(orders):,}"),
+        ("Refund requests", f"{int(orders['Refund_Requested'].sum()):,}"),
+        ("Unique customers", f"{orders['Customer_ID'].nunique():,}"),
+        ("Customers with at least one refund", f"{int(orders.loc[orders['Refund_Requested'] == True, 'Customer_ID'].nunique()):,}"),
+        ("Flagged accounts", f"{len(suspects):,}"),
+        ("Project type", "Independent portfolio project — not affiliated with Zomato"),
+    ], columns=["Item", "Information"])
+    st.dataframe(overview, width="stretch", hide_index=True)
+
+    st.subheader("Data quality checks (computed, not assumed)")
+    checks = []
+    required = ["ID", "Customer_ID", "Order_Date", "Refund_Requested", "Refund_Amount", "City", "Refund_Reason"]
+    missing = {c: int(orders[c].isna().sum()) for c in required if c in orders.columns}
+    total_missing = sum(missing.values())
+    checks.append(("Missing values in required columns", "PASS" if total_missing == 0 else "WARN",
+                   f"{total_missing} nulls across {len(required)} columns"))
+    dup = int(orders["ID"].duplicated().sum()) if "ID" in orders.columns else 0
+    checks.append(("Duplicate order IDs", "PASS" if dup == 0 else "WARN", f"{dup} duplicate IDs"))
+    dmin, dmax = orders["Order_Date"].min(), orders["Order_Date"].max()
+    checks.append(("Date range validity", "PASS", f"{dmin:%d %b %Y} – {dmax:%d %b %Y} ({orders['Order_Date'].dt.normalize().nunique()} active days)"))
+    neg = int((orders["Refund_Amount"] < 0).sum())
+    checks.append(("Refund amounts non-negative", "PASS" if neg == 0 else "WARN", f"{neg} negative amounts"))
+    rr = orders.loc[orders["Refund_Requested"] == True]
+    zero_amt = int((rr["Refund_Amount"] == 0).sum())
+    checks.append(("Refund records have positive amount", "PASS" if zero_amt == 0 else "WARN", f"{zero_amt} refund requests with zero amount"))
+    orphan = int((~suspects["Customer_ID"].isin(orders["Customer_ID"])).sum()) if len(suspects) else 0
+    checks.append(("Flagged customers exist in orders", "PASS" if orphan == 0 else "WARN", f"{orphan} orphaned flagged IDs"))
+    checks.append(("Refund request grain", "INFO",
+                   f"{int(orders['Refund_Requested'].sum()):,} refund requests across {orders.loc[orders['Refund_Requested']==True,'Customer_ID'].nunique():,} customers"))
+    dq = pd.DataFrame(checks, columns=["Check", "Status", "Detail"])
+    st.dataframe(dq, width="stretch", hide_index=True)
+
+    st.subheader("KPI definitions")
+    formulas = pd.DataFrame([
+        ("Refund request rate", "Refund requests ÷ eligible delivery orders × 100"),
+        ("Average refund amount", "Total refund value ÷ refund requests"),
+        ("Customer refund rate", "Customer refund requests ÷ customer eligible orders × 100"),
+        ("Potential exposure", "Refund value associated with flagged accounts"),
+        ("Refund exposure share", "Flagged refund value ÷ total refund value × 100"),
+        ("P95 baseline", "95th percentile of peer-group (volume band) refund rates"),
+        ("Review Priority Score", "0.40·refund rate + 0.30·reason repetition + 0.20·refund velocity + 0.10·reason length, scaled 0–100"),
+    ], columns=["Metric", "Definition"])
+    st.dataframe(formulas, width="stretch", hide_index=True)
+
+    st.subheader("Risk methodology")
+    st.markdown(
+        "- **Eligibility:** ≥5 orders AND refund rate > 30% — a flag means review, never a guilt verdict.\n"
+        "- **Volume-band normalisation:** customers are compared with others who order similar amounts; "
+        "P95 is computed per band, not over the whole population.\n"
+        "- **Risk tiers:** Low (≤40), Medium (41–70), High (>70) on the review priority score.\n"
+        "- **Peer comparison:** above P95 = unusual for that volume; at/below P95 = within normal range for that volume.\n"
+        "- **No confirmed fraud labels exist** in this dataset; the score is a review-prioritisation signal."
+    )
+
+    st.subheader("Limitations")
+    st.markdown(
+        "- The refund layer is **synthetic** (generated for this case study) — disclosed throughout.\n"
+        "- The delivery dataset is **public**; this is an independent portfolio project, not an internal Zomato system.\n"
+        "- April is a **partial calendar period**; month-over-month comparisons are suppressed.\n"
+        "- **No confirmed fraud labels** — risk flags are review priorities, not verdicts.\n"
+        "- The score is a **rule-based heuristic**, not a validated predictive model.\n"
+        "- Weather/traffic/festival segments were removed from the core story because refunds were generated independently of delivery conditions."
+    )
+
+    st.subheader("Technology")
+    st.markdown(
+        "Python · Pandas · NumPy · Streamlit · Plotly · (optional) Gemini/OpenAI for the investigation copilot."
+    )
+
+
 def main():
     st.set_page_config(
         page_title="FoodTrust — Refund Risk & Marketplace Intelligence",
@@ -1418,6 +1501,14 @@ def main():
     )
     inject_css()
 
+    # Wire API keys from Streamlit secrets (never commit keys)
+    try:
+        if "GOOGLE_API_KEY" in st.secrets and not os.environ.get("GOOGLE_API_KEY"):
+            os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+        if "OPENAI_API_KEY" in st.secrets and not os.environ.get("OPENAI_API_KEY"):
+            os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+    except Exception:
+        pass
     orders = load_orders(DATA_PATH)
     suspects = build_customer_risk_table(orders)
     truth = load_truth(TRUTH_PATH)
@@ -1530,18 +1621,20 @@ def main():
     # Navigation
     page = st.radio(
         "Navigation",
-        ["1. Executive Overview", "2. Refund Patterns", "3. Risk Review", "4. Operations"],
+        ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"],
         horizontal=True, label_visibility="collapsed", key="Navigation",
     )
 
     if page == "1. Executive Overview":
         page_executive(orders_f, suspects_scope, truth, metric_defs)
-    elif page == "2. Refund Patterns":
+    elif page == "2. Refund Analysis":
         page_refund_patterns(orders_f, suspects_scope, orders)
-    elif page == "3. Risk Review":
+    elif page == "3. Customer Risk Review":
         page_risk_review(suspects_scope, filtered)
-    elif page == "4. Operations":
+    elif page == "4. Review Operations":
         page_operations(filtered, city_subset, band_subset, risk_tiers)
+    elif page == "5. Data & Methodology":
+        page_methodology(orders_f, suspects_scope)
 
     ft_footer()
     st.caption(

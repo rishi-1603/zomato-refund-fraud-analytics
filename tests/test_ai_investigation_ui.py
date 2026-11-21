@@ -59,8 +59,8 @@ def test_ai_investigation_button_works_in_streamlit_runtime():
         at.run()
         assert not at.exception, f"dashboard raised: {at.exception}"
 
-        # Navigate to "3. Risk Review" page where AI investigation lives
-        at.radio(key="Navigation").set_value("3. Risk Review").run()
+        # Navigate to "3. Customer Risk Review" page where AI investigation lives
+        at.radio(key="Navigation").set_value("3. Customer Risk Review").run()
         assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 
         # The AI investigation lives in an expander on the Risk Review page
@@ -79,7 +79,7 @@ def test_ai_investigation_button_works_in_streamlit_runtime():
 
         # Evidence rendered with dataset-verified values for CUST09534
         md = "\n".join(m.value for m in at.markdown)
-        assert "**Risk Score:** 56.66" in md, "evidence block did not render"
+        assert "**Review Priority Score:** 56.66" in md, "evidence block did not render"
         assert "**Tier:** Medium" in md, "tier mismatch"
         assert "**Refund Rate:** 100.0%" in md, "refund rate mismatch"
         assert "**Refunds:** 8" in md, "refund count mismatch"
@@ -115,8 +115,8 @@ def test_baseline_section_renders_in_streamlit_runtime():
         assert not any("Baseline normalization unavailable" in t
                        for t in info_texts), info_texts
 
-        # Navigate to "3. Risk Review" page (radio button index 2)
-        at.radio(key="Navigation").set_value("3. Risk Review").run()
+        # Navigate to "3. Customer Risk Review" page (radio button index 2)
+        at.radio(key="Navigation").set_value("3. Customer Risk Review").run()
         assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 
         labels = [m.label for m in at.metric]

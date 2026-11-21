@@ -250,7 +250,7 @@ def _investigate_with_gemini(customer_id, evidence, api_key):
     client = genai.Client(api_key=api_key)
     evidence_json = json.dumps(evidence, indent=2, default=str)
     resp = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model=os.environ.get("GEMINI_MODEL", "gemini-3.8-flash"),
         contents=f"{SYSTEM_PROMPT}\n\nInvestigate customer {customer_id}. Evidence:\n```json\n{evidence_json}\n```\n\nWrite the investigation summary."
     )
     return {"ok": True, "evidence": evidence,
