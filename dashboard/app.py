@@ -1,12 +1,11 @@
 """FoodTrust — Zomato Refund Risk & Operations Analytics
 Professional dark-theme BI dashboard matching PDF mockups.
 
-Five analytical pages:
-1. Executive Overview    — Primary KPIs, trends, business attention points
-2. Refund Patterns       — Customer volume bands, city comparisons, trends
-3. Risk Review           — Risk rules, investigation queue, account-level evidence
-4. Operations            — Review prioritization, analyst workflow, reports
-5. Data Quality          — Lineage, definitions, validation, limitations
+Four analytical pages:
+1. Executive Overview    — Primary KPIs, trends, review queue snapshot
+2. Refund Patterns       — Concentration, amounts, volume-band context
+3. Risk Review           — Explain a flag, baselines, review list, AI investigation
+4. Operations            — Review prioritization, capacity planning, analyst workflow
 
 Run: streamlit run dashboard/app.py
 """
@@ -171,7 +170,7 @@ a:hover{color:var(--accent)}
 header{
   position:relative;
   z-index:1;
-  max-width:1400px;
+  max-width:none;
   margin:0 auto;
   padding:48px 40px 32px;
   border-bottom:1px solid var(--border);
@@ -235,9 +234,16 @@ h1{
 main{
   position:relative;
   z-index:1;
-  max-width:1400px;
+  max-width:none;
   margin:0 auto;
   padding:0 40px 40px;
+}
+/* Streamlit's own block container caps content width; lift it so wide screens fill */
+.stMainBlockContainer,
+.block-container{
+  max-width:none;
+  padding-left:0;
+  padding-right:0;
 }
 
 /* ===== FILTERS ===== */
@@ -588,10 +594,10 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
     <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
       background:linear-gradient(135deg,#3B82F6,#7C3AED);
       display:flex;align-items:center;justify-content:center;
-      font-weight:800;font-size:15px;letter-spacing:.5px;color:#fff;">RR</div>
+      font-weight:800;font-size:15px;letter-spacing:.5px;color:#fff;">FT</div>
     <div>
-      <div style="font-size:18px;font-weight:800;letter-spacing:-0.2px;color:var(--text);">Zomato Refund Risk & Operations Analytics</div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">Refund patterns, customer comparisons and evidence for human review</div>
+      <div style="font-size:18px;font-weight:800;letter-spacing:-0.2px;color:var(--text);">FoodTrust — Refund Risk & Marketplace Intelligence</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">Zomato case study — refund patterns, customer comparisons and evidence for human review</div>
     </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -642,7 +648,7 @@ def ft_footer() -> None:
   The score is a simple weighted formula (refund rate 40% · reason repetition 30% · refunds/day 20% · reason length 10%),
   checked against known test cases in this synthetic dataset.
   The data is seeded/synthetic — disclosed in the README and data dictionary.
-  Changes are month-over-month on the filtered data.
+  KPI chips compare with the previous month only where data coverage allows.
 </div>
 """, unsafe_allow_html=True)
 
@@ -747,20 +753,6 @@ def bar_chart(df, x, y, title, color="#3B82F6", horizontal=False, text_fmt=None)
     return fig
 
 
-def rate_by_column(orders: pd.DataFrame, col: str, title: str):
-    g = (
-        orders.groupby(col)
-        .agg(orders=("ID", "count"), refunds=("Refund_Requested", "sum"))
-        .reset_index()
-    )
-    g["refund_rate"] = (g["refunds"] / g["orders"] * 100).round(2)
-    g = g.sort_values("refund_rate", ascending=False)
-    fig = px.bar(g, x=col, y="refund_rate", title=title, hover_data=["orders", "refunds"])
-    fig.update_traces(marker_color="#3B82F6", text=g["refund_rate"], textposition="outside")
-    fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Refund rate (%)")
-    return fig
-
-
 def concentration_curve(orders: pd.DataFrame):
     total = float(orders["Refund_Amount"].sum())
     cust = orders.groupby("Customer_ID")["Refund_Amount"].sum().sort_values(ascending=False)
@@ -794,32 +786,6 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
     if mom.get("partial_periods"):
         st.warning(mom["coverage_note"])
 
-    # What changed?
-    insights = engine.what_changed(orders, suspects, truth)
-    if insights:
-        st.subheader("What changed?")
-        st.caption("This month vs last, on the data you're viewing. Each card shows where its number comes from.")
-        cols = st.columns(min(3, len(insights)))
-        for i, ins in enumerate(insights[:3]):
-            with cols[i]:
-                color = {"ok": "#34D399", "info": "#3B82F6", "watch": "#FBBF24", "alert": "#EF4444"}.get(ins["level"], "#3B82F6")
-                st.markdown(
-                    f'<div style="background:#131d33;border:1px solid #1e3a5f;border-left:4px solid {color};border-radius:10px;padding:12px 14px;height:100%;">'
-                    f'<div style="font-size:12.5px;font-weight:700;color:#e8edf5;display:flex;gap:8px;align-items:baseline;">{ins["headline"]}</div>'
-                    f'<div style="font-size:12px;color:#9ca3af;line-height:1.5;margin-top:4px;">{ins["detail"]}</div>'
-                    f'<div style="font-size:11px;color:#6b7a99;margin-top:4px;font-variant-numeric:tabular-nums;">Evidence: {ins["evidence"]}</div></div>',
-                    unsafe_allow_html=True)
-        if len(insights) > 3:
-            with st.expander(f"More signals ({len(insights) - 3})"):
-                for ins in insights[3:]:
-                    color = {"ok": "#34D399", "info": "#3B82F6", "watch": "#FBBF24", "alert": "#EF4444"}.get(ins["level"], "#3B82F6")
-                    st.markdown(
-                        f'<div style="background:#131d33;border:1px solid #1e3a5f;border-left:4px solid {color};border-radius:10px;padding:12px 14px;height:100%;">'
-                        f'<div style="font-size:12.5px;font-weight:700;color:#e8edf5;display:flex;gap:8px;align-items:baseline;">{ins["headline"]}</div>'
-                        f'<div style="font-size:12px;color:#9ca3af;line-height:1.5;margin-top:4px;">{ins["detail"]}</div>'
-                        f'<div style="font-size:11px;color:#6b7a99;margin-top:4px;font-variant-numeric:tabular-nums;">Evidence: {ins["evidence"]}</div></div>',
-                        unsafe_allow_html=True)
-
     # Hero KPI row
     refund_orders = kpis["refund_orders"]
     refunders = int(orders.loc[orders["Refund_Requested"] == True, "Customer_ID"].nunique())
@@ -841,9 +807,9 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         ("#FBBF24", "₹", "Total refund amount", _inr(kpis["refund_exposure"]),
          _mom_chip(mom["exposure_delta_pct"], up_is_good=False),
          "Historical refund value — not a confirmed loss."),
-        ("#8B5CF6", "🛡", "High-risk accounts", f"{kpis['flagged_count']:,}",
+        ("#8B5CF6", "🛡", "Accounts flagged for review", f"{kpis['flagged_count']:,}",
          f"{refunders_share:.1f}% of refunders",
-         "Eligibility: ≥5 orders AND refund rate >30%. A flag means investigate — never guilty."),
+         "Eligibility: ≥5 orders AND refund rate >30%. A flag means review — never a guilt verdict."),
         ("#10B981", "⚠", "Potential exposure", _inr(kpis["flagged_exposure"]),
          f"{kpis['flagged_exposure_share_pct']:.1f}% of refunds",
          "Refund value held by the flagged pool."),
@@ -864,8 +830,8 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         unsafe_allow_html=True,
     )
     st.caption(
-        "Changes are month-over-month on the filtered data. The precision figure is checked "
-        "against known test cases (the data is synthetic — disclosed). A risk score is not proof of fraud."
+        "A refund request is not a confirmed refund, and a flag is a review priority — "
+        "not proof of fraud. The refund layer is synthetic and disclosed in the README."
     )
 
     # KPI definitions expander
@@ -874,7 +840,7 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
             for _key, _m in metric_defs["metrics"].items():
                 st.markdown(f"**{_key.replace('_', ' ').title()}** — {_m['definition']}")
 
-    # Top suspects queue
+    # Review queue snapshot
     if len(suspects):
         top_n = min(8, len(suspects))
         rows = ""
@@ -894,9 +860,9 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
                 f'<span style="color:#c5cdd9;font-variant-numeric:tabular-nums;"><b>₹{r["Total_Refund_Amount"]:,.0f}</b> exposure</span>'
                 f'</div>'
             )
-        st.subheader("Top suspects — investigation queue")
+        st.subheader("Review queue — highest priority first")
         st.caption(
-            "The highest risk scores in the current view. A flag means look closer — never guilty. "
+            "The highest risk scores in the current view. A flag means look closer — never a guilt verdict. "
             "The full list, baselines and per-customer details are in the Risk Review tab."
         )
         st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:12px;padding:6px 14px;margin-top:6px;">{rows}</div>', unsafe_allow_html=True)
@@ -1100,20 +1066,14 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
                         text_fmt=lambda v: f"₹{v:,.0f}")
         right.plotly_chart(fig, width="stretch")
 
-    # Refund rate by conditions
-    st.subheader("Refund rate by operating conditions")
+    # Delivery conditions — a null result worth stating once, not four flat charts
+    st.subheader("Delivery conditions do not explain refunds")
     st.caption(
-        "Refund rates across delivery conditions — the first cut an ops analyst would "
-        "run. (On this synthetic dataset rates are roughly flat by design: refunds were "
-        "generated independently of conditions.)"
+        "Refund rate stays between 7.5% and 8.4% across every weather, traffic, order-type "
+        "and festival segment (overall 7.9%) — conditions don't separate refunders from "
+        "non-refunders here. The synthetic refund layer was generated independently of "
+        "delivery conditions, so this is the expected result, not a failed analysis."
     )
-    c1, c2 = st.columns(2)
-    with c1:
-        c1.plotly_chart(rate_by_column(orders, "Weather_conditions", "By weather condition"), width="stretch")
-        c1.plotly_chart(rate_by_column(orders, "Type_of_order", "By order type"), width="stretch")
-    with c2:
-        c2.plotly_chart(rate_by_column(orders, "Road_traffic_density", "By road traffic density"), width="stretch")
-        c2.plotly_chart(rate_by_column(orders, "Festival", "By festival period"), width="stretch")
 
     # Volume-band refund rates
     band_rates = band_refund_rates(orders, band_source=all_orders if all_orders is not None else orders)
@@ -1133,12 +1093,55 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
     st.plotly_chart(fig, width="stretch")
 
 
-def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered: pd.DataFrame):
+def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Flagged customers", len(filtered))
     c2.metric("Refund exposure", f"₹{filtered['Total_Refund_Amount'].sum():,.0f}")
     c3.metric("Avg risk score", f"{filtered['Fraud_Risk_Score'].mean():.1f}" if len(filtered) else "—")
     c4.metric("High risk tier", int((filtered["Risk_Tier"] == "High").sum()))
+
+    # Explain a flag — first thing a reviewer needs: why this customer?
+    st.subheader("Explain a flag")
+    customer_options = filtered["Customer_ID"].tolist()
+    if customer_options:
+        chosen = st.selectbox("Select a customer", customer_options, key="inv_customer")
+        row = filtered[filtered["Customer_ID"] == chosen].iloc[0]
+        st.write(f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})")
+        signals = [
+            ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
+            ("Reason repetition", row["Reason_Repetition_Rate"], f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
+            ("Refund velocity", row["Refunds_Per_Day"], f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
+            ("Reason length", row["Avg_Reason_Length"], f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
+        ]
+        pop = all_suspects
+        meters = ""
+        for name, value, text, weight in signals:
+            col_name = {"Refund rate": "Refund_Rate", "Reason repetition": "Reason_Repetition_Rate",
+                        "Refund velocity": "Refunds_Per_Day", "Reason length": "Avg_Reason_Length"}[name]
+            p95 = float(pop[col_name].quantile(0.95)) if len(pop) else 0.0
+            pct = min(100.0, (value / p95 * 100)) if p95 > 0 else 0.0
+            over = value >= p95 and p95 > 0
+            fill = "over" if over else ""
+            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over else f"P95 of flagged: {p95:.1f}")
+            meters += (
+                f'<div style="margin:10px 0;">'
+                f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#9ca3af;margin-bottom:4px;">'
+                f'<span>{name} <span style="color:#6b7a99;">· weight {weight:.0%}</span></span>'
+                f'<b>{text}</b></div>'
+                f'<div style="height:7px;border-radius:999px;background:#1e3a5f;overflow:hidden;">'
+                f'<div class="meter-fill {fill}" style="height:100%;border-radius:999px;background:#3B82F6;'
+                f'{"background:linear-gradient(90deg,#F59E0B,#EF4444);" if over else ""} width:{pct:.0f}%"></div></div>'
+                f'<div style="font-size:10px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;">{note}</div>'
+                f'</div>'
+            )
+        st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:14px 16px;">{meters}</div>', unsafe_allow_html=True)
+        st.caption(
+            "Each bar shows how extreme one score factor is, compared to the 95th percentile "
+            "of flagged customers in the current view. The score is a simple weighted formula — "
+            "full details in docs/risk_scoring_methodology.md."
+        )
+    else:
+        st.info("No customers match the current filters.")
 
     st.subheader("Is the refund rate abnormal for the customer's order volume?")
     st.caption(
@@ -1184,15 +1187,6 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
 
     left, right = st.columns([1, 2])
     with left:
-        tier_counts = all_suspects["Risk_Tier"].value_counts().reindex(["Low", "Medium", "High"]).fillna(0)
-        tier_df = tier_counts.rename_axis("Tier").reset_index(name="count")
-        fig = px.bar(tier_df, x="Tier", y="count", title="Risk tier distribution (all flagged)",
-                     color="Tier", color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
-                     text="count")
-        fig.update_traces(textposition="outside")
-        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
-        left.plotly_chart(fig, width="stretch")
-
         rep = filtered.groupby("City")["Customer_ID"].count().sort_values(ascending=False).rename_axis("City").reset_index(name="flagged")
         if len(rep):
             fig = px.bar(rep.iloc[::-1], x="flagged", y="City", orientation="h",
@@ -1206,7 +1200,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         top20 = filtered.head(20).iloc[::-1]
         if len(top20):
             fig = px.bar(top20, y="Customer_ID", x="Fraud_Risk_Score",
-                         orientation="h", title="Top 20 by fraud risk score",
+                         orientation="h", title="Top 20 by risk score (review priority)",
                          color="Risk_Tier", color_discrete_map={"Low": "#34D399", "Medium": "#FBBF24", "High": "#EF4444"},
                          hover_data=["Total_Orders", "Total_Refunds", "Refund_Rate"])
             fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
@@ -1221,7 +1215,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
             "Customer_ID", "City", "Risk_Tier", "Fraud_Risk_Score",
             "Total_Orders", "Total_Refunds", "Refund_Rate",
             "Reason_Repetition_Rate", "Total_Refund_Amount", "Last_Order_Date",
-        ]].copy()
+        ]].copy().rename(columns={"Fraud_Risk_Score": "Risk score"})
         _status_map = {"High": "Investigate first", "Medium": "Watchlist", "Low": "Routine review"}
         tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
 
@@ -1239,7 +1233,7 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
             .map(_tier_badge, subset=["Risk_Tier"])
             .map(_tier_badge, subset=["Status"])
             .format({
-                "Fraud_Risk_Score": "{:.1f}", "Refund_Rate": "{:.1f}%",
+                "Risk score": "{:.1f}", "Refund_Rate": "{:.1f}%",
                 "Reason_Repetition_Rate": "{:.0f}%", "Total_Refund_Amount": "₹{:,.0f}",
                 "Last_Order_Date": lambda d: d.strftime("%d %b %Y"),
             })
@@ -1250,49 +1244,6 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
         st.download_button("⬇ Download investigation list (CSV)", _csv,
                            file_name="zomato_flagged_investigation_list.csv",
                            mime="text/csv", help="The current filtered scope — ready for the review workflow.")
-
-    # Explain a flag
-    st.subheader("Explain a flag")
-    customer_options = filtered["Customer_ID"].tolist()
-    if customer_options:
-        chosen = st.selectbox("Select a customer", customer_options, key="inv_customer")
-        row = filtered[filtered["Customer_ID"] == chosen].iloc[0]
-        st.write(f"**{chosen}** — Risk score **{row['Fraud_Risk_Score']}** ({row['Risk_Tier']})")
-        signals = [
-            ("Refund rate", row["Refund_Rate"], f"{row['Refund_Rate']:.1f}%", 0.40),
-            ("Reason repetition", row["Reason_Repetition_Rate"], f"{row['Reason_Repetition_Rate']:.0f}% same reason", 0.30),
-            ("Refund velocity", row["Refunds_Per_Day"], f"{row['Refunds_Per_Day']:.2f} refunds/day", 0.20),
-            ("Reason length", row["Avg_Reason_Length"], f"{row['Avg_Reason_Length']:.0f} chars avg", 0.10),
-        ]
-        pop = all_suspects
-        meters = ""
-        for name, value, text, weight in signals:
-            col_name = {"Refund rate": "Refund_Rate", "Reason repetition": "Reason_Repetition_Rate",
-                        "Refund velocity": "Refunds_Per_Day", "Reason length": "Avg_Reason_Length"}[name]
-            p95 = float(pop[col_name].quantile(0.95)) if len(pop) else 0.0
-            pct = min(100.0, (value / p95 * 100)) if p95 > 0 else 0.0
-            over = value >= p95 and p95 > 0
-            fill = "over" if over else ""
-            note = (f"≥ P95 of flagged ({p95:.1f}) — extreme" if over else f"P95 of flagged: {p95:.1f}")
-            meters += (
-                f'<div style="margin:10px 0;">'
-                f'<div style="display:flex;justify-content:space-between;font-size:11.5px;color:#9ca3af;margin-bottom:4px;">'
-                f'<span>{name} <span style="color:#6b7a99;">· weight {weight:.0%}</span></span>'
-                f'<b>{text}</b></div>'
-                f'<div style="height:7px;border-radius:999px;background:#1e3a5f;overflow:hidden;">'
-                f'<div class="meter-fill {fill}" style="height:100%;border-radius:999px;background:#3B82F6;'
-                f'{"background:linear-gradient(90deg,#F59E0B,#EF4444);" if over else ""} width:{pct:.0f}%"></div></div>'
-                f'<div style="font-size:10px;color:#6b7a99;margin-top:3px;font-variant-numeric:tabular-nums;">{note}</div>'
-                f'</div>'
-            )
-        st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:14px 16px;">{meters}</div>', unsafe_allow_html=True)
-        st.caption(
-            "Each bar shows how extreme one score factor is, compared to the 95th percentile "
-            "of flagged customers in the current view. The score is a simple weighted formula — "
-            "full details in docs/risk_scoring_methodology.md."
-        )
-    else:
-        st.info("No customers match the current filters.")
 
     # AI Investigation
     with st.expander("🤖 AI Investigation — evidence-grounded customer analysis", expanded=False):
@@ -1352,71 +1303,9 @@ def page_risk_review(orders: pd.DataFrame, all_suspects: pd.DataFrame, filtered:
                 st.error("Investigation could not complete. Review the data and try again.")
 
 
-def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=None, band_subset=None, risk_tiers=None):
-    avg_time = orders["Time_taken (min)"].mean()
-    avg_rating = orders["Delivery_person_Ratings"].mean()
-
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Avg delivery time", f"{avg_time:.1f} min")
-    c2.metric("Median delivery time", f"{orders['Time_taken (min)'].median():.0f} min")
-    c3.metric("Avg rider rating", f"{avg_rating:.2f} / 5")
-    c4.metric("Slowest (90th pct)", f"{orders['Time_taken (min)'].quantile(0.9):.0f} min")
-
-    left, right = st.columns(2)
-    with left:
-        fig = px.histogram(orders, x="Time_taken (min)", nbins=45, title="Delivery time distribution",
-                           color_discrete_sequence=["#3B82F6"])
-        fig.add_vline(x=avg_time, line_dash="dash", line_color="#3B82F6",
-                      annotation_text=f"mean {avg_time:.1f} min")
-        fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Minutes")
-        left.plotly_chart(fig, width="stretch")
-
-    with right:
-        fig = px.box(orders, x="Road_traffic_density", y="Time_taken (min)",
-                     title="Delivery time by traffic density", points=False,
-                     color="Road_traffic_density",
-                     color_discrete_sequence=["#93C5FD", "#60A5FA", "#3B82F6", "#2563EB"])
-        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
-        right.plotly_chart(fig, width="stretch")
-
-    c3_, c4_ = st.columns(2)
-    with c3_:
-        fig = px.box(orders, x="Weather_conditions", y="Time_taken (min)",
-                     title="Delivery time by weather", points=False,
-                     color="Weather_conditions",
-                     color_discrete_sequence=["#DDD6FE", "#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6"])
-        fig.update_layout(**PLOTLY_LAYOUT, showlegend=False)
-        c3_.plotly_chart(fig, width="stretch")
-
-    with c4_:
-        type_counts = orders["Type_of_order"].value_counts().rename_axis("Type").reset_index(name="count")
-        fig = px.bar(type_counts.iloc[::-1], x="count", y="Type", orientation="h",
-                     title="Order mix by type (orders)", color_discrete_sequence=["#3B82F6"], text="count")
-        fig.update_traces(textposition="outside", texttemplate="%{x:,.0f}", cliponaxis=False)
-        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="", xaxis_title="Orders")
-        c4_.plotly_chart(fig, width="stretch")
-
-    # Rider view
-    riders = orders.groupby("Delivery_person_ID").agg(
-        orders=("ID", "count"), avg_rating=("Delivery_person_Ratings", "mean"),
-        avg_time=("Time_taken (min)", "mean")).reset_index()
-    r1, r2 = st.columns(2)
-    with r1:
-        fig = px.histogram(riders, x="avg_rating", nbins=25,
-                           title="Rider ratings — distribution of rider averages",
-                           color_discrete_sequence=["#34D399"])
-        fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Average rating (per rider)")
-        r1.plotly_chart(fig, width="stretch")
-    with r2:
-        top_riders = riders.nlargest(10, "orders").iloc[::-1]
-        fig = px.bar(top_riders, y="Delivery_person_ID", x="orders", orientation="h",
-                     title="Top 10 riders by order volume", hover_data=["avg_rating", "avg_time"])
-        fig.update_traces(marker_color="#9ca3af")
-        fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="")
-        r2.plotly_chart(fig, width="stretch")
-
-    # Decision & value
-    st.divider()
+def page_operations(filtered: pd.DataFrame, city_subset=None, band_subset=None, risk_tiers=None):
+    # Delivery-condition charts were removed: refunds in this dataset are generated
+    # independently of delivery conditions, so those charts carried no signal here.
     st.subheader("Review queue & capacity")
     st.caption("Select cases from the filtered eligible queue. Customer scores and exposures use full source history; date filtering is on last order.")
 
@@ -1525,75 +1414,10 @@ def page_operations(orders: pd.DataFrame, filtered: pd.DataFrame, city_subset=No
         render_history("refund_risk", record, f"refund_{scope_id}")
 
 
-def page_data_quality(orders: pd.DataFrame):
-    st.subheader("Data Quality")
-    st.caption(
-        "Computed live from `data/processed/zomato_with_refunds.csv` (45,584 orders). "
-        "The fuller audit — pandas↔SQL reconciliation, drift monitor, sensitivity — lives in "
-        "reports/data_quality_report.md and is pinned by CI."
-    )
-
-    req = orders["Refund_Requested"].astype(bool)
-    missing = orders.isna().sum()
-    n = len(orders)
-    dup_ids = int(orders["ID"].duplicated().sum())
-    span_min, span_max = orders["Order_Date"].min(), orders["Order_Date"].max()
-
-    checks = [
-        ("Order ID uniqueness", f"{dup_ids} duplicate ID(s) across {n:,} rows", "pass" if dup_ids == 0 else "review"),
-        ("Refund amount consistency", f"{int((req & (orders['Refund_Amount'] <= 0)).sum())} refund request(s) with amount ≤ 0",
-         "pass" if int((req & (orders["Refund_Amount"] <= 0)).sum()) == 0 else "review"),
-        ("Refund reason coverage", f"{int((req & orders['Refund_Reason'].isna()).sum())} refund request(s) missing a reason",
-         "pass" if int((req & orders["Refund_Reason"].isna()).sum()) == 0 else "review"),
-        ("No amount without a request", f"{int((~req & (orders['Refund_Amount'] > 0)).sum())} rows carry refund value without a request",
-         "pass" if int((~req & (orders["Refund_Amount"] > 0)).sum()) == 0 else "review"),
-        ("Date window sanity", f"All orders inside {span_min:%d %b %Y} → {span_max:%d %b %Y}", "pass"),
-        ("City coverage", f"{int(missing['City']):,} orders ({missing['City'] / n * 100:.1f}%) have no City value — kept in scope by default filters (NaN-safe)", "gap"),
-        ("Delivery-person fields",
-         f"Age missing on {int(missing['Delivery_person_Age']):,} ({missing['Delivery_person_Age'] / n * 100:.1f}%) · "
-         f"ratings missing on {int(missing['Delivery_person_Ratings']):,} ({missing['Delivery_person_Ratings'] / n * 100:.1f}%) — retained, never imputed", "gap"),
-        ("Refund layer provenance", "Customer IDs, refund events, amounts and ground-truth labels are synthetic and seeded (seed 42) — disclosed; Refund_Reason is populated only for refund rows by design", "disclosed"),
-    ]
-    pill_label = {"pass": "PASS", "review": "REVIEW", "gap": "KNOWN GAP", "disclosed": "DISCLOSED"}
-    rows = "".join(
-        f'<div style="display:flex;align-items:center;gap:14px;padding:8px 4px;border-bottom:1px solid #1e3a5f;font-size:12px;">'
-        f'<div style="color:#e8edf5;font-weight:600;width:200px;flex-shrink:0;">{name}</div>'
-        f'<div style="color:#9ca3af;flex:1;line-height:1.45;">{result}</div>'
-        f'<span style="font-size:9.5px;font-weight:800;letter-spacing:.07em;border-radius:999px;padding:2px 8px;flex-shrink:0;'
-        f'{"color:#34D399;background:rgba(52,211,153,.12);border:1px solid #34D399;" if status=="pass" else "color:#FBBF24;background:rgba(251,191,36,.12);border:1px solid #FBBF24;" if status=="gap" else "color:#3B82F6;background:rgba(59,130,246,.12);border:1px solid #3B82F6;" if status=="disclosed" else "color:#EF4444;background:rgba(248,113,113,.13);border:1px solid #EF4444;"}">{pill_label[status]}</span></div>'
-        for name, result, status in checks
-    )
-    st.markdown(f'<div style="background:#131d33;border:1px solid #1e3a5f;border-radius:10px;padding:4px 12px;margin-bottom:6px;">{rows}</div>', unsafe_allow_html=True)
-
-    st.markdown("**Column completeness**")
-    comp = (pd.DataFrame({"Column": orders.columns, "Missing": missing.values})
-            .assign(**{"Complete %": lambda d: ((n - d["Missing"]) / n * 100).round(1)})
-            .sort_values("Complete %"))
-    st.dataframe(comp, use_container_width=True, hide_index=True)
-    st.caption(
-        "Completeness is a property of the source delivery dataset (public) plus the disclosed "
-        "synthetic refund layer. Missing delivery fields are expected in the public data and are "
-        "documented, not imputed."
-    )
-
-    st.divider()
-    st.subheader("KPI Definitions & Provenance")
-    st.caption("Every KPI on this dashboard traces to `data/metrics.json` and is validated by pandas↔SQL reconciliation (0 mismatches, 8 KPIs).")
-    try:
-        with open(METRICS_PATH) as f:
-            metrics = __import__('json').load(f)
-        for _key, _m in metrics["metrics"].items():
-            with st.expander(f"{_key.replace('_', ' ').title()}"):
-                st.markdown(f"**Definition:** {_m['definition']}")
-                st.markdown(f"**Basis:** {_m['basis']}")
-    except Exception:
-        st.info("Metric definitions file not found in this deployment.")
-
-
 # ─── Main ───
 def main():
     st.set_page_config(
-        page_title="Zomato Refund Risk & Operations Analytics",
+        page_title="FoodTrust — Refund Risk & Marketplace Intelligence",
         page_icon="🍽️",
         layout="wide",
     )
@@ -1617,9 +1441,9 @@ def main():
     background:linear-gradient(135deg,#E23744,#B91C1C);
     display:flex;align-items:center;justify-content:center;
     font-weight:900;font-size:18px;color:#fff;
-    box-shadow:0 0 16px rgba(226,55,68,.35);">Z</div>
+    box-shadow:0 0 16px rgba(226,55,68,.35);">FT</div>
   <div>
-    <div style="font-size:14px;font-weight:800;color:#e8edf5;line-height:1.2;">Zomato Analytics</div>
+    <div style="font-size:14px;font-weight:800;color:#e8edf5;line-height:1.2;">FoodTrust</div>
     <div style="font-size:11px;color:#6b7a99;margin-top:2px;">Refund & Trust Intelligence</div>
   </div>
 </div>
@@ -1686,7 +1510,7 @@ def main():
         st.markdown(
             "- **Refund rate** = refunded orders ÷ total orders (current scope)\n"
             "- **Flag eligibility**: ≥5 orders AND refund rate >30% — "
-            "*a flag means investigate, never guilty*\n"
+            "*a flag means review, never a guilt verdict*\n"
             "- **Risk score**: a simple weighted formula — refund rate 40% · "
             "reason repetition 30% · refunds/day 20% · reason length 10% "
             "([methodology](https://github.com/rishi-1603/zomato-refund-fraud-analytics/"
@@ -1720,9 +1544,9 @@ def main():
     elif page == "2. Refund Patterns":
         page_refund_patterns(orders_f, suspects_scope, orders)
     elif page == "3. Risk Review":
-        page_risk_review(orders_f, suspects_scope, filtered)
+        page_risk_review(suspects_scope, filtered)
     elif page == "4. Operations":
-        page_operations(orders_f, filtered, city_subset, band_subset, risk_tiers)
+        page_operations(filtered, city_subset, band_subset, risk_tiers)
 
     ft_footer()
     st.caption(

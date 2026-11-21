@@ -74,7 +74,7 @@ Eligibility applied before baseline; features are behaviour aggregates; labels (
 ## F. Dashboard and product
 
 **20. How many tabs and what does each answer?**
-8 tabs: Executive Overview, Refund Reasons, Risk Investigation, Operations Analysis, Policy & Impact, AI Refund Analyst, Data Quality, Reports. Each has a one-line "what it answers" in the README.
+4 pages: Executive Overview, Refund Patterns, Risk Review, Operations. Each has a one-line "what it answers" in the README.
 
 **21. Why Streamlit?**
 Fast to build, supports interactivity, deployable to Streamlit Cloud. Chosen for portfolio reproducibility, not because it is the only option.

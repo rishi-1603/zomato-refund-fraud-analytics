@@ -17,13 +17,13 @@ FoodTrust answers that question end-to-end: measure → compare fairly → rank 
 
 | Team | Question FoodTrust answers | Where |
 |---|---|---|
-| Fraud & Risk Operations | Who should we review first, and why exactly? | Risk Investigation, Investigation Workbench |
-| Trust & Safety | Is flagged behaviour unusual for this customer's order volume, or just high-volume normality? | Volume-band baseline, Risk Investigation |
-| Refund & Dispute Ops | Where does refund value concentrate, by reason and customer? | Refund Reasons (Pareto/Lorenz) |
-| Marketplace Ops Managers | Which operating conditions (weather, traffic, riders) associate with refunds? | Operations Analysis |
+| Fraud & Risk Operations | Who should we review first, and why exactly? | Risk Review, Explain a flag |
+| Trust & Safety | Is flagged behaviour unusual for this customer's order volume, or just high-volume normality? | Volume-band baseline, Risk Review |
+| Refund & Dispute Ops | Where does refund value concentrate, by reason and customer? | Refund Patterns (Pareto/Lorenz) |
+| Marketplace Ops Managers | Which operating conditions (weather, traffic, riders) associate with refunds? | Refund Patterns — stated null result |
 | Restaurant/Merchant Quality | Do refund patterns cluster around shared restaurant locations or riders? | Network check |
-| Finance / Revenue Assurance | What does each review policy net, and what precision does it need to break even? | Policy & Impact, alert economics |
-| BI / Analytics | Are the KPIs reconcilable between pandas and SQL? Is anything drifting? | Data Quality, kpi_reconciliation, PSI monitor |
+| Finance / Revenue Assurance | What does each review policy net, and what precision does it need to break even? | Operations, alert economics |
+| BI / Analytics | Are the KPIs reconcilable between pandas and SQL? Is anything drifting? | `reports/data_quality_report.md`, kpi_reconciliation, PSI monitor |
 | Product / CX | What is the false-positive exposure — how many flagged customers look normal within their band? | Below-baseline analysis (113 of 279) |
 
 ## 3. The twelve problem areas — implemented / partial / gap

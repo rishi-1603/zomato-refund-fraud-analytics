@@ -65,7 +65,7 @@
 |---|---|---|
 | KPI reconciliation mismatches | Count of pandas↔SQL disagreements across the 8 headline KPIs | 0 (`reports/kpi_reconciliation.md`) |
 | PSI (weekly, per score input) | Population Stability Index on score inputs by ISO week | `reports/drift_monitor.md` — inputs stable in seeded stream |
-| Data-quality status | Pass / known-gap / disclosed, per check | `dashboard` Data Quality tab + `reports/data_quality_report.md` |
+| Data-quality status | Pass / known-gap / disclosed, per check | `reports/data_quality_report.md` |
 | MoM change badges | Relative % and percentage-point month-over-month changes; **suppressed in partial months** | Final partial month: to 6 Apr 2022 |
 
 ## F. Language policy (binding)

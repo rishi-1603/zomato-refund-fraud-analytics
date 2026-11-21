@@ -16,7 +16,7 @@ dashboard/kpi_engine.py  ←── pandas, single source of truth (deterministic
    ├── sql/fraud_queries.sql  ←── same KPIs in SQL, validated against pandas (SQLite)
    │
    ▼
-dashboard/app.py  (Streamlit, 8 tabs)  ←── sidebar filters (city type, volume band, date, tier)
+dashboard/app.py  (Streamlit, 4 pages)  ←── sidebar filters (city type, volume band, date, tier)
    │
    ├── dashboard/decision_engine.py     (policy simulation, alert economics)
    ├── dashboard/decision_copilot.py    (deterministic evidence tool)
@@ -26,7 +26,7 @@ dashboard/app.py  (Streamlit, 8 tabs)  ←── sidebar filters (city type, vol
    └── dashboard/risk_rules.py          (declarative risk rule registry)
 
 reports/  ←── generated artefacts (reconciliation, drift, sensitivity, external validation)
-tests/    ←── 188+ pytest (KPIs, SQL, drift, network, economics, UI, AI)
+tests/    ←── 214 pytest (KPIs, SQL, drift, network, economics, UI, AI)
 docs/     ←── methodology, audits, dictionaries
 ```
 
@@ -37,8 +37,8 @@ docs/     ←── methodology, audits, dictionaries
 3. **KPI layer** — `kpi_engine.py` computes every headline number in pure pandas; `sql/` mirrors the same definitions.
 4. **Reconciliation** — `scripts/kpi_reconciliation.py` compares pandas vs SQL across 8 headline KPIs → zero mismatches (verified).
 5. **Risk score** — weighted formula (rate 40%, repetition 30%, frequency 20%, reason length 10%), eligibility rule ≥5 orders & rate >30%, uncalibrated, with volume-band baseline context.
-6. **Dashboard** — Streamlit, 8 tabs, one filter set; every figure traces to `kpi_engine.py`.
-7. **Monitoring** — PSI on score inputs (weekly), partial-month suppression, data-quality tab.
+6. **Dashboard** — Streamlit, 4 pages, one filter set; every figure traces to `kpi_engine.py`.
+7. **Monitoring** — PSI on score inputs (weekly), partial-month suppression, data-quality report.
 
 ## 3. Layer responsibilities
 
@@ -54,7 +54,7 @@ docs/     ←── methodology, audits, dictionaries
 | `dashboard/ai_investigator.py` | Optional LLM narration | disclosed as unverified |
 | `sql/` | Business queries mirroring pandas | validated on SQLite |
 | `scripts/` | Reproduction, validation, analysis | 17 scripts |
-| `tests/` | Unit + integration + data quality | 188+ tests |
+| `tests/` | Unit + integration + data quality | 214 tests |
 | `docs/` | Methodology, audits, dictionaries | 40+ files |
 
 ## 4. Database posture (Phase A → Phase B)

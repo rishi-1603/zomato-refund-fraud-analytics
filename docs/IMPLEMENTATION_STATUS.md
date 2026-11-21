@@ -15,14 +15,14 @@
 | 6 | Risk engine | ✅ Complete | `dashboard/kpi_engine.py`, `dashboard/risk_rules.py`, methodology doc |
 | 7 | ML & explainability | ⚠️ Partial | Model comparison (rules vs ML) on planted labels; SHAP not justified |
 | 8 | Investigation workflow | ✅ Upgraded | `dashboard/case_management.py` (lifecycle + audit trail) + existing queue |
-| 9 | Dashboard | ✅ Complete | 8 tabs, verified screenshots, one filter set |
+| 9 | Dashboard | ✅ Complete | 4 pages, one filter set, evidence-first review flow |
 | 10 | AI assistant | ⚠️ Partial | Deterministic tool (12-case benchmark); LLM path disclosed as unverified |
-| 11 | Testing & security | ✅ Complete | 206 tests; no credentials committed; `.env.example` |
+| 11 | Testing & security | ✅ Complete | 214 tests; no credentials committed; `.env.example` |
 | 12 | Documentation & deployment | ⚠️ Partial | Docs added; Streamlit Cloud live; Docker scaffolded (untested) |
 
 ## Tests
 
-- **Total:** 206 (was 188; +18 from case management + risk rule registry)
+- **Total:** 214
 - **Command:** `pytest -q`
 - **Result:** all pass
 
