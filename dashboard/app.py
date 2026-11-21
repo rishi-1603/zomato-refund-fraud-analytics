@@ -29,6 +29,7 @@ try:
     from kpi_engine import (
         BAND_LABELS,
         apply_global_filters,
+        band_refund_rates,
         compute_kpis,
         load_metric_definitions,
         volume_band,
@@ -39,6 +40,7 @@ except ImportError:
     from dashboard.kpi_engine import (
         BAND_LABELS,
         apply_global_filters,
+        band_refund_rates,
         compute_kpis,
         load_metric_definitions,
         volume_band,
@@ -927,7 +929,9 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         )
         fig = px.bar(reasons, y="Reason", x="count", orientation="h",
                      title="Refund reasons, ranked")
-        fig.update_traces(marker_color="#8B5CF6", text=reasons["count"], textposition="outside")
+        fig.update_traces(marker_color="#8B5CF6", text=reasons["count"],
+                          textposition="inside", insidetextanchor="end",
+                          textfont=dict(color="white", size=12))
         fig.update_layout(**PLOTLY_LAYOUT)
         left.plotly_chart(fig, width="stretch")
 
@@ -1020,23 +1024,27 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
 """, unsafe_allow_html=True)
 
 
-def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
+def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_orders: pd.DataFrame | None = None):
     refunds = orders[orders["Refund_Requested"] == True].copy()
 
     # Pareto concentration
     x, cum, n_cust, total_val, k50, k80, top10_share = concentration_curve(orders)
 
     p1, p2, p3, p4 = st.columns(4)
+    n_refunders = int(refunds["Customer_ID"].nunique())
     p1.metric("Total refund exposure", f"₹{total_val:,.0f}")
-    p2.metric("Refunding customers", f"{n_cust:,}")
+    p2.metric("Customers with a refund", f"{n_refunders:,}",
+              help=f"{n_refunders:,} of {n_cust:,} customers ({n_refunders / n_cust * 100:.1f}%) "
+                   f"have at least one refund. The concentration curve ranks all {n_cust:,} customers.")
     p3.metric("Top 10% hold", f"{top10_share:.1f}% of exposure")
     p4.metric("Half of exposure in", f"top {k50:,} customers")
 
     st.subheader("Where the refund money concentrates")
     st.caption(
-        "How refund money is spread across customers — this tells you how big the review "
-        "queue needs to be. Concentration is a reason to prioritize, never evidence "
-        "that any individual customer is fraudulent. Full analysis: reports/pareto_analysis.md"
+        f"How refund money is spread across customers — this tells you how big the review "
+        f"queue needs to be. The curve ranks all {n_cust:,} customers; {n_refunders:,} have "
+        f"at least one refund. Concentration is a reason to prioritize, never evidence "
+        f"that any individual customer is fraudulent. Full analysis: reports/pareto_analysis.md"
     )
     fig = go.Figure()
     fig.add_scatter(x=x, y=cum, mode="lines", name="Cumulative share of refund value",
@@ -1051,9 +1059,13 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
     st.plotly_chart(fig, width="stretch")
 
     r1, r2, r3 = st.columns(3)
+    active_days = int(orders["Order_Date"].dt.normalize().nunique())
     r1.metric("Avg refund amount", f"₹{refunds['Refund_Amount'].mean():,.0f}")
     r2.metric("Largest refund", f"₹{refunds['Refund_Amount'].max():,.0f}")
-    r3.metric("Refunds per month", f"{len(refunds) / 36:,.0f}")
+    r3.metric("Avg refunds per active day", f"{len(refunds) / active_days:,.1f}",
+              help=f"{len(refunds):,} refunds across {active_days} observed order dates "
+                   f"({orders['Order_Date'].min():%d %b} – {orders['Order_Date'].max():%d %b %Y}). "
+                   f"No partial-month extrapolation.")
 
     # Flagged behaviour patterns
     if len(suspects):
@@ -1104,22 +1116,18 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame):
         c2.plotly_chart(rate_by_column(orders, "Festival", "By festival period"), width="stretch")
 
     # Volume-band refund rates
+    band_rates = band_refund_rates(orders, band_source=all_orders if all_orders is not None else orders)
+    lo, hi = band_rates["refund_rate"].min(), band_rates["refund_rate"].max()
     st.subheader("Refund rate by customer volume band")
-    st.caption("Customers are compared with peers who order similar amounts — this prevents high-volume customers from being flagged purely for volume.")
-    band_refunds = orders[orders["Refund_Requested"] == True].copy()
-    band_refunds["Volume_Band"] = band_refunds["Customer_ID"].apply(
-        lambda cid: volume_band(orders[orders["Customer_ID"] == cid].shape[0])
+    st.caption(
+        f"Aggregate refund rate by each customer's full order history: {lo:.1f}–{hi:.1f}% across "
+        f"bands. Order volume alone does not explain refunds; what changes with volume is the "
+        f"per-customer P95 threshold used to flag unusual accounts (see Risk Review). "
+        f"No customer in this dataset exceeds 20 orders, so the 21+ band is empty and omitted."
     )
-    band_rates = (
-        band_refunds.groupby("Volume_Band")
-        .agg(refunds=("Refund_Requested", "sum"), orders=("ID", "count"))
-        .reset_index()
-    )
-    band_rates["refund_rate"] = (band_rates["refunds"] / band_rates["orders"] * 100).round(2)
-    band_rates = band_rates.set_index("Volume_Band").reindex(BAND_LABELS).reset_index()
     fig = px.bar(band_rates, x="Volume_Band", y="refund_rate", title="Refund rate by customer volume band",
                  color="refund_rate", color_continuous_scale=["#1E3A8A", "#3B82F6", "#FCA5A5"],
-                 text="refund_rate", hover_data=["orders", "refunds"])
+                 text="refund_rate", hover_data=["customers", "orders", "refunds"])
     fig.update_traces(textposition="outside")
     fig.update_layout(**PLOTLY_LAYOUT, yaxis_title="Refund rate (%)")
     st.plotly_chart(fig, width="stretch")
@@ -1710,7 +1718,7 @@ def main():
     if page == "1. Executive Overview":
         page_executive(orders_f, suspects_scope, truth, metric_defs)
     elif page == "2. Refund Patterns":
-        page_refund_patterns(orders_f, suspects_scope)
+        page_refund_patterns(orders_f, suspects_scope, orders)
     elif page == "3. Risk Review":
         page_risk_review(orders_f, suspects_scope, filtered)
     elif page == "4. Operations":

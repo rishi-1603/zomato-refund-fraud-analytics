@@ -33,6 +33,7 @@ from kpi_engine import (  # noqa: E402
     BAND_LABELS,
     apply_global_filters,
     band_baselines,
+    band_refund_rates,
     compute_kpis,
     customer_base,
     load_metric_definitions,
@@ -101,6 +102,39 @@ def test_customer_base_and_baselines():
     # (verified: customers have 1-14 orders, so '21+ orders' is empty here)
     assert set(bl["Volume_Band"]) == set(base["Volume_Band"].unique())
     assert (bl["Band_P95_Refund_Rate"] >= 0).all()
+
+
+def test_band_refund_rates_use_all_orders_as_denominator():
+    """Regression: the volume-band chart previously divided refunded orders by
+    refunded orders, so every bar rendered as exactly 100%. The denominator must
+    be ALL orders placed by customers in the band."""
+    orders, _, _ = _setup()
+    rates = band_refund_rates(orders)
+    assert list(rates["Volume_Band"]) == ["1-2 orders", "3-5 orders", "6-10 orders", "11-20 orders"]
+    assert rates["orders"].sum() == len(orders)
+    assert rates["refunds"].sum() == int(orders["Refund_Requested"].sum())
+    assert rates["refund_rate"].max() < 20, "segment rate is 100% again — denominator regression"
+    assert dict(zip(rates["Volume_Band"], rates["refund_rate"])) == {
+        "1-2 orders": 7.85,
+        "3-5 orders": 7.88,
+        "6-10 orders": 7.96,
+        "11-20 orders": 6.32,
+    }
+
+
+def test_band_rates_keep_global_bands_under_a_city_filter():
+    """A city filter must not move a customer into a smaller volume band."""
+    full = pd.DataFrame({
+        "ID": [1, 2, 3, 4],
+        "Customer_ID": ["A", "A", "A", "B"],
+        "Refund_Requested": [True, False, False, False],
+        "Refund_Amount": [10.0, 0.0, 0.0, 0.0],
+    })
+    scoped = full[full["ID"] == 1]  # A has 1 order in scope, 3 globally
+    rates = band_refund_rates(scoped, band_source=full)
+    a = rates[rates["Volume_Band"] == "3-5 orders"].iloc[0]
+    assert a["orders"] == 1
+    assert a["refund_rate"] == 100.0
 
 
 def test_mom_deltas_present():

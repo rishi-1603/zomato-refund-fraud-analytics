@@ -62,6 +62,37 @@ def band_baselines(customers: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def band_refund_rates(orders: pd.DataFrame, band_source: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Segment refund rate by customer volume band.
+
+    Denominator is ALL orders placed by customers in the band — never the
+    refunded orders alone, which makes every rate 100% by construction.
+    Bands are assigned from `band_source` (pass the unfiltered frame) so a city
+    filter cannot move a customer into a different volume band. Counts stay in
+    the current scope. Bands with no customers are omitted, never filled.
+    """
+    band_map = customer_base(band_source if band_source is not None else orders)[
+        ["Customer_ID", "Volume_Band"]
+    ]
+    scoped = orders.merge(band_map, on="Customer_ID", how="left")
+    out = (
+        scoped.groupby("Volume_Band")
+        .agg(
+            customers=("Customer_ID", "nunique"),
+            orders=("ID", "count"),
+            refunds=("Refund_Requested", "sum"),
+        )
+        .reset_index()
+    )
+    out["refund_rate"] = (out["refunds"] / out["orders"] * 100).round(2)
+    return (
+        out.set_index("Volume_Band")
+        .reindex(BAND_LABELS)
+        .dropna(subset=["refund_rate"])
+        .reset_index()
+    )
+
+
 def _mom(orders: pd.DataFrame) -> dict:
     """Latest month vs previous month, computed from Order_Date (datetime)."""
     out = {
