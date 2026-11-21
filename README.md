@@ -44,7 +44,7 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 
 ## Tech stack
 
-- **Application:** Streamlit (4 pages, sidebar filters, downloads).
+- **Application:** Streamlit (5 pages, sidebar filters, downloads).
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
 - **SQL:** queries in `sql/`, validated against pandas on SQLite; PostgreSQL-oriented files are included for database review.
 - **Testing and CI:** pytest (214 tests) and GitHub Actions.
@@ -70,6 +70,7 @@ Four pages, one set of sidebar filters (city type, customer volume band, last-or
 | Refund Patterns | Where refund value concentrates, how amounts distribute, and how refund rate varies by customer volume band |
 | Risk Review | Why a customer is flagged, how they compare with their volume band, the full review list, and the AI investigation |
 | Operations | Capacity-limited review planning, cost and recovery scenarios, a downloadable decision record, and the deterministic queue copilot |
+| Data & Methodology | Data provenance, validation, KPI formulas, risk methodology and limitations |
 
 ### Executive Overview
 
