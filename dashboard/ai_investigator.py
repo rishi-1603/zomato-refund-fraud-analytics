@@ -172,6 +172,7 @@ CRITICAL RULES (violating any of these is a system failure):
 5. Always include: (a) what the evidence shows, (b) what information is missing, (c) what should be investigated next.
 6. Recommend HUMAN REVIEW for every conclusion. Never recommend automated action (bans, blocks, account restrictions).
 7. The dataset is synthetic (seeded). Mention this caveat when presenting findings.
+8. Currency is Indian Rupees (₹). Always format monetary amounts with the ₹ symbol (e.g., ₹2,096.58), never with $.
 
 STRUCTURE your response as:
 ## Risk Assessment
@@ -249,9 +250,17 @@ def _investigate_with_gemini(customer_id, evidence, api_key):
     import google.genai as genai
     client = genai.Client(api_key=api_key)
     evidence_json = json.dumps(evidence, indent=2, default=str)
-    resp = client.models.generate_content(
-        model=os.environ.get("GEMINI_MODEL", "gemini-3.8-flash"),
-        contents=f"{SYSTEM_PROMPT}\n\nInvestigate customer {customer_id}. Evidence:\n```json\n{evidence_json}\n```\n\nWrite the investigation summary."
-    )
-    return {"ok": True, "evidence": evidence,
-            "explanation": resp.text}
+    prompt = f"{SYSTEM_PROMPT}\n\nInvestigate customer {customer_id}. Evidence:\n```json\n{evidence_json}\n```\n\nWrite the investigation summary."
+    models = [os.environ.get("GEMINI_MODEL", "gemini-3.6-flash"),
+              "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.8-flash"]
+    # de-dupe while preserving order
+    seen = set(); models = [m for m in models if not (m in seen or seen.add(m))]
+    last_err = None
+    for m in models:
+        try:
+            resp = client.models.generate_content(model=m, contents=prompt)
+            return {"ok": True, "evidence": evidence, "explanation": resp.text, "model_used": m}
+        except Exception as e:
+            last_err = e
+            continue
+    raise last_err

@@ -1,0 +1,537 @@
+{
+  "sample": [
+    "CUST02138",
+    "CUST04730",
+    "CUST01859",
+    "CUST06907",
+    "CUST08213",
+    "CUST00845",
+    "CUST00960",
+    "CUST03007",
+    "CUST09526",
+    "CUST07438"
+  ],
+  "results": [
+    {
+      "cid": "CUST02138",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3676
+    },
+    {
+      "cid": "CUST04730",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3845
+    },
+    {
+      "cid": "CUST01859",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3197
+    },
+    {
+      "cid": "CUST06907",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 2904
+    },
+    {
+      "cid": "CUST08213",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3020
+    },
+    {
+      "cid": "CUST00845",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3323
+    },
+    {
+      "cid": "CUST00960",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3178
+    },
+    {
+      "cid": "CUST03007",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3565
+    },
+    {
+      "cid": "CUST09526",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 3784
+    },
+    {
+      "cid": "CUST07438",
+      "passed": true,
+      "checks": [
+        [
+          "ok",
+          true
+        ],
+        [
+          "risk_score",
+          true
+        ],
+        [
+          "refund_rate",
+          true
+        ],
+        [
+          "total_refunds",
+          true
+        ],
+        [
+          "total_orders",
+          true
+        ],
+        [
+          "exposure",
+          true
+        ],
+        [
+          "hist_count",
+          true
+        ],
+        [
+          "hist_exposure",
+          true
+        ],
+        [
+          "explanation_present",
+          true
+        ],
+        [
+          "explanation_mentions_score",
+          true
+        ],
+        [
+          "volume_band",
+          true
+        ]
+      ],
+      "has_expl": true,
+      "expl_len": 2760
+    }
+  ],
+  "n_pass": 10
+}
