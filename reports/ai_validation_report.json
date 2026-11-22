@@ -62,7 +62,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3676
+      "expl_len": 4048
     },
     {
       "cid": "CUST04730",
@@ -114,7 +114,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3845
+      "expl_len": 3200
     },
     {
       "cid": "CUST01859",
@@ -166,7 +166,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3197
+      "expl_len": 2938
     },
     {
       "cid": "CUST06907",
@@ -218,7 +218,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 2904
+      "expl_len": 3151
     },
     {
       "cid": "CUST08213",
@@ -270,7 +270,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3020
+      "expl_len": 2773
     },
     {
       "cid": "CUST00845",
@@ -322,7 +322,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3323
+      "expl_len": 2934
     },
     {
       "cid": "CUST00960",
@@ -374,7 +374,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3178
+      "expl_len": 3783
     },
     {
       "cid": "CUST03007",
@@ -426,7 +426,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3565
+      "expl_len": 2887
     },
     {
       "cid": "CUST09526",
@@ -478,7 +478,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 3784
+      "expl_len": 3487
     },
     {
       "cid": "CUST07438",
@@ -530,7 +530,7 @@
         ]
       ],
       "has_expl": true,
-      "expl_len": 2760
+      "expl_len": 3215
     }
   ],
   "n_pass": 10
