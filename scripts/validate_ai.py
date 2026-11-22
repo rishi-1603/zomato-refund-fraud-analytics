@@ -11,8 +11,10 @@ if not key:
         import tomli as tomllib
     sp = __import__("pathlib").Path(__file__).resolve().parents[1] / ".streamlit" / "secrets.toml"
     if sp.exists():
-        with open(sp, "rb") as f:
-            key = tomllib.load(f).get("GOOGLE_API_KEY", "")
+        raw = sp.read_bytes()
+        if raw.startswith(b"\xef\xbb\xbf"):
+            raw = raw[3:]
+        key = tomllib.loads(raw.decode("utf-8")).get("GOOGLE_API_KEY", "")
 if key:
     os.environ["GOOGLE_API_KEY"] = key
 else:
