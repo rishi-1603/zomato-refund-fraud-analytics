@@ -1133,8 +1133,8 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
         st.markdown(f'<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;">{meters}</div>', unsafe_allow_html=True)
         st.caption(
             "Each bar shows how extreme one score factor is, compared to the 95th percentile "
-            "of flagged customers in the current view. The score is a simple weighted formula — "
-            "full details in docs/risk_scoring_methodology.md."
+            "of flagged customers in the current view (0% = at peer P95, 100% = at or above P95). "
+            "The score is a simple weighted formula — full details in docs/risk_scoring_methodology.md."
         )
     else:
         st.info("No customers match the current filters.")
@@ -1216,11 +1216,18 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
         tbl["Status"] = tbl["Risk_Tier"].map(_status_map)
 
         def _tier_badge(val):
-            if val in ("High", "Investigate first"):
+            # Colorblind-safe: icon + text, not just color
+            if val == "High":
                 return "background: rgba(248, 81, 73,0.13); color: #f85149; font-weight: 700"
-            if val in ("Medium", "Watchlist"):
+            if val == "Medium":
                 return "background: rgba(210, 153, 34,0.12); color: #d29922; font-weight: 700"
-            if val in ("Low", "Routine review"):
+            if val == "Low":
+                return "background: rgba(63, 185, 80,0.12); color: #3fb950; font-weight: 700"
+            if val == "Investigate first":
+                return "background: rgba(248, 81, 73,0.13); color: #f85149; font-weight: 700"
+            if val == "Watchlist":
+                return "background: rgba(210, 153, 34,0.12); color: #d29922; font-weight: 700"
+            if val == "Routine review":
                 return "background: rgba(63, 185, 80,0.12); color: #3fb950; font-weight: 700"
             return "color: #9ca3af"
 
@@ -1253,13 +1260,21 @@ def page_risk_review(all_suspects: pd.DataFrame, filtered: pd.DataFrame):
             filtered["Customer_ID"].tolist() if len(filtered) else [],
             key="ai_inv_customer",
         )
-        if inv_customer and st.button("Run AI Investigation", key="ai_inv_run"):
+        # Cooldown to prevent API hammering
+        cooldown_key = "ai_inv_cooldown"
+        cooldown_seconds = 3
+        last_run = st.session_state.get(cooldown_key, 0)
+        import time as _time
+        can_run = (_time.time() - last_run) >= cooldown_seconds
+        btn_disabled = not can_run or not inv_customer
+        if st.button("Run AI Investigation", key="ai_inv_run", disabled=btn_disabled):
+            st.session_state[cooldown_key] = _time.time()
             try:
                 try:
                     from ai_investigator import investigate_with_llm
                 except ImportError:
                     from dashboard.ai_investigator import investigate_with_llm
-                with st.spinner("Pulling the customer's numbers..."):
+                with st.spinner("Analyzing customer evidence..."):
                     result = investigate_with_llm(inv_customer)
                 if not result.get("ok"):
                     st.error(result.get("error", "Investigation failed."))
@@ -1623,6 +1638,7 @@ def main():
         "Navigation",
         ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"],
         horizontal=True, label_visibility="collapsed", key="Navigation",
+        help="Select a dashboard page to view",
     )
 
     if page == "1. Executive Overview":
