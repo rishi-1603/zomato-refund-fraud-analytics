@@ -1633,24 +1633,14 @@ def main():
         ft_footer()
         return
 
-    # Navigation — tab buttons using session state (initialized early for Streamlit Cloud)
-    nav_items = ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"]
-    
-    # Initialize session state early (critical for Streamlit Cloud)
-    if "nav_page" not in st.session_state:
-        st.session_state.nav_page = 0
-    
-    cols = st.columns(5)
-    for i, item in enumerate(nav_items):
-        with cols[i]:
-            if st.button(item, key=f"nav_{i}", use_container_width=True,
-                         type="primary" if st.session_state.nav_page == i else "secondary"):
-                st.session_state.nav_page = i
-                st.rerun()
-    
-    st.markdown("---")
-    
-    page = nav_items[st.session_state.nav_page]
+    # Navigation — horizontal radio (reliable on Streamlit Cloud)
+    page = st.radio(
+        "Navigation",
+        ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"],
+        horizontal=True,
+        key="Navigation",
+        help="Select a dashboard page to view",
+    )
 
     if page == "1. Executive Overview":
         page_executive(orders_f, suspects_scope, truth, metric_defs)
