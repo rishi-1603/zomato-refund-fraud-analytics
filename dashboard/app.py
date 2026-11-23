@@ -1633,11 +1633,12 @@ def main():
         ft_footer()
         return
 
-    # Navigation — horizontal radio (reliable on Streamlit Cloud)
-    page = st.radio(
+    # Navigation — selectbox (100% reliable on Streamlit Cloud)
+    page = st.selectbox(
         "Navigation",
         ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"],
-        horizontal=True,
+        index=0,
+        label_visibility="collapsed",
         key="Navigation",
         help="Select a dashboard page to view",
     )
