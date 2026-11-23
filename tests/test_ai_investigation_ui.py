@@ -60,7 +60,7 @@ def test_ai_investigation_button_works_in_streamlit_runtime():
         assert not at.exception, f"dashboard raised: {at.exception}"
 
         # Navigate to "3. Customer Risk Review" page where AI investigation lives
-        at.radio(key="Navigation").set_value("3. Customer Risk Review").run()
+        at.selectbox(key="Navigation").set_value("3. Customer Risk Review").run()
         assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 
         # The AI investigation lives in an expander on the Risk Review page
@@ -115,8 +115,8 @@ def test_baseline_section_renders_in_streamlit_runtime():
         assert not any("Baseline normalization unavailable" in t
                        for t in info_texts), info_texts
 
-        # Navigate to "3. Customer Risk Review" page (radio button index 2)
-        at.radio(key="Navigation").set_value("3. Customer Risk Review").run()
+        # Navigate to "3. Customer Risk Review" page (selectbox index 2)
+        at.selectbox(key="Navigation").set_value("3. Customer Risk Review").run()
         assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 
         labels = [m.label for m in at.metric]

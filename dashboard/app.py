@@ -1634,10 +1634,13 @@ def main():
         return
 
     # Navigation
-    page = st.radio(
+    # Use selectbox for reliable navigation on Streamlit Cloud (radio+horizontal has rerender bugs)
+    page = st.selectbox(
         "Navigation",
         ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"],
-        horizontal=True, label_visibility="collapsed", key="Navigation",
+        index=0,
+        label_visibility="collapsed",
+        key="Navigation",
         help="Select a dashboard page to view",
     )
 
