@@ -1633,28 +1633,24 @@ def main():
         ft_footer()
         return
 
-    # Navigation — tab buttons using query params (persists across reloads)
+    # Navigation — tab buttons using session state (initialized early for Streamlit Cloud)
     nav_items = ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"]
     
-    # Get current page from query params, default to 0
-    query_page = st.query_params.get("page", "0")
-    try:
-        current_page = int(query_page)
-    except (ValueError, TypeError):
-        current_page = 0
-    current_page = max(0, min(current_page, len(nav_items) - 1))
+    # Initialize session state early (critical for Streamlit Cloud)
+    if "nav_page" not in st.session_state:
+        st.session_state.nav_page = 0
     
     cols = st.columns(5)
     for i, item in enumerate(nav_items):
         with cols[i]:
             if st.button(item, key=f"nav_{i}", use_container_width=True,
-                         type="primary" if current_page == i else "secondary"):
-                st.query_params["page"] = str(i)
+                         type="primary" if st.session_state.nav_page == i else "secondary"):
+                st.session_state.nav_page = i
                 st.rerun()
     
     st.markdown("---")
     
-    page = nav_items[current_page]
+    page = nav_items[st.session_state.nav_page]
 
     if page == "1. Executive Overview":
         page_executive(orders_f, suspects_scope, truth, metric_defs)
