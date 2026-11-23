@@ -44,8 +44,8 @@ def test_decision_workflow_uses_filtered_queue_and_clears_on_scope_change(monkey
     monkeypatch.delenv('GOOGLE_API_KEY',raising=False)
     app=AppTest.from_file(str(APP)).run(timeout=90)
     assert not app.exception
-    # Navigate to "4. Review Operations" page (selectbox)
-    app.selectbox(key="Navigation").set_value("4. Review Operations").run(timeout=90)
+    # Navigate to "4. Review Operations" page (nav button index 3)
+    app.button(key="nav_3").click().run(timeout=90)
     assert not app.exception
     button(app,'Build review decision').click().run(timeout=90)
     assert not app.exception
@@ -66,8 +66,8 @@ def test_history_add_snapshot_and_followup_are_user_entered(monkeypatch):
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     monkeypatch.delenv('GOOGLE_API_KEY',raising=False)
     app=AppTest.from_file(str(APP)).run(timeout=90)
-    # Navigate to "4. Review Operations" page (selectbox)
-    app.selectbox(key="Navigation").set_value("4. Review Operations").run(timeout=90)
+    # Navigate to "4. Review Operations" page (nav button index 3)
+    app.button(key="nav_3").click().run(timeout=90)
     assert not app.exception
     button(app,'Build review decision').click().run(timeout=90)
     button(app,'Add current snapshot to history').click().run(timeout=90)
@@ -88,8 +88,8 @@ def test_copilot_refuses_out_of_scope_and_clears_after_filter_change(monkeypatch
     monkeypatch.delenv('OPENAI_API_KEY',raising=False)
     monkeypatch.delenv('GOOGLE_API_KEY',raising=False)
     app=AppTest.from_file(str(APP)).run(timeout=90)
-    # Navigate to "4. Review Operations" page (selectbox)
-    app.selectbox(key="Navigation").set_value("4. Review Operations").run(timeout=90)
+    # Navigate to "4. Review Operations" page (nav button index 3)
+    app.button(key="nav_3").click().run(timeout=90)
     assert not app.exception
     app.text_input(key='refund_copilot_question').set_value('How many flagged customers?')
     button(app,'Calculate queue answer').click().run(timeout=90)
