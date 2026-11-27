@@ -27,12 +27,12 @@ Repository: 259 tracked files (~22 MB). Key application files inspected.
 ## dashboard/decision_engine.py, decision_copilot.py, decision_history.py, case_management.py
 - Policy simulation, alert economics, deterministic evidence tool, user-managed JSON decision snapshots, case lifecycle + audit trail
 
-## tests/ (214 tests)
-- test_kpi_engine.py, test_risk_pipeline.py, test_ai_investigator.py, test_ai_investigation_ui.py, test_publication_context.py, test_business_decision_ui.py, test_decision_history.py, test_decision_copilot.py, test_app_paths.py, and others
-- All 214 pass
+## tests/ (220 tests)
+- test_kpi_engine.py, test_risk_pipeline.py, test_ai_investigator.py, test_ai_investigation_ui.py, test_publication_context.py, test_business_decision_ui.py, test_decision_history.py, test_decision_copilot.py, test_app_paths.py, test_excel_workbook.py, and others
+- All 220 pass
 
 ## Scripts (read-only analytics)
-- build_report_pdf.py, render_chart_gallery.py, baseline_normalization.py, pareto_analysis.py, drift_monitor.py, kpi_reconciliation.py, network_analysis.py, sensitivity_analysis.py, alert_economics.py, cohort_analysis.py, external_validation.py, false_positive_analysis.py, investigator_eval.py, model_comparison.py, validate_risk_score.py
+- build_report_pdf.py, build_excel_workbook.py, render_chart_gallery.py, baseline_normalization.py, pareto_analysis.py, drift_monitor.py, kpi_reconciliation.py, network_analysis.py, sensitivity_analysis.py, alert_economics.py, cohort_analysis.py, external_validation.py, false_positive_analysis.py, investigator_eval.py, model_comparison.py, validate_risk_score.py
 - No hardcoded analytical values; all computed from source
 
 ## Configuration

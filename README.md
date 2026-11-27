@@ -44,10 +44,11 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 
 ## Tech stack
 
-- **Application:** Streamlit (5 pages, sidebar filters, downloads).
+- **Application:** Streamlit (5 pages, button-bar navigation, sidebar filters, downloads).
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
+- **Excel:** a formula-driven review workbook generated from the same data (`reports/FoodTrust_Review_Workbook.xlsx`).
 - **SQL:** queries in `sql/`, validated against pandas on SQLite; PostgreSQL-oriented files are included for database review.
-- **Testing and CI:** pytest (214 tests) and GitHub Actions.
+- **Testing and CI:** pytest (220 tests) and GitHub Actions.
 - **Optional:** OpenAI or Gemini for narration. The app runs without any API key.
 
 ## Methodology
@@ -62,31 +63,35 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 
 ## The dashboard
 
-Four pages, one set of sidebar filters (city type, customer volume band, last-order date, risk tier). Every figure is recomputed from the source data for the current filter scope.
+Five pages, one set of sidebar filters (city type, customer volume band, last-order date, risk tier). Use the page bar at the top of the app to switch pages. Every figure is recomputed from the source data for the current filter scope.
 
 | Page | What it answers |
 |---|---|
 | Executive Overview | Headline KPIs, the monthly trend, refund reasons by city, and the top of the review queue |
-| Refund Patterns | Where refund value concentrates, how amounts distribute, and how refund rate varies by customer volume band |
-| Risk Review | Why a customer is flagged, how they compare with their volume band, the full review list, and the AI investigation |
-| Operations | Capacity-limited review planning, cost and recovery scenarios, a downloadable decision record, and the deterministic queue copilot |
+| Refund Analysis | Where refund value concentrates, how amounts distribute, and how refund rate varies by customer volume band |
+| Customer Risk Review | Why a customer is flagged, how they compare with their volume band, the full review list, and the AI investigation |
+| Review Operations | Capacity-limited review planning, cost and recovery scenarios, a downloadable decision record, and the deterministic queue copilot |
 | Data & Methodology | Data provenance, validation, KPI formulas, risk methodology and limitations |
 
 ### Executive Overview
 
 Six KPI cards (orders, refund requests, refund value, accounts flagged for review, potential exposure, average refund) sit above the review queue snapshot, a dual-axis monthly trend, refund reasons, and city mix.
 
-### Refund Patterns
+### Refund Analysis
 
 Concentration metrics and a Pareto/Lorenz view of where refund value sits, refund amount distributions, and refund rate by customer volume band (with the full-history denominator).
 
-### Risk Review
+### Customer Risk Review
 
 Per-customer score explanation against the flagged population, volume-band baseline comparison, the full review list with export, and an optional AI investigation that cites the evidence it used.
 
-### Operations
+### Review Operations
 
 Review-queue planning under an explicit capacity and cost assumption, scenario outputs, a downloadable decision record, and a deterministic question tool over the current queue.
+
+### Excel review workbook
+
+`reports/FoodTrust_Review_Workbook.xlsx` is generated from the same source data. The Orders sheet holds order-level rows, and the KPI, reason, city, tier and daily sheets are live Excel formulas over it (COUNTA, COUNTIF, SUMIF, AVERAGEIF), so every total traces back to the rows behind it. The review queue is filterable, with conditional formatting on score and exposure. Regenerate it with `python scripts/build_excel_workbook.py`; `tests/test_excel_workbook.py` checks the workbook against the KPI engine.
 
 ## Results
 
@@ -140,6 +145,7 @@ python scripts/alert_economics.py
 python scripts/drift_monitor.py
 python scripts/investigator_eval.py
 python scripts/external_validation.py
+python scripts/build_excel_workbook.py
 ```
 
 The dashboard and evidence tools need no API key. Optional narration reads `OPENAI_API_KEY` or `GOOGLE_API_KEY` from environment variables. Keep credentials out of the repository. If the hosted app is asleep or unavailable, see the [local demo guide](docs/DEMO_FALLBACK_GUIDE.md).
@@ -151,7 +157,7 @@ The dashboard and evidence tools need no API key. Optional narration reads `OPEN
 | `dashboard/` | Streamlit app, KPI functions and evidence tools |
 | `data/` | Public delivery inputs, generated refund fields, metric definitions and external reference data |
 | `sql/` | Business queries, volume-band baselines and Pareto analysis |
-| `scripts/` | Reconciliation, validation and analysis scripts |
+| `scripts/` | Reconciliation, validation, analysis and workbook generation |
 | `evals/` | Authored investigator benchmark |
 | `notebooks/` | Data generation, exploration, scoring and database walkthroughs |
 | `tests/` | Data, analytical, dashboard and evidence-tool checks |
@@ -178,4 +184,4 @@ The full list is in [assumptions and limitations](reports/assumptions_and_limita
 
 ## Links
 
-[Assumptions](reports/assumptions_and_limitations.md) · [Rules versus models](reports/model_comparison.md) · [Decision workflow](docs/BUSINESS_VALUE_DECISION_ENGINE.md) · [Problem statement](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Publication audit](docs/FINAL_RELEASE_AUDIT.md) · [Security audit](docs/SECURITY_AUDIT.md)
+[Assumptions](reports/assumptions_and_limitations.md) · [Excel workbook](reports/FoodTrust_Review_Workbook.xlsx) · [Rules versus models](reports/model_comparison.md) · [Decision workflow](docs/BUSINESS_VALUE_DECISION_ENGINE.md) · [Problem statement](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Publication audit](docs/FINAL_RELEASE_AUDIT.md) · [Security audit](docs/SECURITY_AUDIT.md)

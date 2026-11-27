@@ -2,6 +2,8 @@
 
 2026-10-30. PASS applies to the stated workflow, not every combination of inputs. Fresh production screenshots are genuine browser captures.
 
+> **Historical snapshot.** This matrix describes the 2026-10-30 build. The app now has five pages with button-bar navigation: Executive Overview, Refund Analysis, Customer Risk Review, Review Operations, Data & Methodology. See the README for current state.
+
 | Feature | Check | Status / boundary |
 |---|---|---|
 | Four tabs | Overview, Refund Patterns, Investigation, Delivery Context | PASS in browser |

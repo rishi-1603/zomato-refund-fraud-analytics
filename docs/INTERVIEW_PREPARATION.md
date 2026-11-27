@@ -73,8 +73,8 @@ Eligibility applied before baseline; features are behaviour aggregates; labels (
 
 ## F. Dashboard and product
 
-**20. How many tabs and what does each answer?**
-4 pages: Executive Overview, Refund Patterns, Risk Review, Operations. Each has a one-line "what it answers" in the README.
+**20. How many pages and what does each answer?**
+5 pages: Executive Overview, Refund Analysis, Customer Risk Review, Review Operations, Data & Methodology. A button bar at the top switches pages; each has a one-line "what it answers" in the README.
 
 **21. Why Streamlit?**
 Fast to build, supports interactivity, deployable to Streamlit Cloud. Chosen for portfolio reproducibility, not because it is the only option.
@@ -93,7 +93,7 @@ The tool only answers from pre-computed, data-backed facts; it refuses unknown I
 ## H. Testing and engineering
 
 **25. How many tests?**
-206, all passing (`pytest -q`). Cover KPIs, reconciliation, drift, network, cohort, economics, decision engine/UI, investigator, data quality, case management, risk rules.
+220, all passing (`pytest -q`). Cover KPIs, reconciliation, drift, network, cohort, economics, decision engine/UI, investigator, data quality, case management, risk rules, and the Excel workbook.
 
 **26. What is the CI pipeline?**
 GitHub Actions: install deps → validate risk score → run model comparison → run all tests. No private API keys required.

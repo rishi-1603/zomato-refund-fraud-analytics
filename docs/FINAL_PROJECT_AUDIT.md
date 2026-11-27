@@ -1,5 +1,7 @@
 # FoodTrust — Final Project Audit (internal rubric)
 
+**Last verified:** 2026-11-27
+
 **Scorecard** (internal project-quality rubric; not a recruiter score or a top-5% guarantee):
 
 | Evaluation area | Weight | Score | Reason |
@@ -9,10 +11,10 @@
 | SQL and analytics engineering | 15 | 7 | 3 business queries, pandas↔SQL reconciliation (0 mismatches). SQLite-validated; PostgreSQL pass not yet run. |
 | Python and statistical analysis | 10 | 8 | Deterministic pandas KPIs, volume-band baseline, permutation test, PSI, sensitivity grid. |
 | Fraud and risk methodology | 15 | 9 | Transparent weighted score, eligibility rule, uncalibrated disclosure, context rules, null-result reporting. |
-| Dashboard and data storytelling | 10 | 8 | 8 tabs, one filter set, live DQ, downloads, screenshots. `app.py` is large (~86 KB) but core logic extracted. |
+| Dashboard and data storytelling | 10 | 8 | 5 pages with button-bar navigation, one filter set, live DQ, downloads. `app.py` is large (~86 KB) but core logic extracted. |
 | ML and explainability | 10 | 7 | Model comparison (rules vs ML) on planted labels; SHAP not justified (no deployed classifier). Correctly scoped. |
 | AI assistant quality and safety | 5 | 8 | Deterministic evidence tool, 12-case benchmark (6/6 grounded, 6/6 refused). LLM path disclosed as unverified. |
-| Software engineering and testing | 10 | 9 | 206 tests pass; case lifecycle + risk registry + CI; no hardcoded KPIs; no credentials committed. |
+| Software engineering and testing | 10 | 9 | 220 tests pass; case lifecycle + risk registry + CI; no hardcoded KPIs; no credentials committed. |
 | Documentation and presentation | 5 | 9 | 40+ docs, README, metric dictionary, architecture, model card, audit trail. |
 | **Total** | **100** | **82** | |
 
@@ -33,10 +35,10 @@
 - **ML labels defensible?** Planted labels only, disclosed as validation-only; no real fraud claimed.
 - **Risk scores explainable?** Yes — weights published, components shown, methodology doc exists.
 - **Can legitimate customers be distinguished from confirmed abuse?** The score separates volume from pattern; 113/279 flagged customers sit at/below their band's P95. But there are **no confirmed outcomes** in the data, so no real FPR is measurable — documented.
-- **Dashboard tells a coherent business story?** Yes — 8 tabs from overview → reasons → risk → ops → policy → AI → DQ → reports.
+- **Dashboard tells a coherent business story?** Yes — 5 pages from overview → refund analysis → customer risk → review operations → data and methodology.
 - **AI assistant uses real query results?** Deterministic path: yes (12-case benchmark 6/6 grounded, 6/6 refused). LLM path: disclosed as unverified.
 - **Can the project run from a fresh clone?** Yes — `requirements.txt`, venv, `streamlit run dashboard/app.py`, `pytest -q`. Docker optional (Phase C).
-- **Tests passing?** 206/206 (was 188 + 18 new case-management/risk-rule tests).
+- **Tests passing?** 220/220.
 - **Deployment claims verified?** Streamlit Cloud app is live at the documented URL; local Docker not yet tested (Phase C).
 - **Can another analyst reproduce the findings?** Yes — scripts regenerate reports; reconciliation report documents mismatches (zero).
 - **Can I explain every major technology and decision?** Yes — see `docs/INTERVIEW_PREPARATION.md` (30+ questions with honest answers).
