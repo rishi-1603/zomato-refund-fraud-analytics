@@ -1633,8 +1633,9 @@ def main():
         ft_footer()
         return
 
-    # Navigation — tab-style buttons (all 5 visible, click to switch)
-    nav_items = ["1. Executive Overview", "2. Refund Analysis", "3. Customer Risk Review", "4. Review Operations", "5. Data & Methodology"]
+    # Navigation — tab-style buttons (all 5 visible, click to switch).
+    # Labels stay short so they never truncate in a 5-column bar on a laptop.
+    nav_items = ["1 Overview", "2 Refunds", "3 Risk review", "4 Operations", "5 Method"]
     
     # Initialize session state early (critical for Streamlit Cloud)
     if "nav_page" not in st.session_state:
@@ -1650,17 +1651,17 @@ def main():
     
     st.markdown("---")
     
-    page = nav_items[st.session_state.nav_page]
+    page = st.session_state.nav_page
 
-    if page == "1. Executive Overview":
+    if page == 0:
         page_executive(orders_f, suspects_scope, truth, metric_defs)
-    elif page == "2. Refund Analysis":
+    elif page == 1:
         page_refund_patterns(orders_f, suspects_scope, orders)
-    elif page == "3. Customer Risk Review":
+    elif page == 2:
         page_risk_review(suspects_scope, filtered)
-    elif page == "4. Review Operations":
+    elif page == 3:
         page_operations(filtered, city_subset, band_subset, risk_tiers)
-    elif page == "5. Data & Methodology":
+    elif page == 4:
         page_methodology(orders_f, suspects_scope)
 
     ft_footer()

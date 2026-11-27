@@ -17,12 +17,12 @@
 | 8 | Investigation workflow | ✅ Upgraded | `dashboard/case_management.py` (lifecycle + audit trail) + existing queue |
 | 9 | Dashboard | ✅ Complete | 5 pages, one filter set, evidence-first review flow |
 | 10 | AI assistant | ⚠️ Partial | Deterministic tool (12-case benchmark); LLM path disclosed as unverified |
-| 11 | Testing & security | ✅ Complete | 220 tests; no credentials committed; `.env.example` |
+| 11 | Testing & security | ✅ Complete | 222 tests; no credentials committed; `.env.example` |
 | 12 | Documentation & deployment | ⚠️ Partial | Docs added; Streamlit Cloud live; Docker scaffolded (untested) |
 
 ## Tests
 
-- **Total:** 220
+- **Total:** 222
 - **Command:** `pytest -q`
 - **Result:** all pass
 

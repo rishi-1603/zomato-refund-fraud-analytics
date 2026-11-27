@@ -93,7 +93,7 @@ The tool only answers from pre-computed, data-backed facts; it refuses unknown I
 ## H. Testing and engineering
 
 **25. How many tests?**
-220, all passing (`pytest -q`). Cover KPIs, reconciliation, drift, network, cohort, economics, decision engine/UI, investigator, data quality, case management, risk rules, and the Excel workbook.
+222, all passing (`pytest -q`). Cover KPIs, reconciliation, drift, network, cohort, economics, decision engine/UI, investigator, data quality, case management, risk rules, navigation, and the Excel workbook.
 
 **26. What is the CI pipeline?**
 GitHub Actions: install deps → validate risk score → run model comparison → run all tests. No private API keys required.

@@ -14,7 +14,7 @@
 | Dashboard and data storytelling | 10 | 8 | 5 pages with button-bar navigation, one filter set, live DQ, downloads. `app.py` is large (~86 KB) but core logic extracted. |
 | ML and explainability | 10 | 7 | Model comparison (rules vs ML) on planted labels; SHAP not justified (no deployed classifier). Correctly scoped. |
 | AI assistant quality and safety | 5 | 8 | Deterministic evidence tool, 12-case benchmark (6/6 grounded, 6/6 refused). LLM path disclosed as unverified. |
-| Software engineering and testing | 10 | 9 | 220 tests pass; case lifecycle + risk registry + CI; no hardcoded KPIs; no credentials committed. |
+| Software engineering and testing | 10 | 9 | 222 tests pass; case lifecycle + risk registry + CI + nav coverage; no hardcoded KPIs; no credentials committed. |
 | Documentation and presentation | 5 | 9 | 40+ docs, README, metric dictionary, architecture, model card, audit trail. |
 | **Total** | **100** | **82** | |
 
@@ -38,7 +38,7 @@
 - **Dashboard tells a coherent business story?** Yes — 5 pages from overview → refund analysis → customer risk → review operations → data and methodology.
 - **AI assistant uses real query results?** Deterministic path: yes (12-case benchmark 6/6 grounded, 6/6 refused). LLM path: disclosed as unverified.
 - **Can the project run from a fresh clone?** Yes — `requirements.txt`, venv, `streamlit run dashboard/app.py`, `pytest -q`. Docker optional (Phase C).
-- **Tests passing?** 220/220.
+- **Tests passing?** 222/222.
 - **Deployment claims verified?** Streamlit Cloud app is live at the documented URL; local Docker not yet tested (Phase C).
 - **Can another analyst reproduce the findings?** Yes — scripts regenerate reports; reconciliation report documents mismatches (zero).
 - **Can I explain every major technology and decision?** Yes — see `docs/INTERVIEW_PREPARATION.md` (30+ questions with honest answers).

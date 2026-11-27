@@ -26,7 +26,7 @@ dashboard/app.py  (Streamlit, 5 pages)  ←── sidebar filters (city type, vo
    └── dashboard/risk_rules.py          (declarative risk rule registry)
 
 reports/  ←── generated artefacts (reconciliation, drift, sensitivity, external validation, Excel workbook)
-tests/    ←── 220 pytest (KPIs, SQL, drift, network, economics, UI, AI, workbook)
+tests/    ←── 222 pytest (KPIs, SQL, drift, network, economics, UI, AI, workbook)
 docs/     ←── methodology, audits, dictionaries
 ```
 
@@ -54,7 +54,7 @@ docs/     ←── methodology, audits, dictionaries
 | `dashboard/ai_investigator.py` | Optional LLM narration | disclosed as unverified |
 | `sql/` | Business queries mirroring pandas | validated on SQLite |
 | `scripts/` | Reproduction, validation, analysis, workbook generation | 19 scripts |
-| `tests/` | Unit + integration + data quality | 220 tests |
+| `tests/` | Unit + integration + data quality | 222 tests |
 | `docs/` | Methodology, audits, dictionaries | 40+ files |
 
 ## 4. Database posture (Phase A → Phase B)

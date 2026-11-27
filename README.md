@@ -48,7 +48,7 @@ Field-level provenance, generated columns and metric definitions: [data dictiona
 - **Analysis:** pandas, NumPy, scikit-learn (model comparison), Plotly (charts).
 - **Excel:** a formula-driven review workbook generated from the same data (`reports/FoodTrust_Review_Workbook.xlsx`).
 - **SQL:** queries in `sql/`, validated against pandas on SQLite; PostgreSQL-oriented files are included for database review.
-- **Testing and CI:** pytest (220 tests) and GitHub Actions.
+- **Testing and CI:** pytest (222 tests) and GitHub Actions.
 - **Optional:** OpenAI or Gemini for narration. The app runs without any API key.
 
 ## Methodology
