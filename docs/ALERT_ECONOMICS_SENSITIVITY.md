@@ -1,3 +1,5 @@
+> **Scenario note.** The cost and recovery assumptions in this sensitivity study are from an earlier build. The current published model is in `reports/alert_economics.md` and README.md (₹250 review cost, ₹100 false-positive friction, 50% recoverable fraction). Do not combine figures from the two models.
+
 # Alert Economics & Sensitivity Analysis
 **Objective:** Optimize the trade-off between manual investigation costs, customer friction, and fraud exposure recovery.
 

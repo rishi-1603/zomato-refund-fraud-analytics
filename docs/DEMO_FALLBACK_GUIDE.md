@@ -16,13 +16,13 @@ cd zomato-refund-fraud-analytics
 pip install -r requirements.txt
 
 # Launch Streamlit local console
-streamlit run streamlit_app.py
+streamlit run dashboard/app.py
 ```
 The interactive operations triage console will immediately launch on `http://localhost:8501`.
 
 ### Option B: Quick CLI Operations Sizing
 ```bash
-python -m src.risk_engine --summary
+python scripts/validate_risk_score.py
 ```
 
 ### Option C: Inspect Key Methodology Documentation

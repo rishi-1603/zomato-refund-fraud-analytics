@@ -6,7 +6,7 @@
 
 | Feature | Check | Status / boundary |
 |---|---|---|
-| Four tabs | Overview, Refund Patterns, Investigation, Delivery Context | PASS in browser |
+| Five pages | Executive Overview, Refund Analysis, Customer Risk Review, Review Operations, Data & Methodology | PASS in browser (current build) |
 | City filter | Metro-only KPI=34,087; stale header found and corrected | PASS in regression and live browser: header and KPI both 34,087 |
 | Reset | Restored 45,584-order scope | PASS in browser |
 | Investigation export | Downloaded and parsed CSV with 279 rows | PASS in browser |

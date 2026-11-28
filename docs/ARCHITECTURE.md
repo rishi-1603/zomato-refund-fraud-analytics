@@ -79,7 +79,7 @@ docs/     ←── methodology, audits, dictionaries
 
 1. No PostgreSQL runtime (SQLite only) — Phase B.
 2. No dbt project yet — Phase B.
-3. No Dockerfile/docker-compose — Phase C.
+3. Dockerfile and docker-compose.yml exist at the repo root (local run unverified) — Phase C.
 4. No Pandera contracts — Phase B.
 5. No hour-of-day / refund-lifecycle analysis — blocked by source data (order dates only); documented as limitation, optional disclosed synthetic extension in Phase C.
 6. `dashboard/app.py` is ~86 KB — core logic is extracted; further splitting is optional Phase C.

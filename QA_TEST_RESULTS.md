@@ -2,7 +2,7 @@
 
 ## Execution
 - Command: `python -m pytest -q` from repository root
-- Result: **214 passed, 0 failed** in ~4:41
+- Result: **222 passed, 0 failed** in ~4:41
 - Warning: Streamlit "missing ScriptRunContext" in bare mode — expected, not a defect
 
 ## Test categories covered

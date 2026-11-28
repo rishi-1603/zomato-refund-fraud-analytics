@@ -3,7 +3,7 @@
 **Project:** FoodTrust — Food Delivery Fraud, Trust & Marketplace Risk Intelligence (Zomato case study)  
 **Repository:** https://github.com/rishi-1603/zomato-refund-fraud-analytics  
 **Deployed:** https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/  
-**Audit branch:** `final-audit-fixes` (from `main`)  
+**Audit branch:** `main` at commit `8229640`  
 **Audit date:** 22 Nov 2026  
 **Release decision:** **AMBER — CONDITIONALLY READY**  
 
@@ -13,7 +13,7 @@
 
 This is an independent portfolio case study — NOT an official Zomato system. It analyzes 45,584 delivery orders (Feb–Apr 2022, public dataset) with a disclosed synthetic refund layer, builds a rule-based review-priority score over 9,895 customers, flags 279 accounts, benchmarks each against its order-volume peer band (P95), and exposes a 5-page Streamlit dashboard with an evidence-grounded AI investigation copilot.
 
-**The project is largely functional and professionally presented.** All 214 tests pass, every primary KPI independently reconciles to the source data, all 5 pages render locally and on the deployed Streamlit app, and the AI copilot returns grounded, correct explanations (validated on 10 random flagged customers) with a deterministic fallback when the external LLM API is rate-limited.
+**The project is largely functional and professionally presented.** All 222 tests pass, every primary KPI independently reconciles to the source data, all 5 pages render locally and on the deployed Streamlit app, and the AI copilot returns grounded, correct explanations (validated on 10 random flagged customers) with a deterministic fallback when the external LLM API is rate-limited.
 
 **It is not GREEN because:** the AI narration depends on an external Gemini API that is intermittently rate-limited (503). The deterministic evidence panel always renders, but LLM narration is not guaranteed on every click. Per the audit standard, an unverifiable external dependency keeps the project at AMBER until either (a) the API proves stable across repeated runs, or (b) the narration is documented as best-effort optional and the deterministic panel is treated as the primary deliverable.
 
@@ -21,11 +21,11 @@ This is an independent portfolio case study — NOT an official Zomato system. I
 
 ## Scope of verification
 
-- Repository inventory: 259 files (~22 MB); file inventory at `docs/AUDIT_FILE_INVENTORY.txt`
+- Repository inventory: 224 files (~22 MB); file inventory at `docs/AUDIT_FILE_INVENTORY.txt`
 - Red-flag scan (TODO/FIXME/placeholder/mock/hardcoded-secret patterns): **0 hits**
 - Secret pattern scan (PAT/GitHub/Vercel/Gemini keys): **0 hits in tracked files**
 - Primary KPIs recalculated from `data/processed/zomato_with_refunds.csv` — all match
-- Full test suite: **214 passed**
+- Full test suite: **222 passed**
 - Deployed app smoke-tested: all 5 pages render, no exceptions
 
 ## Verified ground-truth KPIs (recalculated from source)
@@ -93,9 +93,9 @@ This is an independent portfolio case study — NOT an official Zomato system. I
 | Data quality & statistical methodology | 10 | 9/10 | DQ checks computed; limitations honest; synthetic layer disclosed |
 | Dashboard UI/UX & visualizations | 15 | 12/15 | 5 pages, dark theme, consistent; minor: AI narration not guaranteed |
 | Code quality & architecture | 10 | 8/10 | Clean modules, tests; some inline HTML in app.py |
-| Testing & functionality | 10 | 10/10 | 214 tests pass; edge cases covered |
+| Testing & functionality | 10 | 10/10 | 222 tests pass; edge cases covered |
 | Security, reliability & deployment | 10 | 9/10 | No secrets; graceful AI fallback; deployed live |
-| README & recruiter presentation | 5 | 4/5 | Professional; screenshots match current version |
+| README & recruiter presentation | 5 | 4/5 | Professional; README has no screenshots; UI verified in browser |
 | **TOTAL** | **100** | **90/100** | |
 
 ## Release decision: AMBER — CONDITIONALLY READY

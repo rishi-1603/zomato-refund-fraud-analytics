@@ -59,7 +59,7 @@ def test_ai_investigation_button_works_in_streamlit_runtime():
         at.run()
         assert not at.exception, f"dashboard raised: {at.exception}"
 
-        # Navigate to "3. Customer Risk Review" page (nav button index 2)
+        # Navigate to "3 Risk review" page (nav button index 2)
         at.button(key="nav_2").click().run()
         assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 
@@ -115,7 +115,7 @@ def test_baseline_section_renders_in_streamlit_runtime():
         assert not any("Baseline normalization unavailable" in t
                        for t in info_texts), info_texts
 
-        # Navigate to "3. Customer Risk Review" page (nav button index 2)
+        # Navigate to "3 Risk review" page (nav button index 2)
         at.button(key="nav_2").click().run()
         assert not at.exception, f"dashboard raised after page switch: {at.exception}"
 

@@ -1,3 +1,5 @@
+> **Historical snapshot.** Numbers here reflect the build at the date recorded below. Current state (2026-11-28): 5-page Streamlit app, 222 passing tests, formula-driven Excel workbook, GitHub Actions CI. Treat README.md at the repo root as the source of truth.
+
 # Publication verification — Food-Delivery Refund Risk & Operations Analytics
 
 Audit date: 2026-10-30. This follow-up supersedes the earlier snapshot that treated PostgreSQL, fresh screenshots and accessibility tooling as wholly unperformed.

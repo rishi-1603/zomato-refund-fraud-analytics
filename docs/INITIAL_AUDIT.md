@@ -1,3 +1,5 @@
+> **Historical snapshot.** Numbers here reflect the build at the date recorded below. Current state (2026-11-28): 5-page Streamlit app, 222 passing tests, formula-driven Excel workbook, GitHub Actions CI. Treat README.md at the repo root as the source of truth.
+
 # FoodTrust — Initial Repository Audit
 
 **Date:** 2026-11-20
@@ -89,7 +91,7 @@ Unusually complete: release gates, security audits, methodology, PSI runbook, UI
 - No credentials committed (checked: `.env.example` only, requirements clean). ✅
 - No dead requirements (6 core deps, all used). ✅
 - `.gitignore` present. ✅
-- No fake screenshots — `docs/screenshots/` and `docs/chart_renders/` match implemented tabs. ✅
+- No fake screenshots — `docs/screenshots/` and `docs/chart_renders/` match implemented pages. ✅
 
 ---
 
@@ -103,7 +105,7 @@ Unusually complete: release gates, security audits, methodology, PSI runbook, UI
 | 4 | Reason abuse/repetition | ✅ Implemented (reason repetition 30% of score) | — |
 | 5 | Eligibility & policy misuse | ✅ Implemented as explicit eligibility rule + policy simulation | — |
 | 6 | Merchant/restaurant quality risk | ⚠️ Partial (restaurant-cell network component; no merchant drill-down page) | B |
-| 7 | Delivery fulfilment disputes | ✅ Operations tab (delivery time, riders, weather, traffic) — real columns from the public dataset | — |
+| 7 | Delivery fulfilment disputes | ✅ Review Operations page (delivery time, riders, weather, traffic) — real columns from the public dataset | — |
 | 8 | Geographic/time hotspots | ⚠️ Partial (city-type comparison; time analysis by order date; no hour-of-day — timestamps absent from source) | B |
 | 9 | Connected entities | ✅ Network check (riders, restaurant cells, drop cells, permutation test) | — |
 | 10 | Operational refund delays | ❌ Gap (no refund lifecycle timestamps in data) | C (documented limitation or synthetic extension) |

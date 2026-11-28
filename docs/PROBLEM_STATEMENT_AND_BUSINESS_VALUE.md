@@ -19,7 +19,7 @@ FoodTrust answers that question end-to-end: measure → compare fairly → rank 
 |---|---|---|
 | Fraud & Risk Operations | Who should we review first, and why exactly? | Risk Review, Explain a flag |
 | Trust & Safety | Is flagged behaviour unusual for this customer's order volume, or just high-volume normality? | Volume-band baseline, Risk Review |
-| Refund & Dispute Ops | Where does refund value concentrate, by reason and customer? | Refund Patterns (Pareto/Lorenz) |
+| Refund & Dispute Ops | Where does refund value concentrate, by reason and customer? | Refund Analysis (Pareto/Lorenz) |
 | Marketplace Ops Managers | Which operating conditions (weather, traffic, riders) associate with refunds? | Refund Patterns — stated null result |
 | Restaurant/Merchant Quality | Do refund patterns cluster around shared restaurant locations or riders? | Network check |
 | Finance / Revenue Assurance | What does each review policy net, and what precision does it need to break even? | Operations, alert economics |
@@ -38,7 +38,7 @@ Honest mapping (details in `INITIAL_AUDIT.md` §4). Statuses: ✅ implemented ·
 | 4 | Refund reason abuse / repetition | ✅ | Reason repetition scoring; Wrong Item (862) and Item Not Received (594) dominate. No reason is treated as proof of fraud. |
 | 5 | Eligibility & policy misuse | ✅ | Explicit, documented eligibility rule (≥5 orders, rate >30%) defines the 279-review pool; policy simulation costs three alternatives. |
 | 6 | Merchant / restaurant quality risk | ⚠️ | Network analysis ranks shared restaurant-cell and rider components by excess refund rate. Merchant drill-down page is a Phase B upgrade. |
-| 7 | Delivery fulfilment & disputes | ✅ | Operations tab uses **real** public-dataset fields: delivery time, rider ratings, weather, traffic, festival, vehicle condition. |
+| 7 | Delivery fulfilment & disputes | ✅ | Review Operations page uses **real** public-dataset fields: delivery time, rider ratings, weather, traffic, festival, vehicle condition. |
 | 8 | Geographic & time hotspots | ⚠️ | City-type comparisons + monthly trends with partial-month suppression. Hour-of-day analysis blocked (no timestamps). |
 | 9 | Repeat entities & connected behaviour | ✅ | Delivery-person permutation test (p = 0.76 → no clustering evidence) — an honest null result, ranked components by excess rate, not size. |
 | 10 | Operational refund delays | ❌ | No refund lifecycle timestamps exist in the source. **Documented limitation.** Optional Phase C: disclosed synthetic event extension. |

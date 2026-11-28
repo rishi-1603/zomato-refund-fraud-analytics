@@ -1,6 +1,6 @@
 # Independent data, SQL and statistical validation
 
-Audit date: 2026-10-30. Calculations below were rebuilt from CSVs without importing project metric functions, then compared with PostgreSQL execution. Reproduction scripts and detailed machine output are included in the external audit evidence pack.
+Audit date: 2026-10-30. Calculations below were rebuilt from CSVs without importing project metric functions, then compared with SQLite execution (PostgreSQL remains pending). Reproduction scripts and detailed machine output are included in the external audit evidence pack.
 
 ## Independent calculations
 ```json

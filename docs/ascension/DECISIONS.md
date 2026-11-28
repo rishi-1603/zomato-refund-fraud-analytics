@@ -1,3 +1,5 @@
+> **Historical snapshot.** Numbers here reflect the build at the date recorded below. Current state (2026-11-28): 5-page Streamlit app, 222 passing tests, formula-driven Excel workbook, GitHub Actions CI. Treat README.md at the repo root as the source of truth.
+
 # Ascension Log — Food-Delivery Refund Risk & Operations Analytics
 
 ## U1 — Fraud-ring network layer (real attributes, honest null result)

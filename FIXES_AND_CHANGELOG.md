@@ -33,14 +33,14 @@
 
 ### Documentation alignment
 - README updated to 5-page structure + project report PDF link.
-- `docs/IMPLEMENTATION_STATUS.md`, `docs/ARCHITECTURE.md`, `docs/INTERVIEW_PREPARATION.md`, `docs/METRIC_DICTIONARY.md`, `docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md` aligned to 5 pages / 214 tests.
+- `docs/IMPLEMENTATION_STATUS.md`, `docs/ARCHITECTURE.md`, `docs/INTERVIEW_PREPARATION.md`, `docs/METRIC_DICTIONARY.md`, `docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md` aligned to 5 pages / 222 tests.
 - Empty 0-byte `reports/fraud_analysis_summary.pdf` removed; replaced by `reports/FoodTrust_Project_Report.pdf` + `scripts/build_report_pdf.py`.
 
 ### Audit package (new)
 - `FINAL_AUDIT_REPORT.md`, `DATA_AND_KPI_VALIDATION.md`, `FILE_BY_FILE_AUDIT.md`, `QA_TEST_RESULTS.md`, `RECRUITER_ASSESSMENT.md`, `FIXES_AND_CHANGELOG.md`, `UI_UX_AUDIT.md`, `docs/AUDIT_FILE_INVENTORY.txt`
 
 ## Tests
-- All 214 tests pass before and after changes.
+- All 222 tests pass before and after changes.
 - `tests/test_ai_investigation_ui.py` and `tests/test_business_decision_ui.py` page labels updated to match new 5-page names.
 
 ## No changes to

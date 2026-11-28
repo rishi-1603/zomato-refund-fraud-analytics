@@ -4,7 +4,7 @@
 
 Given a limited investigation capacity, which flagged customers are selected under the existing score and what might a review policy cost under explicit assumptions?
 
-The **Decision & Value** tab uses the current filtered eligible-customer queue. The existing eligibility rule is at least five orders and a refund rate above 30%; scores are computed on the full source population and are pool-relative, not calibrated fraud probabilities. City, volume band, risk tier and last-order-date filters select **customers**. Their order/refund totals and exposure remain full-history customer aggregates; the date control is not an order-transaction window.
+The **Review Operations** tab uses the current filtered eligible-customer queue. The existing eligibility rule is at least five orders and a refund rate above 30%; scores are computed on the full source population and are pool-relative, not calibrated fraud probabilities. City, volume band, risk tier and last-order-date filters select **customers**. Their order/refund totals and exposure remain full-history customer aggregates; the date control is not an order-transaction window.
 
 ## Scope, controls and calculations
 
@@ -43,7 +43,7 @@ These tests check queue selection, ties, arithmetic, invalid/empty cases, source
 
 ## Decision history and follow-up
 
-The tab now supports adding multiple submitted snapshots to a session history, entering a manually observed metric, unit, optional baseline, date and evidence note, and downloading a bounded versioned JSON history. Re-import explicitly replaces the current session history. Imports and user-entered outcomes are unverified; the difference from a user-supplied baseline is arithmetic only, not a causal effect or verified saving. It is not a server-side, authenticated or multi-user approval system. Do not use real customer identifiers or sensitive notes in these files.
+The page now supports adding multiple submitted snapshots to a session history, entering a manually observed metric, unit, optional baseline, date and evidence note, and downloading a bounded versioned JSON history. Re-import explicitly replaces the current session history. Imports and user-entered outcomes are unverified; the difference from a user-supplied baseline is arithmetic only, not a causal effect or verified saving. It is not a server-side, authenticated or multi-user approval system. Do not use real customer identifiers or sensitive notes in these files.
 
 ## Bounded deterministic question benchmark
 

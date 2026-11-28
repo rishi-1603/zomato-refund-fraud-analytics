@@ -25,7 +25,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Python syntax check (py_compile)
-        run: python -m py_compile dashboard/app.py dashboard/ai_investigator.py dashboard/kpi_engine.py dashboard/risk_rules.py dashboard/decision_engine.py
+        run: python -m compileall -q dashboard scripts tests
 
       - name: Security scan (no secrets in tracked files)
         run: |

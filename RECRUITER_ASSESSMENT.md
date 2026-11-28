@@ -8,7 +8,7 @@ A credible, polished, fully working Data Analyst portfolio project. It solves a 
 2. **Explainable investigation** — "Explain a Flag" + AI copilot show why each account was flagged, with peer comparison and next-step checks.
 3. **Investigation queue** — turnkey review workflow with CSV export and capacity planner.
 4. **Analytical honesty** — synthetic data disclosed, limitations documented, no fraud conclusions, "review priority ≠ guilt" messaging throughout.
-5. **Verified metrics** — every primary KPI independently recalculated and reconciled; 214 tests pass.
+5. **Verified metrics** — every primary KPI independently recalculated and reconciled; 222 tests pass.
 
 ## Interview questions a recruiter may ask (and the project can defend)
 1. Why ≥5 orders and >30% refund rate as the eligibility rule? → Documented in `docs/risk_scoring_methodology.md`; it's a review gate, not a probability.

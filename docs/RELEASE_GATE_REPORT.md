@@ -1,3 +1,5 @@
+> **Historical snapshot.** Numbers here reflect the build at the date recorded below. Current state (2026-11-28): 5-page Streamlit app, 222 passing tests, formula-driven Excel workbook, GitHub Actions CI. Treat README.md at the repo root as the source of truth.
+
 # Release gate report — Zomato refund risk & operations analytics
 
 Applies the release gates from the universal finalization prompt. Status values:
@@ -22,7 +24,7 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 |---|---|---|
 | App starts locally | PASS | Streamlit `AppTest` loads the app with no exceptions. Checked from the repo root and from `/tmp`. Not a browser run. |
 | Dependencies install | PASS | Clean venv from `requirements.txt` in this session |
-| Main workflows function | CONDITIONAL | Load and tab state verified. Filter interactions were not clicked through in a browser. |
+| Main workflows function | CONDITIONAL | Load and page state verified. Filter interactions were not clicked through in a browser. |
 | Critical tests pass | PASS | `pytest`: 188 passed (186 + 2 path regression tests) |
 | No unresolved critical runtime defects | PASS | Default state: 0 exceptions, 0 errors. See defect D1 below (fixed). |
 | Paths work outside developer's machine | PASS | Data paths now resolve from the file location (`tests/test_app_paths.py`). No absolute developer paths in tracked files. |
@@ -35,7 +37,7 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 
 | Gate | Status | Evidence |
 |---|---|---|
-| All main pages load | PASS | 5 tabs, identical to baseline |
+| All main pages load | PASS | 5 pages, identical to baseline |
 | Charts display correctly | UNVERIFIED | No browser in the build environment. Two pie charts were replaced with bars; the rendering has not been seen. |
 | Filters work | CONDITIONAL | Not exercised interactively |
 | KPI values are dynamic | CONDITIONAL | Values were checked at default filters only |
@@ -77,8 +79,8 @@ Overall: **CONDITIONAL for the code. BLOCKED for a public, recruiter-ready relea
 1. Retake the screenshots on the owner's machine from the current app, and update the README gallery. **(BLOCKED item)**
 2. Confirm the Kaggle dataset URL, licence and extraction date, and record them in the README and data dictionary.
 3. Choose and add a `LICENSE` file, if the owner wants one.
-4. Click through every filter and visually check every tab in a browser. Record any defects.
-5. Wake the public Streamlit app and verify all five tabs render. Record the date.
+4. Click through every filter and visually check every page in a browser. Record any defects.
+5. Wake the public Streamlit app and verify all five pages render. Record the date.
 6. Review PR #6 and merge it to `main` only after steps 1–5.
 
 ## Model-comparison regeneration (decision record)

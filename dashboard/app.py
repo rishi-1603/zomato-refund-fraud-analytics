@@ -1,11 +1,12 @@
 """FoodTrust — Zomato Refund Risk & Operations Analytics
 Professional dark-theme BI dashboard matching PDF mockups.
 
-Four analytical pages:
+Five analytical pages:
 1. Executive Overview    — Primary KPIs, trends, review queue snapshot
-2. Refund Patterns       — Concentration, amounts, volume-band context
-3. Risk Review           — Explain a flag, baselines, review list, AI investigation
-4. Operations            — Review prioritization, capacity planning, analyst workflow
+2. Refund Analysis       — Concentration, amounts, volume-band context
+3. Customer Risk Review  — Explain a flag, baselines, review list, AI investigation
+4. Review Operations     — Review prioritization, capacity planning, analyst workflow
+5. Data & Methodology    — Provenance, validation, KPI definitions, limitations
 
 Run: streamlit run dashboard/app.py
 """
@@ -18,6 +19,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
+import hashlib
+import json
 from sklearn.preprocessing import MinMaxScaler
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -655,6 +658,12 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
         (customer_stats["Total_Orders"] >= MIN_ORDERS_THRESHOLD)
         & (customer_stats["Refund_Rate"] > MIN_REFUND_RATE_PCT)
     ].copy()
+    if flagged.empty:
+        for col in ("Reason_Repetition_Rate", "Avg_Reason_Length", "Days_Span",
+                    "Refunds_Per_Day", "Fraud_Risk_Score", "Last_Order_Date", "City"):
+            flagged[col] = pd.Series(dtype="float64")
+        flagged["Risk_Tier"] = pd.Series(dtype="object")
+        return flagged
 
     refund_df = orders[orders["Refund_Requested"] == True].copy()
     refund_df["Reason_Length"] = refund_df["Refund_Reason"].str.len()
@@ -691,14 +700,15 @@ def build_customer_risk_table(orders: pd.DataFrame) -> pd.DataFrame:
     )
     flagged[list(RISK_WEIGHTS)] = flagged[list(RISK_WEIGHTS)].fillna(0)
 
-    scaler = MinMaxScaler(feature_range=(0, 100))
-    scaled = scaler.fit_transform(flagged[list(RISK_WEIGHTS)])
-    scaled_df = pd.DataFrame(scaled, columns=[f"Score_{c}" for c in RISK_WEIGHTS])
-
     flagged = flagged.reset_index(drop=True)
-    flagged["Fraud_Risk_Score"] = sum(
-        scaled_df[f"Score_{col}"] * weight for col, weight in RISK_WEIGHTS.items()
-    ).round(2)
+    flagged["Fraud_Risk_Score"] = 0.0
+    if len(flagged):
+        scaler = MinMaxScaler(feature_range=(0, 100))
+        scaled = scaler.fit_transform(flagged[list(RISK_WEIGHTS)])
+        scaled_df = pd.DataFrame(scaled, columns=[f"Score_{c}" for c in RISK_WEIGHTS])
+        flagged["Fraud_Risk_Score"] = sum(
+            scaled_df[f"Score_{col}"] * weight for col, weight in RISK_WEIGHTS.items()
+        ).round(2)
 
     flagged["Risk_Tier"] = pd.cut(
         flagged["Fraud_Risk_Score"],
@@ -878,13 +888,16 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
             orders[orders["Refund_Requested"] == True]["Refund_Reason"]
             .value_counts().rename_axis("Reason").reset_index(name="count")
         )
-        fig = px.bar(reasons, y="Reason", x="count", orientation="h",
-                     title="Refund reasons, ranked")
-        fig.update_traces(marker_color="#a371f7", text=reasons["count"],
-                          textposition="inside", insidetextanchor="end",
-                          textfont=dict(color="white", size=12))
-        fig.update_layout(**PLOTLY_LAYOUT)
-        left.plotly_chart(fig, width="stretch")
+        if reasons.empty:
+            st.caption("No refunds in the current scope — reason concentration is not computable here.")
+        else:
+            fig = px.bar(reasons, y="Reason", x="count", orientation="h",
+                         title="Refund reasons, ranked")
+            fig.update_traces(marker_color="#a371f7", text=reasons["count"],
+                              textposition="inside", insidetextanchor="end",
+                              textfont=dict(color="white", size=12))
+            fig.update_layout(**PLOTLY_LAYOUT)
+            left.plotly_chart(fig, width="stretch")
 
     with right:
         city = (
@@ -958,8 +971,8 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         st.caption("Behavioural patterns of refund requests in the current scope. Repeat claiming is an investigation signal, not proof of fraud.")
 
     # Key insight banner
-    top_reason = reasons.iloc[0]["Reason"]
-    top_reason_share = reasons.iloc[0]["count"] / reasons["count"].sum() * 100
+    top_reason = reasons.iloc[0]["Reason"] if len(reasons) else "No refunds in scope"
+    top_reason_share = reasons.iloc[0]["count"] / reasons["count"].sum() * 100 if len(reasons) else 0.0
     busiest_month = m.loc[m["orders"].idxmax(), "Order_Date"].strftime("%b %Y")
     n_high_tier = int((suspects["Risk_Tier"] == "High").sum()) if len(suspects) else 0
     st.markdown(
@@ -986,8 +999,9 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
     p1, p2, p3, p4 = st.columns(4)
     n_refunders = int(refunds["Customer_ID"].nunique())
     p1.metric("Total refund exposure", f"₹{total_val:,.0f}")
+    refund_share_pct = (n_refunders / n_cust * 100) if n_cust else 0.0
     p2.metric("Customers with a refund", f"{n_refunders:,}",
-              help=f"{n_refunders:,} of {n_cust:,} customers ({n_refunders / n_cust * 100:.1f}%) "
+              help=f"{n_refunders:,} of {n_cust:,} customers ({refund_share_pct:.1f}%) "
                    f"have at least one refund. The concentration curve ranks all {n_cust:,} customers.")
     p3.metric("Top 10% hold", f"{top10_share:.1f}% of exposure")
     p4.metric("Half of exposure in", f"top {k50:,} customers")
@@ -1018,7 +1032,8 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
     active_days = int(orders["Order_Date"].dt.normalize().nunique())
     r1.metric("Avg refund amount", f"₹{refunds['Refund_Amount'].mean():,.0f}")
     r2.metric("Largest refund", f"₹{refunds['Refund_Amount'].max():,.0f}")
-    r3.metric("Avg refunds per active day", f"{len(refunds) / active_days:,.1f}",
+    avg_refunds_per_day = (len(refunds) / active_days) if active_days else 0.0
+    r3.metric("Avg refunds per active day", f"{avg_refunds_per_day:,.1f}",
               help=f"{len(refunds):,} refunds across {active_days} observed order dates "
                    f"({orders['Order_Date'].min():%d %b} – {orders['Order_Date'].max():%d %b %Y}). "
                    f"No partial-month extrapolation.")
@@ -1058,11 +1073,11 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
 
     # Delivery conditions — a null result worth stating once, not four flat charts
     st.subheader("Delivery conditions do not explain refunds")
+    observed_rate_pct = float((refunds["Refund_Requested"] == True).mean() * 100) if len(refunds) else 0.0
     st.caption(
-        "Refund rate stays between 7.5% and 8.4% across every weather, traffic, order-type "
-        "and festival segment (overall 7.9%) — conditions don't separate refunders from "
-        "non-refunders here. The synthetic refund layer was generated independently of "
-        "delivery conditions, so this is the expected result, not a failed analysis."
+        f"Refund rate observed at {observed_rate_pct:.1f}% in this scope — conditions don't "
+        f"separate refunders from non-refunders here. The synthetic refund layer was generated "
+        f"independently of delivery conditions, so this is the expected result, not a failed analysis."
     )
 
     # Volume-band refund rates
@@ -1083,7 +1098,7 @@ def page_refund_patterns(orders: pd.DataFrame, suspects: pd.DataFrame, all_order
     fig.update_traces(texttemplate="%{text:.1f}%", textposition="outside")
     fig.add_vline(x=float(orders["Refund_Requested"].mean() * 100), line_dash="dash",
                   line_color="#94A3B8", opacity=0.7,
-                  annotation_text="overall 7.9%", annotation_position="top right")
+                  annotation_text=f"overall {float(orders['Refund_Requested'].mean() * 100):.1f}%", annotation_position="top right")
     fig.update_layout(**PLOTLY_LAYOUT, xaxis_title="Refund rate (%)", yaxis_title="Volume band")
     fig.update_coloraxes(showscale=False)
     st.plotly_chart(fig, width="stretch")
@@ -1328,7 +1343,7 @@ def page_operations(filtered: pd.DataFrame, city_subset=None, band_subset=None, 
 
     filter_context = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
                       "risk_tiers": risk_tiers, "last_order_date_range": None}
-    scope_id = str(hash(str(filter_context)))
+    scope_id = hashlib.sha256(json.dumps(filter_context, sort_keys=True, default=str).encode("utf-8")).hexdigest()
     if st.session_state.get("refund_decision_scope") != scope_id:
         st.session_state["refund_decision_scope"] = scope_id
         st.session_state.pop("refund_decision_record", None)
@@ -1391,7 +1406,7 @@ def page_operations(filtered: pd.DataFrame, city_subset=None, band_subset=None, 
     # Deterministic Copilot
     filter_context_copilot = {"city_types": city_subset or None, "customer_volume_bands": band_subset or None,
                       "risk_tiers": risk_tiers, "last_order_date_range": None}
-    scope_id_copilot = str(hash(str(filter_context_copilot)))
+    scope_id_copilot = hashlib.sha256(json.dumps(filter_context_copilot, sort_keys=True, default=str).encode("utf-8")).hexdigest()
     if st.session_state.get("refund_copilot_scope") != scope_id_copilot:
         st.session_state["refund_copilot_scope"] = scope_id_copilot
         st.session_state.pop("refund_copilot_answer", None)

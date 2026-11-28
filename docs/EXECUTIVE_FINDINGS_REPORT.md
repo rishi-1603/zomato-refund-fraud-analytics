@@ -1,3 +1,5 @@
+> **Scenario note.** Figures here reflect an earlier sensitivity build. For the current published cost model and flagged-tier counts, use `reports/alert_economics.md` and README.md. Flags are review priorities, never confirmed fraud.
+
 # Executive Findings & Risk Operations Brief
 **Subject:** Delivery Refund Risk & Queue Sizing  
 **Dataset Scope:** 45,584 Orders | 9,895 Customers | Rs. 9.74L Historical Refund Exposure  
