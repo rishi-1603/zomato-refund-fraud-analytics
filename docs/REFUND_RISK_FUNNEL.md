@@ -1,3 +1,5 @@
+> **Scenario note.** Customer counts follow the current eligibility rule (≥5 orders, refund rate >30%). Monetary figures in the tables are illustrative sizing from an earlier model; for published figures use README.md and `reports/alert_economics.md`.
+
 # Operations Refund Risk Triage Funnel
 **Audit Scope:** 45,584 Food Delivery Transactions | 9,895 Unique Customer Accounts  
 **Financial Exposure:** Rs. 9.74L in Historical Requested Refunds
@@ -10,7 +12,7 @@
 [Stage 1: Ingestion]  9,895 Total Customers Observed
                              │
                              ▼ (Filter: Minimum 3 Orders in Window)
-[Stage 2: Active Pool] 4,120 Active Customers (41.6% of Base)
+[Stage 2: Active Pool] 4,734 Eligible Customers (47.8% of Base)
                              │
                              ▼ (Multi-Signal Risk Heuristic: Refund Rate, Velocity, Reason Skew)
 [Stage 3: Screened Pool] 279 Initial Anomaly Accounts
@@ -36,7 +38,7 @@
 | Funnel Stage | Account Count | Refund Value (Rs.) | % of Total Exposure | Primary Operational Action |
 |---|---|---|---|---|
 | **1. Total Customer Base** | 9,895 | Rs. 9,74,250.00 | 100.0% | Baseline customer tracking |
-| **2. Active Inpatient/Dining Base** | 4,120 | Rs. 8,62,400.00 | 88.5% | Feature generation window |
+| **2. Active Inpatient/Dining Base** | 4,734 | Rs. 8,62,400.00 | 47.8% | Eligibility (>=5 orders) |
 | **3. Multi-Signal Flagged Pool** | 279 | Rs. 3,77,810.00 | 38.78% | Candidate screening |
 | **4. Volume-Band Cleared Normal** | 113 | Rs. 1,12,300.00 | 11.53% | **Whitelisted (Prevent False-Positive Friction)** |
 | **5. Net Outlier Queue** | 166 | Rs. 2,65,510.00 | 27.25% | Ranked by risk severity |

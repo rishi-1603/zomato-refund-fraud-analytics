@@ -1,12 +1,16 @@
 # FoodTrust — Food Delivery Fraud, Trust & Marketplace Risk Intelligence Platform
 
+**Business result:** On 45,584 orders, a 279-customer review pool holds 38.78% of refund value; a capacity-limited 115-customer policy returns the highest modelled net value (₹92,125 vs ₹65,006 for reviewing all 279) under stated cost assumptions.
+
 A trust-and-risk intelligence case study built around one question: **which refund records deserve human review first, what does that review policy cost, and how do we avoid harming legitimate customers while doing it?**
 
 [Open the dashboard](https://zomato-refund-fraud-analytics-3xu24nq5hwbml78hkyirje.streamlit.app/) · [Project report (PDF)](reports/FoodTrust_Project_Report.pdf) · [Problem statement & business value](docs/PROBLEM_STATEMENT_AND_BUSINESS_VALUE.md) · [Metric dictionary](docs/METRIC_DICTIONARY.md) · [Initial audit](docs/INITIAL_AUDIT.md) · [Executive findings](docs/EXECUTIVE_FINDINGS_REPORT.md) · [SQL queries](sql/fraud_queries.sql) · [Data dictionary](data/DATA_DICTIONARY.md)
 
 [![CI](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/rishi-1603/zomato-refund-fraud-analytics/actions/workflows/ci.yml)
 
-> **Data disclosure.** The delivery attributes come from a public dataset (45,584 orders). Customer IDs, refund events, amounts and risk labels are **synthetic and seeded**. No real fraud was detected and no real customer is implicated. FoodTrust is an independent portfolio platform inspired by food-delivery marketplace workflows — not an official Zomato product, with no access to internal Zomato data.
+> **Data disclosure.** Public delivery attributes (45,584 orders); customer IDs, refund events, amounts and labels are seeded synthetic data. No real fraud or real customer is implicated. Independent portfolio case study, not affiliated with Zomato.
+
+**Quickstart:** `pip install -r requirements.txt && streamlit run dashboard/app.py`
 
 ## Overview
 
@@ -14,7 +18,7 @@ An interactive Streamlit dashboard and reproducible Python/SQL analysis that hel
 
 ## The problem
 
-A high refund rate is easy to flag. Deciding whether it is unusual, and worth an analyst's time, is harder. Customers place different numbers of orders, investigations cost time, and a risk score cannot establish intent. A review team therefore needs three things: a fair comparison (rate against customers with similar order volume), a bounded queue, and an honest account of what a policy costs.
+A high refund rate is easy to flag. Deciding whether it is unusual — and worth an analyst's time — is harder: customers place different numbers of orders, investigations cost time, and a score cannot establish intent. So the review team needs a fair comparison against similar-volume customers, a bounded queue, and an honest cost for each policy. In this dataset that means narrowing 279 flagged accounts to a 115-account queue with the best modelled return.
 
 ## What this project does
 

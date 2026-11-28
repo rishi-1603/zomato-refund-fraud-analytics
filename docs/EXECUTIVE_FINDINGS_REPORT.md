@@ -15,7 +15,7 @@ Food delivery platforms balance two competing priorities: preventing exploitativ
 ## 2. Key Analytical Insights
 1. **Pareto Concentration:** Sizing revealed that **279 accounts** accounted for **38.78% (Rs. 3.78L)** of total historical refund exposure.
 2. **False-Positive Volume Trap:** Volume-band analysis proved that **113 of these 279 flagged accounts (40.5%)** exhibited refund rates consistent with normal baseline behavior for their order volume decile.
-3. **Queue Optimization:** Limiting human investigator triage to the top **115 High/Med alerts** captures 74.2% of recoverable exposure while reducing operational review costs by 58.8%.
+3. **Queue Optimization:** Capping human review at the High + Medium tiers (115 accounts) returns the highest modelled net value in the published policy comparison (₹92,125 vs ₹65,006 for all 279 flagged accounts), under stated cost assumptions. These are modelled values, not realised savings.
 
 ---
 

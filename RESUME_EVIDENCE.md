@@ -16,7 +16,7 @@
 | 4 | **Flagged Account Triage** | 279 Accounts (38.78% refund value) | High multi-signal anomaly pool | dashboard/app.py (build_customer_risk_table) | pytest tests/test_kpi_engine.py | tests/test_kpi_engine.py | Heuristic prioritization score; flagged does not equal confirmed fraud. |
 | 5 | **Volume-Band Normalization** | 113 of 279 cleared | Accounts with refund rate <= P95 of order-frequency tier | dashboard/app.py (band_refund_rates) | pytest tests/test_kpi_engine.py | tests/test_kpi_engine.py | High order frequency naturally accumulates more refunds; baseline normalization prevents customer insult. |
 | 6 | **Prioritized Review Alerts** | 115 High/Med Action Alerts | Thresholded review capacity | scripts/alert_economics.py | python scripts/alert_economics.py | tests/ | Selected based on human investigator review capacity. |
-| 7 | **Alert Economics Model** | 70%+ recoverable risk captured | Trade-off: assumed review cost vs fraud prevention | scripts/alert_economics.py | python scripts/alert_economics.py | tests/ | Model is an economic simulation, not actual company audited P&L. |
+| 7 | **Alert Economics Model** | 115 High/Med reviews, ₹92,125 modelled net value | Trade-off: assumed review cost vs fraud prevention | scripts/alert_economics.py | python scripts/alert_economics.py | tests/ | Model is an economic simulation, not realised savings. |
 | 8 | **Drift Monitoring (PSI)** | Weekly Population Stability Index | Feature distributions across 12 weeks | scripts/drift_monitor.py | python scripts/drift_monitor.py | tests/ | PSI threshold < 0.10 indicates stable scoring distribution. |
 | 9 | **Automated CI Footprint** | 222 Passing Tests | Unit, regression, & property-based tests | tests/ directory | python -m pytest | GitHub Actions workflow .github/workflows/ci.yml | Full test execution covers edge cases, boundary conditions, and schema sanity. |
 
@@ -26,7 +26,7 @@
 
 ```
 Observed Customer Population: 9,895 Customers (100.0%)
- └── Filtered by Minimum Activity (>= 3 Orders): 4,120 Active Customers (41.6%)
+ └── Filtered by Eligibility (>= 5 Orders): 4,734 Eligible Customers (47.8%)
       └── Multi-Signal Anomaly Scoring (Refund Rate, Velocity, Reason Skew):
            └── Eligible Anomaly Pool: 279 Accounts (Driving ₹377,891.92 / 38.78% of Total Refund Value)
                 ├── Volume-Band Normalization (<= P95 within order-frequency tier):

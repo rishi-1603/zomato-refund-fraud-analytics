@@ -572,7 +572,7 @@ def ft_header(orders: pd.DataFrame, export_df: pd.DataFrame | None = None) -> No
       font-weight:800;font-size:15px;letter-spacing:.5px;color:#fff;">FT</div>
     <div>
       <div style="font-size:18px;font-weight:800;letter-spacing:-0.2px;color:var(--text);">FoodTrust — Refund Risk & Marketplace Intelligence</div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">Zomato case study — refund patterns, customer comparisons and evidence for human review</div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:1px;">Which refunds deserve review first — 279 ranked, 115 in the recommended queue</div>
     </div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -979,9 +979,9 @@ def page_executive(orders: pd.DataFrame, suspects: pd.DataFrame, truth: pd.DataF
         f"""
 <div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 20px;margin-top:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);">
   <div style="font-size:10px;font-weight:700;letter-spacing:.09em;color:#60a5fa;text-transform:uppercase;">Financial impact & actions — computed from the current scope</div>
-  <div style="font-size:13.5px;line-height:1.55;margin-top:6px;color:#e6edf3;">"{top_reason}" is the most common refund reason ({top_reason_share:.1f}% of all refunds).
-  Busiest month on record: <b>{busiest_month}</b>. Flagged customers ({len(suspects):,} accounts) hold
-  <b>{exposure_share:.1f}%</b> of total refund exposure.</div>
+  <div style="font-size:13.5px;line-height:1.55;margin-top:6px;color:#e6edf3;">Flagged customers ({len(suspects):,} accounts) hold
+  <b>{exposure_share:.1f}%</b> of total refund exposure. The most common refund reason is "{top_reason}"
+  ({top_reason_share:.1f}% of refunds); busiest month: <b>{busiest_month}</b>.</div>
   <div style="font-size:12px;line-height:1.5;margin-top:8px;color:#9ca3af;">Why it matters: exposure is concentrated, not uniform — review effort pointed at the
   flagged list covers the most refund value per account reviewed.</div>
   <div style="font-size:12px;margin-top:10px;color:#e6edf3;"><b>Investigate next:</b> open the Customer Risk Review page and start with the High tier
